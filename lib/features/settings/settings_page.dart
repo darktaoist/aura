@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -11,7 +14,8 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   String _locale = 'ko';
-  String _version = '';
+  // 버전은 pubspec.yaml 과 동기화 — 자동화는 package_info_plus 추가 후 진행
+  static const _version = '1.0.0+1';
 
   static const _localeLabels = {
     'ko': '한국어',
@@ -31,14 +35,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (!mounted) return;
     setState(() {
       _locale = prefs.getString('locale') ?? 'ko';
-      _version = '1.0.0+1';
     });
   }
 
   Future<void> _setLocale(String locale) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('locale', locale);
-    setState(() => _locale = locale);
+    if (mounted) setState(() => _locale = locale);
   }
 
   @override
@@ -81,9 +84,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           const Divider(height: 1),
           // 버전
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('버전'),
+          const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('버전'),
             subtitle: Text(_version),
           ),
         ],
@@ -136,9 +139,40 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     );
-    if (confirm == true && context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('캐시가 삭제되었습니다')));
+
+    if (confirm != true) return;
+
+    int deletedBytes = 0;
+    try {
+      // 임시 디렉토리 삭제
+      final tmpDir = await getTemporaryDirectory();
+      if (tmpDir.existsSync()) {
+        final entities = tmpDir.listSync();
+        for (final entity in entities) {
+          try {
+            if (entity is File) {
+              deletedBytes += await entity.length();
+              await entity.delete();
+            } else if (entity is Directory) {
+              await entity.delete(recursive: true);
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('캐시 삭제 실패: $e')),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      final mb = (deletedBytes / 1024 / 1024).toStringAsFixed(1);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('캐시 삭제 완료 (${mb}MB)')),
+      );
     }
   }
 }
