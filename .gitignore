@@ -48,3 +48,12 @@ app.*.map.json
 *.litertlm
 .env
 **/google-services.json
+
+# Aura 보안 추가
+*.litertlm
+*.task
+google-services.json
+GoogleService-Info.plist
+android/app/src/main/res/values/strings.xml
+.env
+.env.*
