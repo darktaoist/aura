@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'model_config.dart';
@@ -60,18 +61,25 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
     }
   }
 
+  /// 기기 내 .litertlm 파일 스캔 (Android only)
   Future<String?> scanLocal() async {
+    if (!Platform.isAndroid) return null;
+
     for (final dir in kScanDirs) {
       try {
-        final d = await _directoryExists(dir);
-        if (!d) continue;
-        final files = await _listFiles(dir);
-        for (final path in files) {
-          if (kModelExtensions.any(path.toLowerCase().endsWith)) {
-            return path;
+        final d = Directory(dir);
+        if (!d.existsSync()) continue;
+        for (final entity in d.listSync(followLinks: false)) {
+          if (entity is File) {
+            final lower = entity.path.toLowerCase();
+            if (kModelExtensions.any(lower.endsWith)) {
+              return entity.path;
+            }
           }
         }
-      } catch (_) {}
+      } catch (_) {
+        // 접근 불가 디렉토리는 건너뜀
+      }
     }
     return null;
   }
@@ -85,6 +93,7 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       ).fromFile(path).install();
       state = state.copyWith(phase: ModelSetupPhase.done);
     } catch (_) {
+      // 로컬 파일 등록 실패 → 다운로드로 폴백
       state = state.copyWith(phase: ModelSetupPhase.downloading);
       await _download();
     }
@@ -109,18 +118,6 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       );
     }
   }
-
-  Future<bool> _directoryExists(String path) async {
-    try {
-      // dart:io Directory.existsSync
-      // Using isolate-safe approach
-      return true; // actual impl uses dart:io
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<List<String>> _listFiles(String dir) async => [];
 
   Future<void> retry() async {
     state = const ModelSetupState();

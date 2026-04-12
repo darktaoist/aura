@@ -21,15 +21,26 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _init() async {
-    // 최소 스플래시 표시 시간 (로고 보여주기)
-    final futures = await Future.wait([
-      _checkFirstRun(),
-      Future.delayed(const Duration(milliseconds: 1200)),
-    ]);
+    try {
+      final results = await Future.wait([
+        _checkFirstRun(),
+        Future.delayed(const Duration(milliseconds: 1200)),
+      ]);
 
-    if (!mounted) return;
-    final isFirstRun = futures[0] as bool;
-    context.go(isFirstRun ? '/language_select' : '/home');
+      if (!mounted) return;
+
+      // Gemma 모델 미설치 → 모델 셋업 화면으로 이동 (홈과의 루프 방지)
+      if (!FlutterGemma.hasActiveModel()) {
+        context.go('/model_setup');
+        return;
+      }
+
+      final isFirstRun = results[0] as bool;
+      context.go(isFirstRun ? '/language_select' : '/home');
+    } catch (e) {
+      // SharedPreferences 오류 등 — 안전하게 홈으로 이동
+      if (mounted) context.go('/home');
+    }
   }
 
   Future<bool> _checkFirstRun() async {
@@ -45,7 +56,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 로고 영역
             ShaderMask(
               shaderCallback: (bounds) =>
                   AppColors.brandGradient.createShader(bounds),
@@ -74,7 +84,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                   ),
             ),
             const SizedBox(height: AppSpacing.xxl),

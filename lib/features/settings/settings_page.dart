@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../core/theme/app_colors.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -31,9 +28,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _locale = prefs.getString('locale') ?? 'ko';
-      _version = '1.0.0';
+      _version = '1.0.0+1';
     });
   }
 

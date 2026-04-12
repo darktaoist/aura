@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/gemma/prompt_builder.dart';
 import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/landmark_result.dart';
+import '../../../domain/entities/reading.dart';
 
 part 'face_result_notifier.g.dart';
 
@@ -29,58 +30,79 @@ class FaceResultState {
     bool? isStreaming,
     bool? isSaving,
     String? error,
+    bool clearError = false,
   }) =>
       FaceResultState(
         fullText: fullText ?? this.fullText,
         isStreaming: isStreaming ?? this.isStreaming,
         isSaving: isSaving ?? this.isSaving,
-        error: error ?? this.error,
+        error: clearError ? null : error ?? this.error,
       );
 }
 
 @riverpod
 class FaceResultNotifier extends _$FaceResultNotifier {
+  InferenceChat? _chat;
+
   @override
-  FaceResultState build() => const FaceResultState();
+  FaceResultState build() {
+    ref.onDispose(_closeChat);
+    return const FaceResultState();
+  }
 
   Future<void> analyze({
     required FaceLandmarkResult result,
     required String locale,
     List<String> ragChunks = const [],
   }) async {
-    state = state.copyWith(isStreaming: true, fullText: '');
+    state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
-    final model = await FlutterGemma.getActiveModel(
-      maxTokens: AppConst.gemmaMaxTokens,
-    );
+    try {
+      // 이전 chat 세션 해제 (fresh session 보장)
+      _closeChat();
 
-    final systemInstruction =
-        kLongFormSystemPrompts[locale] ?? kLongFormSystemPrompts['ko']!;
+      final model = await FlutterGemma.getActiveModel(
+        maxTokens: AppConst.gemmaMaxTokens,
+      );
 
-    final chat = await model.createChat(
-      modelType: ModelType.gemmaIt,
-      systemInstruction: systemInstruction,
-      temperature: AppConst.gemmaTemp,
-      topK: AppConst.gemmaTopK,
-    );
+      final systemInstruction =
+          kLongFormSystemPrompts[locale] ?? kLongFormSystemPrompts['ko']!;
 
-    final prompt = PromptBuilder.buildLongFormPrompt(
-      result: result,
-      locale: locale,
-      ragChunks: ragChunks,
-    );
+      _chat = await model.createChat(  // returns InferenceChat
+        modelType: ModelType.gemmaIt,
+        systemInstruction: systemInstruction,
+        temperature: AppConst.gemmaTemp,
+        topK: AppConst.gemmaTopK,
+      );
 
-    await chat.addQueryChunk(Message(text: prompt, isUser: true));
+      final prompt = PromptBuilder.buildLongFormPrompt(
+        result: result,
+        locale: locale,
+        ragChunks: ragChunks,
+      );
 
-    final buffer = StringBuffer();
-    await for (final response in chat.generateChatResponseAsync()) {
-      if (response is TextResponse) {
-        buffer.write(response.token);
-        state = state.copyWith(fullText: buffer.toString());
+      await _chat!.addQueryChunk(Message(text: prompt, isUser: true));
+
+      final buffer = StringBuffer();
+      await for (final response in _chat!.generateChatResponseAsync()) {
+        if (response is TextResponse) {
+          buffer.write(response.token);
+          state = state.copyWith(fullText: buffer.toString());
+        }
       }
-    }
 
-    state = state.copyWith(isStreaming: false);
+      state = state.copyWith(isStreaming: false);
+    } catch (e) {
+      debugPrint('[FaceResultNotifier] analyze error: $e');
+      state = state.copyWith(isStreaming: false, error: e.toString());
+    } finally {
+      _closeChat();
+    }
+  }
+
+  void _closeChat() {
+    // InferenceChat은 별도 close API 없음 — 참조 해제로 GC 유도
+    _chat = null;
   }
 
   Future<bool> saveReading({

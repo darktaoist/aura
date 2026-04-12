@@ -31,5 +31,8 @@ class LandmarkPairs {
   static const int mouthRight     = 291;
   static const int leftBrowInner  = 107;
 
+  /// 파생 지표 계산에 필요한 최소 랜드마크 수 (MediaPipe 전체 468개)
+  static const int requiredSize = 468;
+
   LandmarkPairs._();
 }

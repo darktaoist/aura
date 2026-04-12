@@ -51,7 +51,7 @@ class _AuthPageState extends State<AuthPage> {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.6),
+                          .withValues(alpha: 0.6),
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -85,7 +85,7 @@ class _AuthPageState extends State<AuthPage> {
                 child: Text(
                   '건너뛰기',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ),

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,7 +11,7 @@ import 'supabase_client.dart';
 part 'reading_repository.g.dart';
 
 @riverpod
-ReadingRepository readingRepository(ReadingRepositoryRef ref) =>
+ReadingRepository readingRepository(Ref ref) =>
     ReadingRepository(ref.watch(supabaseClientProvider));
 
 class ReadingRepository {
@@ -27,6 +25,14 @@ class ReadingRepository {
     required String userId,
     required Uint8List imageBytes,
   }) async {
+    // JPEG 매직 바이트 검증 (FF D8 FF)
+    if (imageBytes.length < 3 ||
+        imageBytes[0] != 0xFF ||
+        imageBytes[1] != 0xD8 ||
+        imageBytes[2] != 0xFF) {
+      throw ArgumentError('imageBytes는 유효한 JPEG 데이터여야 합니다');
+    }
+
     final fileName = '${_uuid.v4()}.jpg';
     final path = '$userId/$fileName';
 

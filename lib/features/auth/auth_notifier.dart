@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,8 +5,9 @@ import '../../data/supabase/auth_repository.dart';
 
 part 'auth_notifier.g.dart';
 
-class AuthState {
-  const AuthState({this.user, this.isLoading = false, this.error});
+/// supabase_flutter.AuthState 와 이름 충돌을 피하기 위해 AuthUiState 사용
+class AuthUiState {
+  const AuthUiState({this.user, this.isLoading = false, this.error});
 
   final User? user;
   final bool isLoading;
@@ -15,14 +15,14 @@ class AuthState {
 
   bool get isLoggedIn => user != null;
 
-  AuthState copyWith({
+  AuthUiState copyWith({
     User? user,
     bool? isLoading,
     String? error,
     bool clearUser = false,
     bool clearError = false,
   }) =>
-      AuthState(
+      AuthUiState(
         user: clearUser ? null : user ?? this.user,
         isLoading: isLoading ?? this.isLoading,
         error: clearError ? null : error ?? this.error,
@@ -32,21 +32,31 @@ class AuthState {
 @riverpod
 class AuthNotifier extends _$AuthNotifier {
   @override
-  AuthState build() {
-    // Supabase 인증 상태 변화 구독
+  AuthUiState build() {
     final repo = ref.watch(authRepositoryProvider);
-    repo.authStateChanges.listen((event) {
-      if (state.user?.id != event.session?.user.id) {
-        state = state.copyWith(user: event.session?.user, clearError: true);
-      }
+
+    // authStateChanges 구독 — ref.onDispose로 반드시 해제
+    final sub = repo.authStateChanges.listen((event) {
+      // tokenRefreshed 이벤트는 user 변경 없으므로 무시
+      if (event.event == AuthChangeEvent.tokenRefreshed) return;
+
+      state = state.copyWith(
+        user: event.session?.user,
+        clearUser: event.session == null,
+        clearError: true,
+        isLoading: false, // 어떤 auth 이벤트든 로딩 종료
+      );
     });
-    return AuthState(user: repo.currentUser);
+    ref.onDispose(sub.cancel);
+
+    return AuthUiState(user: repo.currentUser);
   }
 
   Future<void> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await ref.read(authRepositoryProvider).signInWithGoogle();
+      // 세션은 authStateChanges 리스너에서 수신 → isLoading 자동 해제
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -56,10 +66,7 @@ class AuthNotifier extends _$AuthNotifier {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await ref.read(authRepositoryProvider).signInWithKakao();
-      state = state.copyWith(
-        isLoading: false,
-        user: ref.read(authRepositoryProvider).currentUser,
-      );
+      // authStateChanges 리스너에서 user 설정 및 isLoading 해제
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -67,14 +74,14 @@ class AuthNotifier extends _$AuthNotifier {
 
   Future<void> signOut() async {
     await ref.read(authRepositoryProvider).signOut();
-    state = const AuthState();
+    state = const AuthUiState();
   }
 
   Future<void> deleteAccount() async {
     state = state.copyWith(isLoading: true);
     try {
       await ref.read(authRepositoryProvider).deleteAccount();
-      state = const AuthState();
+      state = const AuthUiState();
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

@@ -134,7 +134,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   Widget _buildBody() {
     switch (_phase) {
       case _Phase.scanning:
-        return _StatusTile(
+        return const _StatusTile(
           icon: Icons.search,
           title: '기기 확인 중...',
           subtitle: '설치된 AI 모델을 찾고 있습니다',
@@ -197,9 +197,9 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.redAccent, size: 40),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               '다운로드 실패',
-              style: const TextStyle(
+              style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold),

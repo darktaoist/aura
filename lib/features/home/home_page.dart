@@ -1,38 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../core/theme/app_colors.dart';
+import '../model_setup/model_config.dart';
 import '../model_setup/model_setup_notifier.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  bool _modelReady = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkModel();
-  }
-
-  Future<void> _checkModel() async {
-    final ready = FlutterGemma.hasActiveModel();
-    if (!ready && mounted) {
-      // 모델 설치 화면으로
-      context.go('/splash'); // splash가 재라우팅 처리
-    }
-    setState(() => _modelReady = ready);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final setupState = ref.watch(modelSetupNotifierProvider);
 
     return Scaffold(
@@ -74,7 +51,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (setupState.isDownloading)
             _ModelDownloadBanner(
               progress: setupState.progress,
-              modelSizeGb: 2.5,
+              modelSizeGb: kDefaultModel.sizeGb,
             ),
         ],
       ),
@@ -146,7 +123,6 @@ class _ReadingCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: [
-              // 그라데이션 아이콘 박스
               Container(
                 width: 56,
                 height: 56,
@@ -169,7 +145,7 @@ class _ReadingCard extends StatelessWidget {
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: cs.onSurface.withOpacity(0.6),
+                            color: cs.onSurface.withValues(alpha: 0.6),
                           ),
                     ),
                   ],
@@ -244,7 +220,7 @@ class _ModelDownloadBanner extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                   ),
             ),
           ),

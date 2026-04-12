@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../data/gemma/gemma_service.dart';
+import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/landmark_result.dart';
+import 'face_result_notifier.dart';
 import 'widgets/reading_section_card.dart';
 
-/// 결과화면용 섹션 정의
 const _kSections = [
   (key: 'forehead', label: '이마',  icon: Icons.person_outline),
   (key: 'eyes',     label: '눈',    icon: Icons.visibility_outlined),
@@ -27,45 +28,72 @@ class FaceResultPage extends ConsumerStatefulWidget {
 }
 
 class _FaceResultPageState extends ConsumerState<FaceResultPage> {
-  final GemmaService _gemma = GemmaService._getInstance();
+  // _sections 메모이제이션
+  String _lastParsedText = '';
+  Map<String, String> _cachedSections = {};
 
-  String _fullText = '';
-  bool _isStreaming = true;
-  String _locale = 'ko';
-
-  /// 섹션별 파싱된 텍스트
-  Map<String, String> get _sections => _parseSections(_fullText);
+  Map<String, String> _sections(String text) {
+    if (text == _lastParsedText) return _cachedSections;
+    _lastParsedText = text;
+    _cachedSections = _parseSections(text);
+    return _cachedSections;
+  }
 
   @override
   void initState() {
     super.initState();
-    _startAnalysis();
+    _loadLocaleAndAnalyze();
   }
 
-  Future<void> _startAnalysis() async {
-    final buffer = StringBuffer();
-    await for (final token in _gemma.analyzeLongForm(
-      result: widget.result,
-      locale: _locale,
-    )) {
-      buffer.write(token);
-      if (mounted) setState(() => _fullText = buffer.toString());
+  Future<void> _loadLocaleAndAnalyze() async {
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString('locale') ?? 'ko';
+
+    if (!mounted) return;
+
+    // RAG 검색 (실패 시 빈 목록으로 폴백 — 분석 자체는 항상 진행)
+    List<String> ragChunks = [];
+    try {
+      ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
+        type: 'face',
+        queryEmbedding: _buildQueryEmbedding(),
+      );
+    } catch (e) {
+      debugPrint('[FaceResultPage] RAG search failed (non-fatal): $e');
     }
-    if (mounted) setState(() => _isStreaming = false);
+
+    if (!mounted) return;
+
+    ref.read(faceResultNotifierProvider.notifier).analyze(
+          result: widget.result,
+          locale: locale,
+          ragChunks: ragChunks,
+        );
   }
 
-  // ## 섹션명 패턴으로 파싱
+  /// 랜드마크 기반 간단 쿼리 임베딩 (placeholder — v1.1에서 MiniLM으로 교체)
+  /// 현재는 특이점 값들의 정규화된 배열을 임베딩 대신 전송
+  List<double> _buildQueryEmbedding() {
+    final f = widget.result.features;
+    // 768차원 zero-padded (실제 임베딩 미구현 단계)
+    final base = [
+      f.eyeSpan, f.faceHeight, f.noseRatio,
+      f.mouthWidth, f.symmetry, f.foreheadHeight, f.eyebrowDistance,
+    ];
+    return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
+  }
+
   Map<String, String> _parseSections(String text) {
     final Map<String, String> result = {};
     if (text.isEmpty) return result;
 
     final patterns = {
-      'forehead': RegExp(r'##\s*(이마|Forehead|額|额头)(.*?)(?=##|$)', dotAll: true, caseSensitive: false),
-      'eyes':     RegExp(r'##\s*(눈|Eyes|目|眼睛)(.*?)(?=##|$)',      dotAll: true, caseSensitive: false),
-      'nose':     RegExp(r'##\s*(코|Nose|鼻|鼻子)(.*?)(?=##|$)',      dotAll: true, caseSensitive: false),
-      'mouth':    RegExp(r'##\s*(입|Mouth|口|嘴巴)(.*?)(?=##|$)',     dotAll: true, caseSensitive: false),
-      'chin':     RegExp(r'##\s*(턱|Chin|顎|下巴)(.*?)(?=##|$)',     dotAll: true, caseSensitive: false),
-      'overall':  RegExp(r'##\s*(종합|Overall|総合|综合)(.*?)(?=##|$)', dotAll: true, caseSensitive: false),
+      'forehead': RegExp(r'^##\s*(이마|Forehead|額|额头)(.*?)(?=^##|$)',  multiLine: true, dotAll: true, caseSensitive: false),
+      'eyes':     RegExp(r'^##\s*(눈|Eyes|目|眼睛)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
+      'nose':     RegExp(r'^##\s*(코|Nose|鼻|鼻子)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
+      'mouth':    RegExp(r'^##\s*(입|Mouth|口|嘴巴)(.*?)(?=^##|$)',       multiLine: true, dotAll: true, caseSensitive: false),
+      'chin':     RegExp(r'^##\s*(턱|Chin|顎|下巴)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
+      'overall':  RegExp(r'^##\s*(종합|Overall|総合|综合)(.*?)(?=^##|$)',  multiLine: true, dotAll: true, caseSensitive: false),
     };
 
     for (final entry in patterns.entries) {
@@ -75,35 +103,37 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       }
     }
 
-    // 섹션 파싱 전 스트리밍 중이면 전체 텍스트를 overall에
-    if (result.isEmpty && _isStreaming) {
-      result['overall'] = text;
-    }
-
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    final notifierState = ref.watch(faceResultNotifierProvider);
+    final isStreaming = notifierState.isStreaming;
+    final fullText = notifierState.fullText;
+    final error = notifierState.error;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('관상 분석 결과'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save_outlined),
-            onPressed: () => _onSave(context),
+            onPressed: isStreaming ? null : () => _onSave(context),
             tooltip: '저장',
           ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
-            onPressed: _isStreaming ? null : _onShare,
+            onPressed: isStreaming ? null : _onShare,
             tooltip: '공유',
           ),
         ],
       ),
-      body: _isStreaming && _fullText.isEmpty
-          ? _buildLoading()
-          : _buildContent(context),
+      body: error != null
+          ? _buildError(error)
+          : isStreaming && fullText.isEmpty
+              ? _buildLoading()
+              : _buildContent(context, fullText, isStreaming),
     );
   }
 
@@ -117,10 +147,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
             child: const Icon(Icons.auto_awesome, size: 48, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            '관상 분석 중...',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          Text('관상 분석 중...', style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: AppSpacing.md),
           const CircularProgressIndicator(),
         ],
@@ -128,17 +155,46 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    final sections = _sections;
+  Widget _buildError(String errorMsg) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+            const SizedBox(height: AppSpacing.md),
+            const Text('분석 중 오류가 발생했습니다',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppSpacing.sm),
+            Text(errorMsg,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: () {
+                ref.invalidate(faceResultNotifierProvider);
+                _loadLocaleAndAnalyze();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, String fullText, bool isStreaming) {
+    final sections = _sections(fullText);
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       children: [
-        // 스트리밍 중 섹션 파싱 전: 전체 텍스트 카드
-        if (sections.isEmpty && _isStreaming)
+        if (sections.isEmpty && isStreaming)
           ReadingSectionCard(
             title: '분석 중...',
-            content: _fullText,
+            content: fullText,
             icon: Icons.auto_awesome,
             isStreaming: true,
           )
@@ -146,17 +202,14 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
           ..._kSections.map((s) {
             final text = sections[s.key] ?? '';
             if (text.isEmpty) return const SizedBox.shrink();
-            final isLastSection =
-                s.key == 'overall' && _isStreaming;
             return ReadingSectionCard(
               title: s.label,
               content: text,
               icon: s.icon,
-              isStreaming: isLastSection,
+              isStreaming: s.key == 'overall' && isStreaming,
             );
           }),
         const SizedBox(height: AppSpacing.xl),
-        // 하단 액션 버튼
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Row(
@@ -171,7 +224,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: _isStreaming ? null : () => _onSave(context),
+                  onPressed: isStreaming ? null : () => _onSave(context),
                   icon: const Icon(Icons.bookmark_outline),
                   label: const Text('저장'),
                 ),
@@ -185,20 +238,10 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   }
 
   void _onSave(BuildContext context) {
-    // TODO Phase 7: 로그인 확인 후 Supabase 저장
     context.push('/auth?from=save');
   }
 
   void _onShare() {
     // TODO Phase 7: 공유 기능
-  }
-}
-
-// GemmaService 싱글톤 임시 접근자 (Phase 7에서 Riverpod provider로 교체)
-extension on GemmaService {
-  static GemmaService? _instance;
-  static GemmaService _getInstance() {
-    // 실제로는 riverpod provider에서 관리
-    return GemmaService._();
   }
 }

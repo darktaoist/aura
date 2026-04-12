@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,13 +21,19 @@ import '../../features/terms/terms_page.dart';
 part 'app_router.g.dart';
 
 @riverpod
-GoRouter appRouter(AppRouterRef ref) {
+GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: '/splash',
     routes: [
       GoRoute(
         path: '/splash',
         builder: (_, __) => const SplashPage(),
+      ),
+      GoRoute(
+        path: '/model_setup',
+        builder: (context, __) => ModelSetupScreen(
+          onComplete: () => GoRouter.of(context).go('/home'),
+        ),
       ),
       GoRoute(
         path: '/language_select',
@@ -50,8 +57,25 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: '/face/result',
         builder: (context, state) {
-          final result = state.extra as FaceLandmarkResult;
-          return FaceResultPage(result: result);
+          // extra가 없거나 잘못된 타입이면 카메라로 돌아감
+          if (state.extra is! FaceLandmarkResult) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('분석 데이터가 없습니다'),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => GoRouter.of(context).go('/face/camera'),
+                      child: const Text('다시 촬영'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          return FaceResultPage(result: state.extra! as FaceLandmarkResult);
         },
       ),
       GoRoute(

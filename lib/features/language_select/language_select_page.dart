@@ -48,7 +48,7 @@ class LanguageSelectPage extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge
-                    ?.copyWith(color: cs.onSurface.withOpacity(0.7)),
+                    ?.copyWith(color: cs.onSurface.withValues(alpha: 0.7)),
               ),
               const SizedBox(height: AppSpacing.xl),
               ...(_languages.map(
