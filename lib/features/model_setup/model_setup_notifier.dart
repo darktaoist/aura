@@ -10,6 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'model_config.dart';
+import 'model_selector.dart';
 
 part 'model_setup_notifier.g.dart';
 
@@ -21,12 +22,15 @@ class ModelSetupState {
     this.progress = 0,
     this.errorMessage,
     this.foundLocalPath,
+    this.selectedModel,
   });
 
   final ModelSetupPhase phase;
   final int progress;
   final String? errorMessage;
   final String? foundLocalPath;
+  /// 다운로드 대상으로 선택된 모델 (null = 아직 선택 전)
+  final GemmaModelConfig? selectedModel;
 
   bool get isDone => phase == ModelSetupPhase.done;
   bool get isError => phase == ModelSetupPhase.error;
@@ -37,12 +41,14 @@ class ModelSetupState {
     int? progress,
     String? errorMessage,
     String? foundLocalPath,
+    GemmaModelConfig? selectedModel,
   }) =>
       ModelSetupState(
         phase: phase ?? this.phase,
         progress: progress ?? this.progress,
         errorMessage: errorMessage ?? this.errorMessage,
         foundLocalPath: foundLocalPath ?? this.foundLocalPath,
+        selectedModel: selectedModel ?? this.selectedModel,
       );
 }
 
@@ -54,7 +60,13 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
   Future<void> start() async {
     state = state.copyWith(phase: ModelSetupPhase.scanning);
 
-    final localPath = await scanLocal();
+    final results = await Future.wait([scanLocal(), selectModel()]);
+    final localPath = results[0] as String?;
+    final model = results[1] as GemmaModelConfig;
+    debugPrint('[ModelSetupNotifier] 선택된 모델: ${model.name}');
+
+    state = state.copyWith(selectedModel: model);
+
     if (localPath != null) {
       state = state.copyWith(
         phase: ModelSetupPhase.registering,
@@ -63,7 +75,7 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       await _registerFile(localPath);
     } else {
       state = state.copyWith(phase: ModelSetupPhase.downloading);
-      await _download();
+      await _download(model);
     }
   }
 
@@ -97,17 +109,18 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       ).fromFile(path).install();
       state = state.copyWith(phase: ModelSetupPhase.done);
     } catch (_) {
+      final model = state.selectedModel ?? kDefaultModel;
       state = state.copyWith(phase: ModelSetupPhase.downloading);
-      await _download();
+      await _download(model);
     }
   }
 
   /// Range 요청 기반 재개 다운로드 + SHA-256 검증.
-  Future<void> _download({int attempt = 0}) async {
+  Future<void> _download(GemmaModelConfig model, {int attempt = 0}) async {
     String? savePath;
     try {
       final appDoc = await getApplicationDocumentsDirectory();
-      savePath = '${appDoc.path}/${kDefaultModel.fileName}';
+      savePath = '${appDoc.path}/${model.fileName}';
 
       final file = File(savePath);
       final existingSize = file.existsSync() ? file.lengthSync() : 0;
@@ -119,7 +132,7 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       };
 
       final resp = await dio.get<ResponseBody>(
-        kDefaultModel.downloadUrl,
+        model.downloadUrl,
         options: Options(
           responseType: ResponseType.stream,
           headers: headers,
@@ -137,7 +150,7 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       final startFrom = isPartial ? existingSize : 0;
       final total = contentLength > 0
           ? startFrom + contentLength
-          : kDefaultModel.expectedBytes;
+          : model.expectedBytes;
       int received = startFrom;
 
       final raf = await file.open(
@@ -158,26 +171,26 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
         await raf.close();
       }
 
-      if (!await isValidModelContent(file, expectedBytes: kDefaultModel.expectedBytes)) {
+      if (!await isValidModelContent(file, expectedBytes: model.expectedBytes)) {
         await file.delete();
         throw Exception('다운로드된 파일이 유효하지 않습니다 (크기 부족).');
       }
 
-      final hashOk = await _verifySha256(file);
+      final hashOk = await _verifySha256(file, model);
       if (!hashOk) {
         await file.delete();
         if (attempt == 0) {
           debugPrint('[ModelSetupNotifier] 해시 불일치 → 재시도');
           state = state.copyWith(progress: 0);
-          await _download(attempt: 1);
+          await _download(model, attempt: 1);
           return;
         }
         throw Exception('파일 무결성 검증 실패 (SHA-256 불일치).');
       }
 
       await FlutterGemma.installModel(
-        modelType: kDefaultModel.modelType,
-        fileType: kDefaultModel.fileType,
+        modelType: model.modelType,
+        fileType: model.fileType,
       ).fromFile(savePath).install();
 
       final prefs = await SharedPreferences.getInstance();
@@ -195,11 +208,11 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
     }
   }
 
-  Future<bool> _verifySha256(File file) async {
+  Future<bool> _verifySha256(File file, GemmaModelConfig model) async {
     try {
       final dio = Dio();
       final resp = await dio.get<String>(
-        kDefaultModel.sha256Url,
+        model.sha256Url,
         options: Options(
           responseType: ResponseType.plain,
           validateStatus: (s) => s != null && s < 400,

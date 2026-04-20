@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'model_config.dart';
+import 'model_selector.dart';
 
 /// 첫 실행 시 자동으로 Gemma 모델 다운로드
 /// 사용자는 그냥 기다리기만 하면 됨
@@ -25,6 +26,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   int _downloadProgress = 0;
   String? _errorMsg;
   String? _foundLocalPath;
+  GemmaModelConfig _model = kDefaultModel; // selectModel()로 교체됨
 
   @override
   void initState() {
@@ -33,7 +35,14 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   }
 
   Future<void> _start() async {
-    final localPath = await _scanLocal();
+    // 모델 선택을 스캔과 병렬로 실행
+    final results = await Future.wait([
+      _scanLocal(),
+      selectModel(),
+    ]);
+    final localPath = results[0] as String?;
+    _model = results[1] as GemmaModelConfig;
+    debugPrint('[ModelSetupScreen] 선택된 모델: ${_model.name}');
 
     if (localPath != null) {
       setState(() {
@@ -43,7 +52,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       await _registerFile(localPath);
     } else {
       setState(() => _phase = _Phase.downloading);
-      await _download();
+      await _download(_model);
     }
   }
 
@@ -77,18 +86,18 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       if (mounted) widget.onComplete();
     } catch (e) {
       setState(() => _phase = _Phase.downloading);
-      await _download();
+      await _download(_model);
     }
   }
 
   /// Range 요청 기반 재개 다운로드 + SHA-256 검증.
   ///
   /// [attempt] 0: 최초 시도, 1: 해시 불일치 후 재시도 (최대 1회).
-  Future<void> _download({int attempt = 0}) async {
+  Future<void> _download(GemmaModelConfig model, {int attempt = 0}) async {
     String? savePath;
     try {
       final appDoc = await getApplicationDocumentsDirectory();
-      savePath = '${appDoc.path}/${kDefaultModel.fileName}';
+      savePath = '${appDoc.path}/${model.fileName}';
 
       final file = File(savePath);
       final existingSize = file.existsSync() ? file.lengthSync() : 0;
@@ -100,7 +109,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       };
 
       final resp = await dio.get<ResponseBody>(
-        kDefaultModel.downloadUrl,
+        model.downloadUrl,
         options: Options(
           responseType: ResponseType.stream,
           headers: headers,
@@ -116,7 +125,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       ) ?? 0;
 
       final startFrom = isPartial ? existingSize : 0;
-      final total = contentLength > 0 ? startFrom + contentLength : kDefaultModel.expectedBytes;
+      final total = contentLength > 0 ? startFrom + contentLength : model.expectedBytes;
       int received = startFrom;
 
       final raf = await file.open(
@@ -136,19 +145,19 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       }
 
       // 파일 크기 검증
-      if (!await isValidModelContent(file, expectedBytes: kDefaultModel.expectedBytes)) {
+      if (!await isValidModelContent(file, expectedBytes: model.expectedBytes)) {
         await file.delete();
         throw Exception('다운로드된 파일이 유효하지 않습니다 (크기 부족).');
       }
 
       // SHA-256 검증
-      final hashOk = await _verifySha256(file);
+      final hashOk = await _verifySha256(file, model);
       if (!hashOk) {
         await file.delete();
         if (attempt == 0) {
           debugPrint('[Download] 해시 불일치 → 재시도');
           if (mounted) setState(() => _downloadProgress = 0);
-          await _download(attempt: 1);
+          await _download(model, attempt: 1);
           return;
         }
         throw Exception('파일 무결성 검증 실패 (SHA-256 불일치). 저장공간을 확인하세요.');
@@ -156,8 +165,8 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
 
       // 검증 통과 → 등록
       await FlutterGemma.installModel(
-        modelType: kDefaultModel.modelType,
-        fileType: kDefaultModel.fileType,
+        modelType: model.modelType,
+        fileType: model.fileType,
       ).fromFile(savePath).install();
 
       final prefs = await SharedPreferences.getInstance();
@@ -180,11 +189,11 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   /// .sha256 파일을 받아 로컬 파일과 비교한다.
   ///
   /// .sha256 파일을 받을 수 없으면 true를 반환해 다운로드를 계속 진행한다.
-  Future<bool> _verifySha256(File file) async {
+  Future<bool> _verifySha256(File file, GemmaModelConfig model) async {
     try {
       final dio = Dio();
       final resp = await dio.get<String>(
-        kDefaultModel.sha256Url,
+        model.sha256Url,
         options: Options(
           responseType: ResponseType.plain,
           validateStatus: (s) => s != null && s < 400,
@@ -280,13 +289,13 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
         );
 
       case _Phase.downloading:
-        final sizeGb = kDefaultModel.sizeGb;
+        final sizeGb = _model.sizeGb;
         final downloaded = (_downloadProgress / 100 * sizeGb).toStringAsFixed(1);
         return Column(
           children: [
             _StatusTile(
               icon: Icons.download_rounded,
-              title: 'AI 모델 준비 중',
+              title: 'AI 모델 준비 중 (${_model.name})',
               subtitle: '처음 한 번만 다운로드합니다 (약 ${sizeGb}GB)',
               showSpinner: false,
             ),
@@ -306,7 +315,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '$downloaded GB / ${kDefaultModel.sizeGb} GB',
+                  '$downloaded GB / $sizeGb GB',
                   style:
                       const TextStyle(color: Colors.white54, fontSize: 13),
                 ),
