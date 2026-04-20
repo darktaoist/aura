@@ -7,11 +7,19 @@ import 'model_config.dart';
 
 const _kPrefModelKey = 'selected_model';
 
+/// E4B 비활성화 플래그. true면 RAM과 무관하게 항상 E2B를 사용한다.
+const _kForceE2B = true;
+
 /// RAM 기반으로 최적 모델을 자동 선택한다.
 ///
 /// SharedPreferences에 수동 설정값이 있으면 자동 감지보다 우선한다.
 /// 임계값: 보고된 RAM 7 GB 이상(물리 8 GB 기기) → E4B, 그 외 → E2B.
 Future<GemmaModelConfig> selectModel() async {
+  if (_kForceE2B) {
+    debugPrint('[ModelSelector] E2B 강제 모드');
+    return kGemmaE2B;
+  }
+
   final prefs = await SharedPreferences.getInstance();
   final saved = prefs.getString(_kPrefModelKey);
 
