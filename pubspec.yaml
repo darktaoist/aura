@@ -15,13 +15,14 @@ dependencies:
 
   # On-device AI & Vision
   flutter_gemma: ^0.13.2
-  mediapipe_face_mesh: ^1.2.4
+  google_mlkit_face_mesh_detection: ^0.4.2
   camera: ^0.11.4
   image: ^4.8.0
 
   # Backend
   supabase_flutter: ^2.5.0
   dio: ^5.4.3
+  crypto: ^3.0.0
 
   # Auth
   google_sign_in: ^6.2.1

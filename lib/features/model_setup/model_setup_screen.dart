@@ -1,7 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'model_config.dart';
 
@@ -19,7 +24,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   _Phase _phase = _Phase.scanning;
   int _downloadProgress = 0;
   String? _errorMsg;
-  String? _foundLocalPath; // 로컬에서 발견된 파일
+  String? _foundLocalPath;
 
   @override
   void initState() {
@@ -28,25 +33,23 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   }
 
   Future<void> _start() async {
-    // 1. 먼저 기기에 이미 있는 파일 스캔
     final localPath = await _scanLocal();
 
     if (localPath != null) {
-      // 로컬 파일로 바로 등록
       setState(() {
         _foundLocalPath = localPath;
         _phase = _Phase.registering;
       });
       await _registerFile(localPath);
     } else {
-      // 없으면 자동 다운로드
       setState(() => _phase = _Phase.downloading);
       await _download();
     }
   }
 
   Future<String?> _scanLocal() async {
-    for (final dir in kScanDirs) {
+    final dirs = await buildScanDirs();
+    for (final dir in dirs) {
       try {
         final d = Directory(dir);
         if (!d.existsSync()) continue;
@@ -73,32 +76,159 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
 
       if (mounted) widget.onComplete();
     } catch (e) {
-      // 로컬 파일 등록 실패 → 다운로드로 폴백
       setState(() => _phase = _Phase.downloading);
       await _download();
     }
   }
 
-  Future<void> _download() async {
+  /// Range 요청 기반 재개 다운로드 + SHA-256 검증.
+  ///
+  /// [attempt] 0: 최초 시도, 1: 해시 불일치 후 재시도 (최대 1회).
+  Future<void> _download({int attempt = 0}) async {
+    String? savePath;
     try {
+      final appDoc = await getApplicationDocumentsDirectory();
+      savePath = '${appDoc.path}/${kDefaultModel.fileName}';
+
+      final file = File(savePath);
+      final existingSize = file.existsSync() ? file.lengthSync() : 0;
+
+      final dio = Dio();
+      final headers = <String, dynamic>{
+        'User-Agent': 'Mozilla/5.0 (Android)',
+        if (existingSize > 0) 'Range': 'bytes=$existingSize-',
+      };
+
+      final resp = await dio.get<ResponseBody>(
+        kDefaultModel.downloadUrl,
+        options: Options(
+          responseType: ResponseType.stream,
+          headers: headers,
+          followRedirects: true,
+          maxRedirects: 5,
+          validateStatus: (s) => s != null && s < 400,
+        ),
+      );
+
+      final isPartial = resp.statusCode == 206;
+      final contentLength = int.tryParse(
+        resp.headers.value(Headers.contentLengthHeader) ?? '',
+      ) ?? 0;
+
+      final startFrom = isPartial ? existingSize : 0;
+      final total = contentLength > 0 ? startFrom + contentLength : kDefaultModel.expectedBytes;
+      int received = startFrom;
+
+      final raf = await file.open(
+        mode: isPartial ? FileMode.append : FileMode.write,
+      );
+
+      try {
+        await for (final chunk in resp.data!.stream) {
+          await raf.writeFrom(chunk);
+          received += chunk.length;
+          if (total > 0 && mounted) {
+            setState(() => _downloadProgress = (received / total * 100).clamp(0, 100).round());
+          }
+        }
+      } finally {
+        await raf.close();
+      }
+
+      // 파일 크기 검증
+      if (!await isValidModelContent(file, expectedBytes: kDefaultModel.expectedBytes)) {
+        await file.delete();
+        throw Exception('다운로드된 파일이 유효하지 않습니다 (크기 부족).');
+      }
+
+      // SHA-256 검증
+      final hashOk = await _verifySha256(file);
+      if (!hashOk) {
+        await file.delete();
+        if (attempt == 0) {
+          debugPrint('[Download] 해시 불일치 → 재시도');
+          if (mounted) setState(() => _downloadProgress = 0);
+          await _download(attempt: 1);
+          return;
+        }
+        throw Exception('파일 무결성 검증 실패 (SHA-256 불일치). 저장공간을 확인하세요.');
+      }
+
+      // 검증 통과 → 등록
       await FlutterGemma.installModel(
         modelType: kDefaultModel.modelType,
         fileType: kDefaultModel.fileType,
-      )
-          .fromNetwork(kDefaultModel.downloadUrl)
-          .withProgress((p) {
-            if (mounted) setState(() => _downloadProgress = p);
-          })
-          .install();
+      ).fromFile(savePath).install();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('model_url_version', kModelUrlVersion);
 
       if (mounted) widget.onComplete();
     } catch (e) {
+      if (savePath != null) {
+        try { await File(savePath).delete(); } catch (_) {}
+      }
       if (mounted) {
         setState(() {
           _phase = _Phase.error;
           _errorMsg = e.toString();
         });
       }
+    }
+  }
+
+  /// .sha256 파일을 받아 로컬 파일과 비교한다.
+  ///
+  /// .sha256 파일을 받을 수 없으면 true를 반환해 다운로드를 계속 진행한다.
+  Future<bool> _verifySha256(File file) async {
+    try {
+      final dio = Dio();
+      final resp = await dio.get<String>(
+        kDefaultModel.sha256Url,
+        options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (s) => s != null && s < 400,
+        ),
+      );
+      final expectedHash = (resp.data ?? '')
+          .trim()
+          .split(RegExp(r'\s+'))
+          .first
+          .toLowerCase();
+
+      if (expectedHash.isEmpty || expectedHash.length != 64) {
+        debugPrint('[Download] .sha256 파일 형식 불명 → 검증 스킵');
+        return true;
+      }
+
+      // 64 MB 청크 단위로 해시 계산 (메모리 효율)
+      Digest? digest;
+      final input = sha256.startChunkedConversion(
+        ChunkedConversionSink.withCallback((chunks) => digest = chunks.single),
+      );
+      final raf = await file.open();
+      try {
+        const chunkSize = 64 * 1024 * 1024;
+        while (true) {
+          final chunk = await raf.read(chunkSize);
+          if (chunk.isEmpty) break;
+          input.add(chunk);
+        }
+      } finally {
+        await raf.close();
+      }
+      input.close();
+      final actualHash = digest!.toString();
+
+      if (expectedHash != actualHash) {
+        debugPrint('[Download] SHA-256 불일치: expected=$expectedHash actual=$actualHash');
+        return false;
+      }
+      debugPrint('[Download] SHA-256 검증 완료: $actualHash');
+      return true;
+    } catch (e) {
+      debugPrint('[Download] SHA-256 검증 오류 (스킵): $e');
+      return true; // 네트워크 오류 등은 무시하고 진행
     }
   }
 

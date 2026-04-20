@@ -322,7 +322,7 @@ packages:
     source: hosted
     version: "0.3.5+2"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
@@ -613,6 +613,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.3+1"
+  google_mlkit_commons:
+    dependency: transitive
+    description:
+      name: google_mlkit_commons
+      sha256: "3e69fea4211727732cc385104e675ad1e40b29f12edd492ee52fa108423a6124"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.1"
+  google_mlkit_face_mesh_detection:
+    dependency: "direct main"
+    description:
+      name: google_mlkit_face_mesh_detection
+      sha256: a44c163138336f67d42edd72997e8b3a9057432d87444565ab8d3d9d3af14ae2
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   google_sign_in:
     dependency: "direct main"
     description:
@@ -917,14 +933,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
-  mediapipe_face_mesh:
-    dependency: "direct main"
-    description:
-      name: mediapipe_face_mesh
-      sha256: "600959914dc9e091181cc9386c2933e8af25ad2fa637aca7215cb21b8f55e430"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.4"
   meta:
     dependency: transitive
     description:

@@ -1,7 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'model_config.dart';
 
@@ -18,7 +24,7 @@ class ModelSetupState {
   });
 
   final ModelSetupPhase phase;
-  final int progress;          // 0–100 (다운로드 진행률)
+  final int progress;
   final String? errorMessage;
   final String? foundLocalPath;
 
@@ -61,11 +67,11 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
     }
   }
 
-  /// 기기 내 .litertlm 파일 스캔 (Android only)
   Future<String?> scanLocal() async {
     if (!Platform.isAndroid) return null;
 
-    for (final dir in kScanDirs) {
+    final dirs = await buildScanDirs();
+    for (final dir in dirs) {
       try {
         final d = Directory(dir);
         if (!d.existsSync()) continue;
@@ -77,9 +83,7 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
             }
           }
         }
-      } catch (_) {
-        // 접근 불가 디렉토리는 건너뜀
-      }
+      } catch (_) {}
     }
     return null;
   }
@@ -93,29 +97,152 @@ class ModelSetupNotifier extends _$ModelSetupNotifier {
       ).fromFile(path).install();
       state = state.copyWith(phase: ModelSetupPhase.done);
     } catch (_) {
-      // 로컬 파일 등록 실패 → 다운로드로 폴백
       state = state.copyWith(phase: ModelSetupPhase.downloading);
       await _download();
     }
   }
 
-  Future<void> _download() async {
+  /// Range 요청 기반 재개 다운로드 + SHA-256 검증.
+  Future<void> _download({int attempt = 0}) async {
+    String? savePath;
     try {
+      final appDoc = await getApplicationDocumentsDirectory();
+      savePath = '${appDoc.path}/${kDefaultModel.fileName}';
+
+      final file = File(savePath);
+      final existingSize = file.existsSync() ? file.lengthSync() : 0;
+
+      final dio = Dio();
+      final headers = <String, dynamic>{
+        'User-Agent': 'Mozilla/5.0 (Android)',
+        if (existingSize > 0) 'Range': 'bytes=$existingSize-',
+      };
+
+      final resp = await dio.get<ResponseBody>(
+        kDefaultModel.downloadUrl,
+        options: Options(
+          responseType: ResponseType.stream,
+          headers: headers,
+          followRedirects: true,
+          maxRedirects: 5,
+          validateStatus: (s) => s != null && s < 400,
+        ),
+      );
+
+      final isPartial = resp.statusCode == 206;
+      final contentLength = int.tryParse(
+        resp.headers.value(Headers.contentLengthHeader) ?? '',
+      ) ?? 0;
+
+      final startFrom = isPartial ? existingSize : 0;
+      final total = contentLength > 0
+          ? startFrom + contentLength
+          : kDefaultModel.expectedBytes;
+      int received = startFrom;
+
+      final raf = await file.open(
+        mode: isPartial ? FileMode.append : FileMode.write,
+      );
+
+      try {
+        await for (final chunk in resp.data!.stream) {
+          await raf.writeFrom(chunk);
+          received += chunk.length;
+          if (total > 0) {
+            state = state.copyWith(
+              progress: (received / total * 100).clamp(0, 100).round(),
+            );
+          }
+        }
+      } finally {
+        await raf.close();
+      }
+
+      if (!await isValidModelContent(file, expectedBytes: kDefaultModel.expectedBytes)) {
+        await file.delete();
+        throw Exception('다운로드된 파일이 유효하지 않습니다 (크기 부족).');
+      }
+
+      final hashOk = await _verifySha256(file);
+      if (!hashOk) {
+        await file.delete();
+        if (attempt == 0) {
+          debugPrint('[ModelSetupNotifier] 해시 불일치 → 재시도');
+          state = state.copyWith(progress: 0);
+          await _download(attempt: 1);
+          return;
+        }
+        throw Exception('파일 무결성 검증 실패 (SHA-256 불일치).');
+      }
+
       await FlutterGemma.installModel(
         modelType: kDefaultModel.modelType,
         fileType: kDefaultModel.fileType,
-      )
-          .fromNetwork(kDefaultModel.downloadUrl)
-          .withProgress((p) {
-            state = state.copyWith(progress: p);
-          })
-          .install();
+      ).fromFile(savePath).install();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('model_url_version', kModelUrlVersion);
+
       state = state.copyWith(phase: ModelSetupPhase.done);
     } catch (e) {
+      if (savePath != null) {
+        try { await File(savePath).delete(); } catch (_) {}
+      }
       state = state.copyWith(
         phase: ModelSetupPhase.error,
         errorMessage: e.toString(),
       );
+    }
+  }
+
+  Future<bool> _verifySha256(File file) async {
+    try {
+      final dio = Dio();
+      final resp = await dio.get<String>(
+        kDefaultModel.sha256Url,
+        options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (s) => s != null && s < 400,
+        ),
+      );
+      final expectedHash = (resp.data ?? '')
+          .trim()
+          .split(RegExp(r'\s+'))
+          .first
+          .toLowerCase();
+
+      if (expectedHash.isEmpty || expectedHash.length != 64) {
+        debugPrint('[ModelSetupNotifier] .sha256 파일 형식 불명 → 검증 스킵');
+        return true;
+      }
+
+      Digest? digest;
+      final input = sha256.startChunkedConversion(
+        ChunkedConversionSink.withCallback((chunks) => digest = chunks.single),
+      );
+      final raf = await file.open();
+      try {
+        const chunkSize = 64 * 1024 * 1024;
+        while (true) {
+          final chunk = await raf.read(chunkSize);
+          if (chunk.isEmpty) break;
+          input.add(chunk);
+        }
+      } finally {
+        await raf.close();
+      }
+      input.close();
+      final actualHash = digest!.toString();
+
+      if (expectedHash != actualHash) {
+        debugPrint('[ModelSetupNotifier] SHA-256 불일치');
+        return false;
+      }
+      debugPrint('[ModelSetupNotifier] SHA-256 검증 완료');
+      return true;
+    } catch (e) {
+      debugPrint('[ModelSetupNotifier] SHA-256 검증 오류 (스킵): $e');
+      return true;
     }
   }
 
