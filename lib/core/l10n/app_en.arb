@@ -41,5 +41,34 @@
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
   "leftHand": "Left Hand",
-  "rightHand": "Right Hand"
+  "rightHand": "Right Hand",
+
+  "mainConsultation": "Continue Consultation",
+  "mainConsultationSubtitle": "Dive deeper into your reading results",
+  "mainConsultationLoginRequired": "Login required",
+
+  "consultationListTitle": "Consultations",
+  "consultationListEmpty": "No consultations yet",
+  "consultationListEmptyAction": "Start with a face or palm reading",
+  "consultationListNew": "New Consultation",
+  "consultationDeleteConfirm": "Delete this consultation?",
+  "consultationMessageCount": "{count} messages",
+  "@consultationMessageCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "pickerTitle": "Select Reading",
+  "pickerTabFace": "Face",
+  "pickerTabPalm": "Palm",
+  "pickerEmpty": "No saved readings found",
+  "pickerEmptyAction": "Start a reading",
+
+  "chatInputHint": "Type your question...",
+  "chatTitleEdit": "Edit Title",
+  "chatDeleteConsultation": "Delete Consultation",
+  "chatErrorGeneration": "Failed to generate a response. Please try again.",
+
+  "resultStartConsultation": "Start Consultation",
+  "resultSaveBeforeConsult": "Please save your results first",
+  "resultLoginToConsult": "Login required to start a consultation"
 }

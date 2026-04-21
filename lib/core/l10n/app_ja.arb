@@ -41,5 +41,34 @@
   "privacyPolicy": "プライバシーポリシー",
   "termsOfService": "利用規約",
   "leftHand": "左手",
-  "rightHand": "右手"
+  "rightHand": "右手",
+
+  "mainConsultation": "相談を続ける",
+  "mainConsultationSubtitle": "分析結果をさらに深く掘り下げましょう",
+  "mainConsultationLoginRequired": "ログインが必要です",
+
+  "consultationListTitle": "相談履歴",
+  "consultationListEmpty": "まだ相談履歴がありません",
+  "consultationListEmptyAction": "観相・手相の分析から始めましょう",
+  "consultationListNew": "新しい相談",
+  "consultationDeleteConfirm": "この相談を削除しますか？",
+  "consultationMessageCount": "{count}件のメッセージ",
+  "@consultationMessageCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "pickerTitle": "分析を選択",
+  "pickerTabFace": "観相",
+  "pickerTabPalm": "手相",
+  "pickerEmpty": "保存された分析結果がありません",
+  "pickerEmptyAction": "分析を始める",
+
+  "chatInputHint": "質問を入力してください",
+  "chatTitleEdit": "タイトルを編集",
+  "chatDeleteConsultation": "相談を削除",
+  "chatErrorGeneration": "応答の生成に失敗しました。もう一度お試しください。",
+
+  "resultStartConsultation": "相談する",
+  "resultSaveBeforeConsult": "先に保存してください",
+  "resultLoginToConsult": "相談にはログインが必要です"
 }

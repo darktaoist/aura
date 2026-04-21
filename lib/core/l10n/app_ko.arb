@@ -41,5 +41,34 @@
   "privacyPolicy": "개인정보처리방침",
   "termsOfService": "이용약관",
   "leftHand": "왼손",
-  "rightHand": "오른손"
+  "rightHand": "오른손",
+
+  "mainConsultation": "상담 이어가기",
+  "mainConsultationSubtitle": "분석 결과를 더 깊이 알아보세요",
+  "mainConsultationLoginRequired": "로그인이 필요합니다",
+
+  "consultationListTitle": "상담 기록",
+  "consultationListEmpty": "아직 상담 기록이 없습니다",
+  "consultationListEmptyAction": "관상/손금 분석부터 시작하세요",
+  "consultationListNew": "새 상담",
+  "consultationDeleteConfirm": "이 상담을 삭제할까요?",
+  "consultationMessageCount": "{count}개 메시지",
+  "@consultationMessageCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "pickerTitle": "분석 선택",
+  "pickerTabFace": "관상",
+  "pickerTabPalm": "손금",
+  "pickerEmpty": "저장된 분석 결과가 없습니다",
+  "pickerEmptyAction": "분석 시작하기",
+
+  "chatInputHint": "질문을 입력하세요",
+  "chatTitleEdit": "제목 편집",
+  "chatDeleteConsultation": "상담 삭제",
+  "chatErrorGeneration": "응답 생성에 실패했습니다. 다시 시도해주세요.",
+
+  "resultStartConsultation": "상담하기",
+  "resultSaveBeforeConsult": "먼저 저장해주세요",
+  "resultLoginToConsult": "상담하려면 로그인이 필요합니다"
 }

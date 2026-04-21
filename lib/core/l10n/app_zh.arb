@@ -41,5 +41,34 @@
   "privacyPolicy": "隐私政策",
   "termsOfService": "服务条款",
   "leftHand": "左手",
-  "rightHand": "右手"
+  "rightHand": "右手",
+
+  "mainConsultation": "继续咨询",
+  "mainConsultationSubtitle": "深入了解您的分析结果",
+  "mainConsultationLoginRequired": "需要登录",
+
+  "consultationListTitle": "咨询记录",
+  "consultationListEmpty": "暂无咨询记录",
+  "consultationListEmptyAction": "从面相或手相分析开始",
+  "consultationListNew": "新咨询",
+  "consultationDeleteConfirm": "删除此咨询？",
+  "consultationMessageCount": "{count}条消息",
+  "@consultationMessageCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "pickerTitle": "选择分析",
+  "pickerTabFace": "面相",
+  "pickerTabPalm": "手相",
+  "pickerEmpty": "没有已保存的分析结果",
+  "pickerEmptyAction": "开始分析",
+
+  "chatInputHint": "请输入您的问题",
+  "chatTitleEdit": "编辑标题",
+  "chatDeleteConsultation": "删除咨询",
+  "chatErrorGeneration": "生成回复失败，请重试。",
+
+  "resultStartConsultation": "开始咨询",
+  "resultSaveBeforeConsult": "请先保存结果",
+  "resultLoginToConsult": "咨询需要登录"
 }
