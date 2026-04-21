@@ -16,73 +16,81 @@ String buildConsultationSystemInstruction({
   required Map<String, dynamic> features,
 }) {
   final isface = analysisType == AnalysisType.face;
-  final featureLines =
-      features.entries.map((e) => '- ${e.key}: ${e.value}').join('\n');
+  // 핵심 수치만 간략히 포함 (raw float 전체 나열 금지 — 모델 혼란 방지)
+  final keyFeatures = _formatKeyFeatures(features);
 
   final instructions = <String, String>{
-    'ko': '''당신은 20년 경력의 한국 전통 ${isface ? '관상' : '수상'} 전문가입니다.
-사용자가 이미 받은 ${isface ? '관상' : '수상'} 분석 결과를 바탕으로, 추가 질문에 전문적으로 답변하세요.
+    'ko': '''당신은 한국 전통 ${isface ? '관상' : '수상'} 전문가입니다.
+아래 분석 결과를 바탕으로 사용자의 추가 질문에 답변하세요.
 
 [분석 결과 요약]
 $contextSummary
 
-[분석된 특징 데이터]
-$featureLines
+[주요 특징]
+$keyFeatures
 
-[답변 원칙]
-1. 항상 위 분석 결과를 근거로 답변할 것
-2. ${isface ? '관상' : '수상'}·운세 외 질문은 "${isface ? '관상' : '수상'} 상담에 집중해드리고 있어요. 관련 질문을 해주시겠어요?"로 정중히 거절할 것
-3. 단정적·부정적 운명 단언은 피하고, 가능성·경향·조언으로 표현할 것
-4. 한 답변은 200~500자 사이로 작성할 것
-5. 한국어로 답변할 것''',
-    'en': '''You are a master ${isface ? 'physiognomist' : 'palm reader'} with 20 years of experience.
-Answer follow-up questions based on the user's prior analysis result.
+답변은 200~400자로, 한국어로 작성하세요.
+단정적 표현을 피하고 가능성과 경향으로 설명하세요.''',
 
-[Prior Analysis Summary]
+    'en': '''You are a ${isface ? 'face reading' : 'palm reading'} expert.
+Answer the user's questions based on the analysis below.
+
+[Analysis Summary]
 $contextSummary
 
-[Analyzed Features]
-$featureLines
+[Key Features]
+$keyFeatures
 
-[Response Rules]
-1. Ground every answer in the analysis above
-2. Politely decline off-topic questions: "I'm focused on your ${isface ? 'face reading' : 'palm reading'} consultation. Could you ask about your reading?"
-3. Avoid deterministic or negative fate claims; speak in tendencies and advice
-4. Keep each answer between 150-400 words
-5. Respond in English''',
-    'zh': '''您是一位拥有20年经验的${isface ? '面相' : '手相'}专家。
-请基于用户已收到的分析结果，专业地回答后续问题。
+Answer in 150-350 words in English.
+Speak in tendencies and possibilities, not certainties.''',
 
-[分析结果摘要]
+    'zh': '''您是${isface ? '面相' : '手相'}专家。
+请根据以下分析结果回答用户的问题。
+
+[分析摘要]
 $contextSummary
 
-[已分析的特征]
-$featureLines
+[主要特征]
+$keyFeatures
 
-[回答规则]
-1. 所有回答都必须基于上述分析结果
-2. 对于无关问题，请礼貌拒绝："我正在专注于您的${isface ? '面相' : '手相'}咨询。您能问与之相关的问题吗？"
-3. 避免决定性或负面的命运断言，以倾向性和建议表达
-4. 每次回答保持在200-500字之间
-5. 用中文回答''',
-    'ja': '''あなたは20年の経験を持つ${isface ? '観相' : '手相'}の専門家です。
-ユーザーが既に受け取った分析結果を基に、追加の質問に専門的にお答えください。
+用中文回答，200-400字。以倾向性表达，避免断言。''',
 
-[分析結果の要約]
+    'ja': '''あなたは${isface ? '観相' : '手相'}の専門家です。
+以下の分析結果をもとに、ユーザーの質問に答えてください。
+
+[分析サマリー]
 $contextSummary
 
-[分析された特徴]
-$featureLines
+[主な特徴]
+$keyFeatures
 
-[回答ルール]
-1. すべての回答を上記の分析結果に基づかせること
-2. 無関係な質問は丁寧に断ること：「${isface ? '観相' : '手相'}相談に集中しております。関連する質問をお願いできますか？」
-3. 断定的・否定的な運命の断言は避け、傾向と助言として表現すること
-4. 一回の回答は200〜500文字に収めること
-5. 日本語で回答すること''',
+日本語で200〜400文字で答えてください。断定的な表現は避けてください。''',
   };
 
   return instructions[locale] ?? instructions['ko']!;
+}
+
+String _formatKeyFeatures(Map<String, dynamic> features) {
+  // 읽기 좋은 한국어 레이블로 변환, 소수점 2자리로 반올림
+  final labels = <String, String>{
+    'eyeSpan': '눈 간격',
+    'faceHeight': '얼굴 높이',
+    'noseRatio': '코 위치',
+    'mouthWidth': '입 너비',
+    'symmetry': '좌우 대칭',
+    'foreheadHeight': '이마 높이',
+    'eyebrowDistance': '눈썹 간격',
+  };
+  return features.entries
+      .where((e) => labels.containsKey(e.key))
+      .map((e) {
+        final label = labels[e.key]!;
+        final val = e.value is double
+            ? (e.value as double).toStringAsFixed(2)
+            : e.value.toString();
+        return '- $label: $val';
+      })
+      .join('\n');
 }
 
 // ── Provider (no codegen — plain Riverpod) ────────────────────────────────────

@@ -98,7 +98,7 @@ class _ConsultationChatScreenState
             ),
           ),
           ChatInputBar(
-            isDisabled: chatState.isStreaming,
+            isDisabled: chatState.isStreaming || chatState.isLoading,
             onSend: (text) {
               ref
                   .read(consultationChatProvider(widget.consultationId).notifier)
