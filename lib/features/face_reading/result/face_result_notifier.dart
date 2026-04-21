@@ -79,16 +79,16 @@ class FaceResultNotifier extends _$FaceResultNotifier {
     }
   }
 
-  Future<bool> saveReading({
+  Future<Reading?> saveReading({
     required String userId,
     required FaceLandmarkResult landmarkResult,
     required String modelUsed,
     required String locale,
   }) async {
-    if (state.fullText.isEmpty) return false;
+    if (state.fullText.isEmpty) return null;
     state = state.copyWith(isSaving: true);
     try {
-      await ref.read(readingRepositoryProvider).saveReading(
+      final reading = await ref.read(readingRepositoryProvider).saveReading(
             userId: userId,
             type: ReadingType.face,
             landmarkResult: landmarkResult,
@@ -97,10 +97,11 @@ class FaceResultNotifier extends _$FaceResultNotifier {
             locale: locale,
           );
       state = state.copyWith(isSaving: false);
-      return true;
+      return reading;
     } catch (e) {
-      state = state.copyWith(isSaving: false, error: e.toString());
-      return false;
+      // 저장 실패는 분석 결과를 지우지 않도록 error 상태에 반영하지 않음
+      state = state.copyWith(isSaving: false);
+      return null;
     }
   }
 }

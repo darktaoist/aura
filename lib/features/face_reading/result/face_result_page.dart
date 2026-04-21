@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/landmark_result.dart';
+import '../../../models/consultation.dart';
+import '../../../services/consultation_service.dart';
+import '../../auth/auth_notifier.dart';
 import 'face_result_notifier.dart';
 import 'widgets/reading_section_card.dart';
 
@@ -31,6 +34,10 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   // _sections 메모이제이션
   String _lastParsedText = '';
   Map<String, String> _cachedSections = {};
+  // 비로그인 상태에서 저장 요청 → 로그인 후 자동 저장 플래그
+  bool _pendingSave = false;
+  // 저장 완료 후 상담 가능 상태
+  String? _savedReadingId;
 
   Map<String, String> _sections(String text) {
     if (text == _lastParsedText) return _cachedSections;
@@ -112,6 +119,15 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     final isStreaming = notifierState.isStreaming;
     final fullText = notifierState.fullText;
     final error = notifierState.error;
+    final isModelError = notifierState.isModelError;
+
+    // 비로그인 → 로그인 완료 시 자동 저장
+    ref.listen(authNotifierProvider, (prev, next) {
+      if (_pendingSave && prev?.isLoggedIn == false && next.isLoggedIn) {
+        _pendingSave = false;
+        _doSave();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -130,7 +146,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
         ],
       ),
       body: error != null
-          ? _buildError(error)
+          ? _buildError(error, isModelError: isModelError)
           : isStreaming && fullText.isEmpty
               ? _buildLoading()
               : _buildContent(context, fullText, isStreaming),
@@ -155,30 +171,51 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     );
   }
 
-  Widget _buildError(String errorMsg) {
+  Widget _buildError(String errorMsg, {bool isModelError = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-            const SizedBox(height: AppSpacing.md),
-            const Text('분석 중 오류가 발생했습니다',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: AppSpacing.sm),
-            Text(errorMsg,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-                textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: () {
-                ref.invalidate(faceResultNotifierProvider);
-                _loadLocaleAndAnalyze();
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('다시 시도'),
+            Icon(
+              isModelError ? Icons.memory_outlined : Icons.error_outline,
+              color: Colors.redAccent,
+              size: 48,
             ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              isModelError ? 'AI 모델 오류' : '분석 중 오류가 발생했습니다',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              errorMsg,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (isModelError) ...[
+              FilledButton.icon(
+                onPressed: () => context.go('/model_setup'),
+                icon: const Icon(Icons.download_outlined),
+                label: const Text('모델 재설치'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('돌아가기'),
+              ),
+            ] else
+              FilledButton.icon(
+                onPressed: () {
+                  ref.invalidate(faceResultNotifierProvider);
+                  _loadLocaleAndAnalyze();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('다시 시도'),
+              ),
           ],
         ),
       ),
@@ -187,16 +224,26 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
   Widget _buildContent(BuildContext context, String fullText, bool isStreaming) {
     final sections = _sections(fullText);
+    final hasSections = sections.values.any((v) => v.isNotEmpty);
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       children: [
-        if (sections.isEmpty && isStreaming)
+        if (isStreaming && !hasSections)
+          // 스트리밍 중 섹션 파싱 전: 원문 표시
           ReadingSectionCard(
             title: '분석 중...',
             content: fullText,
             icon: Icons.auto_awesome,
             isStreaming: true,
+          )
+        else if (!hasSections && fullText.isNotEmpty)
+          // 섹션 파싱 실패: 전체 텍스트 단일 카드로 표시
+          ReadingSectionCard(
+            title: '분석 결과',
+            content: fullText,
+            icon: Icons.auto_awesome_outlined,
+            isStreaming: isStreaming,
           )
         else
           ..._kSections.map((s) {
@@ -232,13 +279,139 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              onPressed: isStreaming ? null : () => _onStartConsultation(context),
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: const Text('상담하기'),
+            ),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
   }
 
-  void _onSave(BuildContext context) {
-    context.push('/auth?from=save');
+  Future<void> _onSave(BuildContext context) async {
+    final authState = ref.read(authNotifierProvider);
+
+    if (!authState.isLoggedIn) {
+      // 비로그인: 저장 대기 플래그 설정 후 로그인으로 이동
+      final goLogin = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('로그인 필요'),
+          content: const Text('저장하려면 로그인이 필요합니다.\n로그인 후 자동으로 저장됩니다.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('로그인')),
+          ],
+        ),
+      );
+      if (goLogin != true || !context.mounted) return;
+      _pendingSave = true;
+      context.push('/auth');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('결과 저장'),
+        content: const Text('분석 결과를 저장하시겠습니까?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('저장')),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await _doSave();
+  }
+
+  Future<void> _doSave() async {
+    final authState = ref.read(authNotifierProvider);
+    if (!authState.isLoggedIn) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString('locale') ?? 'ko';
+
+    final reading = await ref.read(faceResultNotifierProvider.notifier).saveReading(
+          userId: authState.user!.id,
+          landmarkResult: widget.result,
+          modelUsed: 'E2B',
+          locale: locale,
+        );
+
+    if (!mounted) return;
+    final email = authState.user?.email ?? '';
+    final displayName = email.contains('@') ? email.split('@').first : email;
+
+    if (reading != null) {
+      setState(() => _savedReadingId = reading.id);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(reading != null
+            ? '$displayName님의 결과가 저장되었습니다'
+            : '저장에 실패했습니다. 다시 시도해주세요.'),
+      ),
+    );
+  }
+
+  Future<void> _onStartConsultation(BuildContext context) async {
+    final authState = ref.read(authNotifierProvider);
+    if (!authState.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('상담하려면 로그인이 필요합니다')),
+      );
+      context.push('/auth');
+      return;
+    }
+    if (_savedReadingId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('먼저 저장해주세요')),
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final locale = prefs.getString('locale') ?? 'ko';
+    final fullText = ref.read(faceResultNotifierProvider).fullText;
+
+    try {
+      final consultation = await ref.read(consultationServiceProvider).createConsultation(
+            userId: authState.user!.id,
+            analysisType: AnalysisType.face,
+            analysisId: _savedReadingId!,
+            contextSummary: fullText.length > 600
+                ? '${fullText.substring(0, 600)}…'
+                : fullText,
+            contextFeatures: {
+              'eyeSpan': widget.result.features.eyeSpan,
+              'faceHeight': widget.result.features.faceHeight,
+              'noseRatio': widget.result.features.noseRatio,
+              'mouthWidth': widget.result.features.mouthWidth,
+              'symmetry': widget.result.features.symmetry,
+              'foreheadHeight': widget.result.features.foreheadHeight,
+              'eyebrowDistance': widget.result.features.eyebrowDistance,
+            },
+            locale: locale,
+            modelUsed: 'E2B',
+          );
+      if (!context.mounted) return;
+      context.push('/consultation/${consultation.id}');
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('상담 생성 실패: $e')),
+      );
+    }
   }
 
   void _onShare() {
