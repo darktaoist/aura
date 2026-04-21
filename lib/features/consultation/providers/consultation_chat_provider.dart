@@ -50,6 +50,9 @@ class ConsultationChatState {
 
 @riverpod
 class ConsultationChat extends _$ConsultationChat {
+  // 세션 인스턴스를 필드로 보관 — autoDispose 교체 방지
+  GemmaChatSessionNotifier? _gemmaSession;
+
   @override
   ConsultationChatState build(String consultationId) {
     _init(consultationId);
@@ -62,10 +65,9 @@ class ConsultationChat extends _$ConsultationChat {
       final consultation = await svc.getConsultation(id);
       final messages = await svc.getMessages(id);
 
-      // Gemma 세션 열기 (기존 메시지 컨텍스트 복원)
-      await ref
-          .read(gemmaChatSessionProvider)
-          .openSession(consultation);
+      // 동일 인스턴스를 필드에 보관한 뒤 세션 열기
+      _gemmaSession = ref.read(gemmaChatSessionProvider);
+      await _gemmaSession!.openSession(consultation);
 
       state = state.copyWith(
         consultation: consultation,
@@ -89,7 +91,8 @@ class ConsultationChat extends _$ConsultationChat {
     if (trimmed.isEmpty) return;
 
     final svc = ref.read(consultationServiceProvider);
-    final gemmaSession = ref.read(gemmaChatSessionProvider);
+    final GemmaChatSessionNotifier gemmaSession =
+        _gemmaSession ?? ref.read(gemmaChatSessionProvider);
 
     // 1. 사용자 메시지를 즉시 UI에 반영
     final tempUserMsg = ConsultationMessage(

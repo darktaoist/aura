@@ -88,7 +88,7 @@ $featureLines
 // ── Provider (no codegen — plain Riverpod) ────────────────────────────────────
 
 final gemmaChatSessionProvider =
-    Provider.autoDispose<GemmaChatSessionNotifier>((ref) {
+    Provider<GemmaChatSessionNotifier>((ref) {
   final notifier = GemmaChatSessionNotifier(ref);
   ref.onDispose(notifier.dispose);
   return notifier;
