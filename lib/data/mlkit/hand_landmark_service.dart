@@ -57,27 +57,12 @@ class HandLandmarkService {
       final int dispWidth = isTransposed ? image.height : image.width;
       final int dispHeight = isTransposed ? image.width : image.height;
 
-      // hand_landmarker 는 raw 센서 이미지 공간 좌표를 반환한다.
-      // 디스플레이 공간으로 변환하려면 FaceMeshService 와 동일한 축 스왑이 필요하다.
+      // hand_landmarker 는 sensorOrientation 을 입력받아 내부에서 회전을 처리한다.
+      // 따라서 출력 좌표는 이미 디스플레이(portrait) 공간 기준이다.
+      // 전면 카메라의 경우 좌우 미러만 추가로 적용한다.
       final points = rawLandmarks.map((l) {
-        double nx, ny;
-        if (isTransposed) {
-          if (camera.sensorOrientation == 270) {
-            // 전면 카메라 일반 배치: raw_x → display_y, 1-raw_y → display_x
-            nx = 1.0 - l.y;
-            ny = l.x;
-          } else {
-            // 후면 카메라 90°: raw_y → display_x, 1-raw_x → display_y
-            nx = l.y;
-            ny = 1.0 - l.x;
-          }
-        } else {
-          nx = l.x;
-          ny = l.y;
-        }
-        // 전면 카메라는 좌우 미러
-        if (isFront) nx = 1.0 - nx;
-        return LandmarkPoint(x: nx.clamp(0.0, 1.0), y: ny.clamp(0.0, 1.0), z: l.z);
+        final double nx = isFront ? 1.0 - l.x : l.x;
+        return LandmarkPoint(x: nx.clamp(0.0, 1.0), y: l.y.clamp(0.0, 1.0), z: l.z);
       }).toList();
 
       if (!_coordsLogged) {
