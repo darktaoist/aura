@@ -57,8 +57,9 @@ flutter {
     source = "../.."
 }
 
-// tasks-vision-image-generator 는 tasks-vision 의 슈퍼셋이므로
-// standalone tasks-vision 을 제외해 클래스 중복을 해소
+// tasks-vision-image-generator 가 tasks-vision 의 일부 클래스를 fat-bundle 하여 충돌.
+// 이 앱은 Gemma 를 텍스트 전용으로 사용하므로 image-generator 를 제외해도 무방.
+// HandLandmarker 클래스는 tasks-vision 에만 있으므로 tasks-vision 은 유지.
 configurations.configureEach {
-    exclude(group = "com.google.mediapipe", module = "tasks-vision")
+    exclude(group = "com.google.mediapipe", module = "tasks-vision-image-generator")
 }
