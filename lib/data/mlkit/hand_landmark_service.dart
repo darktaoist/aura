@@ -57,12 +57,29 @@ class HandLandmarkService {
       final int dispWidth = isTransposed ? image.height : image.width;
       final int dispHeight = isTransposed ? image.width : image.height;
 
-      // hand_landmarker 는 sensorOrientation 을 입력받아 내부에서 회전을 처리한다.
-      // 따라서 출력 좌표는 이미 디스플레이(portrait) 공간 기준이다.
-      // 전면 카메라의 경우 좌우 미러만 추가로 적용한다.
+      // hand_landmarker 는 MLKit 와 달리 raw sensor [0,1] 정규화 좌표를 반환한다.
+      // (MLKit 는 내부 회전 후 portrait 픽셀 좌표 반환, hand_landmarker 는 raw 공간)
+      // 따라서 sensorOrientation 에 따라 rotation 변환을 수동 적용해야 한다.
+      //   90° CW : (x,y) → (1-y, x)
+      //   270° CW: (x,y) → (y, 1-x)   then front mirror → (1-y, 1-x)
       final points = rawLandmarks.map((l) {
-        final double nx = isFront ? 1.0 - l.x : l.x;
-        return LandmarkPoint(x: nx.clamp(0.0, 1.0), y: l.y.clamp(0.0, 1.0), z: l.z);
+        double nx, ny;
+        switch (camera.sensorOrientation) {
+          case 90:
+            nx = 1.0 - l.y;
+            ny = l.x;
+          case 270:
+            nx = l.y;
+            ny = 1.0 - l.x;
+          case 180:
+            nx = 1.0 - l.x;
+            ny = 1.0 - l.y;
+          default:
+            nx = l.x;
+            ny = l.y;
+        }
+        if (isFront) nx = 1.0 - nx;
+        return LandmarkPoint(x: nx.clamp(0.0, 1.0), y: ny.clamp(0.0, 1.0), z: l.z);
       }).toList();
 
       if (!_coordsLogged) {
