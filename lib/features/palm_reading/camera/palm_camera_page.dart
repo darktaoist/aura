@@ -58,14 +58,14 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
         return;
       }
 
-      // 손금: 후면 카메라 사용
-      final rear = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
+      // 손금: 전면 카메라 사용 (손바닥을 자신 쪽으로 향하게 촬영)
+      final front = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.front,
         orElse: () => cameras.first,
       );
 
       final ctrl = CameraController(
-        rear,
+        front,
         ResolutionPreset.medium,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.yuv420,
@@ -254,7 +254,7 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
                                   color: Colors.white30, size: 48),
                               SizedBox(height: AppSpacing.sm),
                               Text(
-                                '손바닥을 카메라에\n가까이 대주세요',
+                                '손바닥을 화면 쪽으로\n펼쳐서 보여주세요',
                                 style: TextStyle(
                                     color: Colors.white38, fontSize: 13),
                                 textAlign: TextAlign.center,
