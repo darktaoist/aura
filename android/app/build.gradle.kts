@@ -56,3 +56,9 @@ android {
 flutter {
     source = "../.."
 }
+
+// tasks-vision-image-generator 는 tasks-vision 의 슈퍼셋이므로
+// standalone tasks-vision 을 제외해 클래스 중복을 해소
+configurations.configureEach {
+    exclude(group = "com.google.mediapipe", module = "tasks-vision")
+}
