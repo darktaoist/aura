@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/consultation.dart';
 import '../../../models/consultation_message.dart';
 import '../../../services/consultation_service.dart';
+import 'consultation_list_provider.dart';
 import 'gemma_chat_session_provider.dart';
 
 part 'consultation_chat_provider.g.dart';
@@ -169,5 +170,6 @@ class ConsultationChat extends _$ConsultationChat {
     final consultation = state.consultation;
     if (consultation == null) return;
     await ref.read(consultationServiceProvider).deleteConsultation(consultation.id);
+    ref.invalidate(consultationListProvider);
   }
 }
