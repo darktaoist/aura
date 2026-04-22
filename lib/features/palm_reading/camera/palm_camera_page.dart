@@ -32,6 +32,7 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
   bool _processing = false;
   bool _disposed = false;
   bool _navigating = false;
+  PalmLandmarkResult? _lastDetectedResult;
   DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastLogTime = DateTime.now();
   int _frameCount = 0;
@@ -114,6 +115,7 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
       final bool detected = result != null;
 
       if (detected) {
+        _lastDetectedResult = result;
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value + 1).clamp(0, AppConst.stabilityFrames + 1);
       } else {
@@ -129,6 +131,7 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
             'detected=$detected');
       }
 
+      // overlay는 검출 실패 시 null로 사라지지만, 버튼은 lastDetected를 사용
       _landmarkNotifier.value = result;
     } finally {
       _processing = false;
@@ -151,9 +154,9 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
   void _onHandToggle(bool isLeft) {
     if (_isLeftHand == isLeft) return;
     setState(() => _isLeftHand = isLeft);
-    // 토글 시 안정도 리셋
     _stableFramesNotifier.value = 0;
     _landmarkNotifier.value = null;
+    _lastDetectedResult = null;
   }
 
   @override
@@ -293,13 +296,13 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
                     valueListenable: _stableFramesNotifier,
                     builder: (_, stableFrames, __) {
                       final isStable = stableFrames >= AppConst.stabilityFrames;
-                      final result = _landmarkNotifier.value;
+                      final captured = _lastDetectedResult;
                       return AnimatedOpacity(
                         opacity: isStable ? 1.0 : 0.3,
                         duration: AppDuration.overlayFade,
                         child: FilledButton.icon(
-                          onPressed: isStable && result != null
-                              ? () => _goToResult(result)
+                          onPressed: isStable && captured != null
+                              ? () => _goToResult(captured)
                               : null,
                           icon: const Icon(Icons.auto_awesome),
                           label: const Text('손금 결과 보기'),
