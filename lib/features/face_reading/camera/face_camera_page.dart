@@ -8,7 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../data/mediapipe/face_mesh_processor.dart';
+import '../../../data/mlkit/face_mesh_service.dart';
 import '../../../domain/entities/landmark_result.dart';
 import 'widgets/landmark_overlay_painter.dart';
 import 'widgets/stability_indicator.dart';
@@ -31,6 +31,7 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
 
   bool _processing = false;
   bool _disposed = false;
+  bool _navigating = false; // 결과 페이지 이동 중 스트림 중단 플래그
   DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastLogTime = DateTime.now();
   int _frameCount = 0;
@@ -88,7 +89,7 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
   }
 
   void _onFrame(CameraImage image) {
-    if (_disposed || _processing || _faceMesh == null || _camera == null) return;
+    if (_disposed || _navigating || _processing || _faceMesh == null || _camera == null) return;
 
     // 15fps throttle
     final now = DateTime.now();
@@ -99,10 +100,19 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
     _lastProcessedAt = now;
     _processing = true;
 
-    try {
-      final result = _faceMesh!.process(image, _camera!.description);
+    _processFrameAsync(image, now);
+  }
 
-      if (result != null && result.score >= AppConst.stabilityScore) {
+  Future<void> _processFrameAsync(CameraImage image, DateTime frameTime) async {
+    try {
+      final result = await _faceMesh!.process(image, _camera!.description);
+
+      if (_disposed) return; // 비동기 완료 전 dispose 됐으면 무시
+
+      // MLKit: 감지 성공 시 score=1.0, 미감지 시 null 반환
+      final bool detected = result != null;
+
+      if (detected) {
         // 안정도 증가 (상한 clamp)
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value + 1).clamp(0, AppConst.stabilityFrames + 1);
@@ -114,17 +124,31 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
 
       // 콘솔 로그 (500ms 게이트)
       _frameCount++;
-      if (now.difference(_lastLogTime).inMilliseconds > 500) {
-        _lastLogTime = now;
+      if (frameTime.difference(_lastLogTime).inMilliseconds > 500) {
+        _lastLogTime = frameTime;
         debugPrint('[FaceCamera] frames=$_frameCount '
             'stable=${_stableFramesNotifier.value} '
-            'score=${result?.score.toStringAsFixed(3)}');
+            'detected=$detected '
+            'landmarks=${result?.landmarks.length}');
       }
 
       _landmarkNotifier.value = result;
     } finally {
       _processing = false;
     }
+  }
+
+  Future<void> _goToResult(dynamic result) async {
+    _navigating = true;
+    try { await _camera?.stopImageStream(); } catch (_) {}
+
+    if (!mounted) return;
+    // ignore: use_build_context_synchronously
+    await context.push('/face/result', extra: result);
+
+    if (!mounted || _disposed) return;
+    _navigating = false;
+    try { await _camera?.startImageStream(_onFrame); } catch (_) {}
   }
 
   @override
@@ -151,17 +175,26 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black.withValues(alpha: 0.45),
         foregroundColor: Colors.white,
-        title: const Text('관상 보기'),
+        elevation: 0,
+        title: const Text(
+          '관상 보기',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: isReady
           ? Stack(
               fit: StackFit.expand,
               children: [
                 CameraPreview(ctrl),
-                // 랜드마크 오버레이 — RepaintBoundary로 카메라 프리뷰 재빌드 방지
+                // 랜드마크 오버레이
                 RepaintBoundary(
                   child: ValueListenableBuilder<FaceLandmarkResult?>(
                     valueListenable: _landmarkNotifier,
@@ -206,7 +239,7 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
                         duration: AppDuration.overlayFade,
                         child: FilledButton.icon(
                           onPressed: isStable && result != null
-                              ? () => context.push('/face/result', extra: result)
+                              ? () => _goToResult(result)
                               : null,
                           icon: const Icon(Icons.auto_awesome),
                           label: const Text('관상 결과 보기'),
@@ -234,9 +267,17 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black.withValues(alpha: 0.45),
         foregroundColor: Colors.white,
-        title: const Text('관상 보기'),
+        elevation: 0,
+        title: const Text(
+          '관상 보기',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: Center(
         child: Padding(
