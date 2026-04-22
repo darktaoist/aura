@@ -32,9 +32,23 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
+    // mediapipe_face_mesh 와 hand_landmarker 가 동일한 JNI 라이브러리를 중복 제공하므로
+    // 첫 번째 발견된 버전을 사용하도록 지정 (두 패키지 모두 같은 0.10.x 버전 사용)
+    packaging {
+        jniLibs {
+            pickFirst("lib/arm64-v8a/libmediapipe_tasks_vision_jni.so")
+            pickFirst("lib/armeabi-v7a/libmediapipe_tasks_vision_jni.so")
+            pickFirst("lib/x86/libmediapipe_tasks_vision_jni.so")
+            pickFirst("lib/x86_64/libmediapipe_tasks_vision_jni.so")
         }
     }
 }
