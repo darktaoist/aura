@@ -1,42 +1,35 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../domain/entities/landmark_result.dart';
+import '../../domain/entities/palm_result.dart';
 import 'prompt_builder.dart';
 
-class GemmaService {
-  GemmaService._();
+part 'gemma_service.g.dart';
 
-  InferenceModel? _model;
-  bool get isReady => _model != null;
+/// 앱 생애 동안 단 한 번만 로드되는 Gemma 모델 서비스.
+/// keepAlive=true 로 provider가 dispose 되지 않고 모델을 보존한다.
+@Riverpod(keepAlive: true)
+Future<GemmaService> gemmaService(GemmaServiceRef ref) async {
+  final svc = await GemmaService.load();
+  ref.onDispose(svc.dispose);
+  return svc;
+}
+
+class GemmaService {
+  GemmaService._(this._model);
+
+  final InferenceModel _model;
+  bool get isReady => true;
 
   static Future<GemmaService> load() async {
-    final svc = GemmaService._();
-    await svc._init();
-    return svc;
-  }
-
-  Future<void> _init() async {
-    try {
-      _model = await FlutterGemma.getActiveModel(
-        maxTokens: AppConst.gemmaMaxTokens,
-      );
-    } catch (e) {
-      debugPrint('[GemmaService] load error: $e');
-    }
-  }
-
-  /// 실시간 오버레이용 짧은 스트리밍 분석
-  Stream<String> analyzeRealtime({
-    required FaceFeatures features,
-    required String locale,
-  }) {
-    return _streamResponse(
-      systemInstruction: kRealtimeSystemPrompts[locale] ??
-          kRealtimeSystemPrompts['ko']!,
-      userPrompt: PromptBuilder.buildRealtimePrompt(features, locale),
+    final model = await FlutterGemma.getActiveModel(
+      maxTokens: AppConst.gemmaMaxTokens,
     );
+    debugPrint('[GemmaService] 모델 로드 완료 (maxTokens=${AppConst.gemmaMaxTokens})');
+    return GemmaService._(model);
   }
 
   /// 결과화면용 장문 스트리밍 분석
@@ -56,18 +49,29 @@ class GemmaService {
     );
   }
 
+  /// 손금 결과화면용 장문 스트리밍 분석
+  Stream<String> analyzePalmLongForm({
+    required PalmLandmarkResult result,
+    required String locale,
+    List<String> ragChunks = const [],
+  }) {
+    return _streamResponse(
+      systemInstruction: kPalmLongFormSystemPrompts[locale] ??
+          kPalmLongFormSystemPrompts['ko']!,
+      userPrompt: PromptBuilder.buildPalmLongFormPrompt(
+        result: result,
+        locale: locale,
+        ragChunks: ragChunks,
+      ),
+    );
+  }
+
   Stream<String> _streamResponse({
     required String systemInstruction,
     required String userPrompt,
   }) async* {
-    final model = _model;
-    if (model == null) {
-      yield '[오류] Gemma 모델이 로드되지 않았습니다.';
-      return;
-    }
-
     try {
-      final chat = await model.createChat(
+      final chat = await _model.createChat(
         modelType: ModelType.gemmaIt,
         systemInstruction: systemInstruction,
         temperature: AppConst.gemmaTemp,
@@ -87,7 +91,6 @@ class GemmaService {
   }
 
   void dispose() {
-    _model?.close();
-    _model = null;
+    _model.close();
   }
 }

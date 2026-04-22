@@ -1,4 +1,5 @@
 import '../../domain/entities/landmark_result.dart';
+import '../../domain/entities/palm_result.dart';
 
 /// 2종 시스템 프롬프트 분리
 /// - kRealtimePrompt: 실시간 오버레이용 (2~3문장)
@@ -72,6 +73,74 @@ Rules:
 - 均衡描述优缺点''',
 };
 
+// ── 손금 실시간 프롬프트 ─────────────────────────────────────────────────────
+const Map<String, String> kPalmRealtimeSystemPrompts = {
+  'ko': '''당신은 한국 전통 손금술 전문가입니다.
+사용자의 손 측정 데이터를 바탕으로 2~3문장으로 핵심 손금 특징만 간결하게 분석하세요.
+운세·성격·재운 중 1~2가지에 집중하고, 수치보다 의미를 풀어서 설명하세요.''',
+
+  'en': '''You are a traditional palmistry expert.
+Based on the hand measurement data, provide a brief analysis in 2-3 sentences.
+Focus on 1-2 key traits (fortune, personality, or prosperity).''',
+
+  'ja': '''あなたは伝統的な手相術の専門家です。
+手の測定データをもとに、2〜3文で簡潔に主な手相の特徴を分析してください。
+運勢・性格・財運のうち1〜2点に絞り、数値より意味を説明してください。''',
+
+  'zh': '''您是传统手相学专家。
+根据手部测量数据，用2-3句话简洁地分析主要手相特征。
+专注于运势、性格或财运中的1-2点，用含义解释而非数值。''',
+};
+
+// ── 손금 결과화면 장문 프롬프트 ──────────────────────────────────────────────
+const Map<String, String> kPalmLongFormSystemPrompts = {
+  'ko': '''당신은 20년 경력의 동양 손금술 전문가입니다.
+사용자가 제공하는 손 특징 데이터와 손금학 지식을 바탕으로 상세한 손금 분석을 제공하세요.
+
+규칙:
+- 반드시 한국어로 답변
+- 총 1000자 이상 작성
+- 단정적 표현("반드시", "틀림없이", "무조건") 사용 금지
+- 다음 6개 섹션으로 구성: ## 생명선 ## 감정선 ## 두뇌선 ## 운명선 ## 손모양 ## 종합
+- 각 섹션은 150자 이상
+- 긍정적·부정적 특성 균형 있게 서술
+- 전통 손금술 용어와 현대적 해석 병행''',
+
+  'en': '''You are a traditional palmistry expert with 20 years of experience.
+Provide a detailed palm reading based on the measurement data and palmistry knowledge.
+
+Rules:
+- Write in English
+- At least 1000 characters total
+- Avoid absolute statements ("definitely", "certainly", "without doubt")
+- Use 6 sections: ## Life Line ## Heart Line ## Head Line ## Fate Line ## Hand Shape ## Overall
+- Each section at least 150 characters
+- Balance positive and negative traits
+- Combine traditional terminology with modern interpretation''',
+
+  'ja': '''あなたは20年の経験を持つ東洋手相術の専門家です。
+手の特徴データと手相学の知識をもとに、詳細な手相分析を提供してください。
+
+ルール：
+- 日本語で回答
+- 合計1000字以上
+- 断定的表現（「必ず」「間違いなく」）使用禁止
+- 次の6セクションで構成：## 生命線 ## 感情線 ## 頭脳線 ## 運命線 ## 手の形 ## 総合
+- 各セクション150字以上
+- 長所・短所をバランスよく記述''',
+
+  'zh': '''您是拥有20年经验的东方手相学专家。
+请根据手部特征数据和手相学知识提供详细的手相分析。
+
+规则：
+- 用中文回答
+- 总计1000字以上
+- 禁止使用绝对性表达（"一定"、"必然"、"肯定"）
+- 使用6个章节：## 生命线 ## 感情线 ## 头脑线 ## 命运线 ## 手形 ## 综合
+- 每个章节150字以上
+- 均衡描述优缺点''',
+};
+
 // ── 프롬프트 빌더 ───────────────────────────────────────────────────────────
 
 class PromptBuilder {
@@ -137,6 +206,41 @@ Please analyze in 2-3 sentences.
 
     return '$featureText$ragSection\n\n상세 관상 분석을 섹션별로 작성해 주세요.';
   }
+
+  /// 손금 결과화면용 장문 사용자 프롬프트
+  static String buildPalmLongFormPrompt({
+    required PalmLandmarkResult result,
+    required String locale,
+    List<String> ragChunks = const [],
+  }) {
+    final f = result.features;
+    final handLabel = result.isLeftHand ? '왼손' : '오른손';
+    final ragSection = ragChunks.isEmpty
+        ? ''
+        : '\n\n참고 지식:\n${ragChunks.map((c) => '- $c').join('\n')}';
+
+    final featureText = '''
+손 정보: $handLabel
+측정 데이터:
+- 손바닥 너비: ${_palmWidthDesc(f.palmWidth)}
+- 엄지 길이: ${_fingerLengthDesc(f.thumbLength)}
+- 검지 길이: ${_fingerLengthDesc(f.indexLength)}
+- 중지 길이: ${_fingerLengthDesc(f.middleLength)}
+- 약지 길이: ${_fingerLengthDesc(f.ringLength)}
+- 소지 길이: ${_fingerLengthDesc(f.pinkyLength)}
+- 손가락 펼침: ${_spreadDesc(f.fingerSpread)}''';
+
+    return '$featureText$ragSection\n\n상세 손금 분석을 섹션별로 작성해 주세요.';
+  }
+
+  static String _palmWidthDesc(double v) =>
+      v > 0.20 ? '넓음' : v > 0.14 ? '보통' : '좁음';
+
+  static String _fingerLengthDesc(double v) =>
+      v > 0.20 ? '길고 뚜렷함' : v > 0.13 ? '보통' : '짧음';
+
+  static String _spreadDesc(double v) =>
+      v > 0.12 ? '넓게 펼침' : v > 0.07 ? '보통' : '모아짐';
 
   static String _buildFeatureText(FaceFeatures f, String locale) {
     final eyeDesc      = _eyeDesc(f.eyeSpan);

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/landmark_result.dart';
+import '../../domain/entities/palm_result.dart';
 import '../../domain/entities/reading.dart';
 import 'supabase_client.dart';
 
@@ -83,6 +84,57 @@ class ReadingRepository {
       'user_id': userId,
       'type': type.name,
       'image_path': imagePath,
+      'landmarks': landmarksJson,
+      'features': featuresJson,
+      'result_text': resultText,
+      'model_used': modelUsed,
+      'locale': locale,
+    };
+
+    final response = await _client
+        .from('readings')
+        .insert(row)
+        .select()
+        .single();
+
+    return _fromRow(response);
+  }
+
+  /// 손금 readings INSERT
+  Future<Reading> savePalmReading({
+    required String userId,
+    required PalmLandmarkResult landmarkResult,
+    required String resultText,
+    required String modelUsed,
+    required String locale,
+  }) async {
+    final id = _uuid.v4();
+
+    final landmarksJson = {
+      'landmarks': landmarkResult.landmarks
+          .map((l) => {'x': l.x, 'y': l.y, 'z': l.z})
+          .toList(),
+      'score': landmarkResult.score,
+      'frame_width': landmarkResult.frameWidth,
+      'frame_height': landmarkResult.frameHeight,
+      'is_left_hand': landmarkResult.isLeftHand,
+    };
+
+    final featuresJson = {
+      'palm_width': landmarkResult.features.palmWidth,
+      'index_length': landmarkResult.features.indexLength,
+      'middle_length': landmarkResult.features.middleLength,
+      'ring_length': landmarkResult.features.ringLength,
+      'pinky_length': landmarkResult.features.pinkyLength,
+      'thumb_length': landmarkResult.features.thumbLength,
+      'finger_spread': landmarkResult.features.fingerSpread,
+    };
+
+    final row = {
+      'id': id,
+      'user_id': userId,
+      'type': 'palm',
+      'image_path': null,
       'landmarks': landmarksJson,
       'features': featuresJson,
       'result_text': resultText,
