@@ -31,7 +31,8 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
 
   bool _processing = false;
   bool _disposed = false;
-  bool _navigating = false; // 결과 페이지 이동 중 스트림 중단 플래그
+  bool _navigating = false;
+  FaceLandmarkResult? _lastDetectedResult;
   DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastLogTime = DateTime.now();
   int _frameCount = 0;
@@ -113,11 +114,11 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
       final bool detected = result != null;
 
       if (detected) {
-        // 안정도 증가 (상한 clamp)
+        _lastDetectedResult = result;
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value + 1).clamp(0, AppConst.stabilityFrames + 1);
-      } else {
-        // 점진 감소 (5 penalty) — 한 프레임 깜빡임에 즉시 0 리셋하지 않음
+      } else if (_stableFramesNotifier.value < AppConst.stabilityFrames) {
+        // 안정 전에만 감소 — 이미 안정(버튼 표시) 후엔 얼굴 이탈해도 유지
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value - 5).clamp(0, AppConst.stabilityFrames + 1);
       }
@@ -233,13 +234,13 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
                     valueListenable: _stableFramesNotifier,
                     builder: (_, stableFrames, __) {
                       final isStable = stableFrames >= AppConst.stabilityFrames;
-                      final result = _landmarkNotifier.value;
+                      final captured = _lastDetectedResult;
                       return AnimatedOpacity(
                         opacity: isStable ? 1.0 : 0.3,
                         duration: AppDuration.overlayFade,
                         child: FilledButton.icon(
-                          onPressed: isStable && result != null
-                              ? () => _goToResult(result)
+                          onPressed: isStable && captured != null
+                              ? () => _goToResult(captured)
                               : null,
                           icon: const Icon(Icons.auto_awesome),
                           label: const Text('관상 결과 보기'),
