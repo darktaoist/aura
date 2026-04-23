@@ -118,7 +118,8 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
         _lastDetectedResult = result;
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value + 1).clamp(0, AppConst.stabilityFrames + 1);
-      } else {
+      } else if (_stableFramesNotifier.value < AppConst.stabilityFrames) {
+        // 아직 안정 전일 때만 감소 — 이미 안정(버튼 표시)된 후엔 손이 사라져도 유지
         _stableFramesNotifier.value =
             (_stableFramesNotifier.value - 5).clamp(0, AppConst.stabilityFrames + 1);
       }
