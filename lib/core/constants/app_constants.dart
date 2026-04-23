@@ -21,7 +21,7 @@ class AppConst {
   static const int gemmaIntervalSec  = 5;        // 실시간 오버레이 분석 간격
 
   // Gemma
-  static const int gemmaMaxTokens    = 2048;
+  static const int gemmaMaxTokens    = 4096;
   static const double gemmaTemp      = 0.7;
   static const int gemmaTopK         = 40;
 

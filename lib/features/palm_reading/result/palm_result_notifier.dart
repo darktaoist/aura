@@ -51,6 +51,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
     required String locale,
     List<String> ragChunks = const [],
   }) async {
+    if (state.isStreaming) return; // 중복 호출 방어
     state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
     try {
@@ -61,18 +62,29 @@ class PalmResultNotifier extends _$PalmResultNotifier {
         ragChunks: ragChunks,
       );
 
+      // 토큰을 20자씩 묶어 state 갱신 → 리빌드 횟수 대폭 감소
+      var buffer = '';
       await for (final token in stream) {
-        state = state.copyWith(fullText: state.fullText + token);
+        buffer += token;
+        if (buffer.length >= 20) {
+          state = state.copyWith(fullText: state.fullText + buffer);
+          buffer = '';
+        }
+      }
+      if (buffer.isNotEmpty) {
+        state = state.copyWith(fullText: state.fullText + buffer);
       }
 
       state = state.copyWith(isStreaming: false);
     } catch (e) {
-      final isModelErr = e.toString().contains('model') ||
-          e.toString().contains('Model') ||
-          e.toString().contains('Unsupported');
+      final msg = e.toString();
+      final isModelErr = msg.contains('model') ||
+          msg.contains('Model') ||
+          msg.contains('Unsupported') ||
+          msg.contains('StateError');
       state = state.copyWith(
         isStreaming: false,
-        error: e.toString(),
+        error: msg,
         isModelError: isModelErr,
       );
     }

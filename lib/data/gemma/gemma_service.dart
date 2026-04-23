@@ -22,6 +22,7 @@ class GemmaService {
   GemmaService._(this._model);
 
   final InferenceModel _model;
+  bool _inferencing = false;
   bool get isReady => true;
 
   static Future<GemmaService> load() async {
@@ -70,6 +71,10 @@ class GemmaService {
     required String systemInstruction,
     required String userPrompt,
   }) async* {
+    if (_inferencing) {
+      throw StateError('GemmaService: 이미 추론 중입니다. 중복 호출 금지');
+    }
+    _inferencing = true;
     try {
       final chat = await _model.createChat(
         modelType: ModelType.gemmaIt,
@@ -86,7 +91,9 @@ class GemmaService {
       }
     } catch (e) {
       debugPrint('[GemmaService] inference error: $e');
-      yield '[분석 오류] $e';
+      rethrow; // 에러를 inline yield 하지 않고 호출부로 전달
+    } finally {
+      _inferencing = false;
     }
   }
 
