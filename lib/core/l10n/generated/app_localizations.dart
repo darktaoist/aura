@@ -353,6 +353,132 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'오른손'**
   String get rightHand;
+
+  /// No description provided for @mainConsultation.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담 이어가기'**
+  String get mainConsultation;
+
+  /// No description provided for @mainConsultationSubtitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 결과를 더 깊이 알아보세요'**
+  String get mainConsultationSubtitle;
+
+  /// No description provided for @mainConsultationLoginRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인이 필요합니다'**
+  String get mainConsultationLoginRequired;
+
+  /// No description provided for @consultationListTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담 기록'**
+  String get consultationListTitle;
+
+  /// No description provided for @consultationListEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 상담 기록이 없습니다'**
+  String get consultationListEmpty;
+
+  /// No description provided for @consultationListEmptyAction.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상/손금 분석부터 시작하세요'**
+  String get consultationListEmptyAction;
+
+  /// No description provided for @consultationListNew.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 상담'**
+  String get consultationListNew;
+
+  /// No description provided for @consultationDeleteConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 상담을 삭제할까요?'**
+  String get consultationDeleteConfirm;
+
+  /// No description provided for @consultationMessageCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 메시지'**
+  String consultationMessageCount(int count);
+
+  /// No description provided for @pickerTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 선택'**
+  String get pickerTitle;
+
+  /// No description provided for @pickerTabFace.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상'**
+  String get pickerTabFace;
+
+  /// No description provided for @pickerTabPalm.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금'**
+  String get pickerTabPalm;
+
+  /// No description provided for @pickerEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장된 분석 결과가 없습니다'**
+  String get pickerEmpty;
+
+  /// No description provided for @pickerEmptyAction.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 시작하기'**
+  String get pickerEmptyAction;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'질문을 입력하세요'**
+  String get chatInputHint;
+
+  /// No description provided for @chatTitleEdit.
+  ///
+  /// In ko, this message translates to:
+  /// **'제목 편집'**
+  String get chatTitleEdit;
+
+  /// No description provided for @chatDeleteConsultation.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담 삭제'**
+  String get chatDeleteConsultation;
+
+  /// No description provided for @chatErrorGeneration.
+  ///
+  /// In ko, this message translates to:
+  /// **'응답 생성에 실패했습니다. 다시 시도해주세요.'**
+  String get chatErrorGeneration;
+
+  /// No description provided for @resultStartConsultation.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담하기'**
+  String get resultStartConsultation;
+
+  /// No description provided for @resultSaveBeforeConsult.
+  ///
+  /// In ko, this message translates to:
+  /// **'먼저 저장해주세요'**
+  String get resultSaveBeforeConsult;
+
+  /// No description provided for @resultLoginToConsult.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담하려면 로그인이 필요합니다'**
+  String get resultLoginToConsult;
 }
 
 class _AppLocalizationsDelegate

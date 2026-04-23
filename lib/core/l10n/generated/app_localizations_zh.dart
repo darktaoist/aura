@@ -133,4 +133,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rightHand => '右手';
+
+  @override
+  String get mainConsultation => '继续咨询';
+
+  @override
+  String get mainConsultationSubtitle => '深入了解您的分析结果';
+
+  @override
+  String get mainConsultationLoginRequired => '需要登录';
+
+  @override
+  String get consultationListTitle => '咨询记录';
+
+  @override
+  String get consultationListEmpty => '暂无咨询记录';
+
+  @override
+  String get consultationListEmptyAction => '从面相或手相分析开始';
+
+  @override
+  String get consultationListNew => '新咨询';
+
+  @override
+  String get consultationDeleteConfirm => '删除此咨询？';
+
+  @override
+  String consultationMessageCount(int count) {
+    return '$count条消息';
+  }
+
+  @override
+  String get pickerTitle => '选择分析';
+
+  @override
+  String get pickerTabFace => '面相';
+
+  @override
+  String get pickerTabPalm => '手相';
+
+  @override
+  String get pickerEmpty => '没有已保存的分析结果';
+
+  @override
+  String get pickerEmptyAction => '开始分析';
+
+  @override
+  String get chatInputHint => '请输入您的问题';
+
+  @override
+  String get chatTitleEdit => '编辑标题';
+
+  @override
+  String get chatDeleteConsultation => '删除咨询';
+
+  @override
+  String get chatErrorGeneration => '生成回复失败，请重试。';
+
+  @override
+  String get resultStartConsultation => '开始咨询';
+
+  @override
+  String get resultSaveBeforeConsult => '请先保存结果';
+
+  @override
+  String get resultLoginToConsult => '咨询需要登录';
 }

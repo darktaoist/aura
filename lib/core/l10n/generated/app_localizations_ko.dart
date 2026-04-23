@@ -133,4 +133,69 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get rightHand => '오른손';
+
+  @override
+  String get mainConsultation => '상담 이어가기';
+
+  @override
+  String get mainConsultationSubtitle => '분석 결과를 더 깊이 알아보세요';
+
+  @override
+  String get mainConsultationLoginRequired => '로그인이 필요합니다';
+
+  @override
+  String get consultationListTitle => '상담 기록';
+
+  @override
+  String get consultationListEmpty => '아직 상담 기록이 없습니다';
+
+  @override
+  String get consultationListEmptyAction => '관상/손금 분석부터 시작하세요';
+
+  @override
+  String get consultationListNew => '새 상담';
+
+  @override
+  String get consultationDeleteConfirm => '이 상담을 삭제할까요?';
+
+  @override
+  String consultationMessageCount(int count) {
+    return '$count개 메시지';
+  }
+
+  @override
+  String get pickerTitle => '분석 선택';
+
+  @override
+  String get pickerTabFace => '관상';
+
+  @override
+  String get pickerTabPalm => '손금';
+
+  @override
+  String get pickerEmpty => '저장된 분석 결과가 없습니다';
+
+  @override
+  String get pickerEmptyAction => '분석 시작하기';
+
+  @override
+  String get chatInputHint => '질문을 입력하세요';
+
+  @override
+  String get chatTitleEdit => '제목 편집';
+
+  @override
+  String get chatDeleteConsultation => '상담 삭제';
+
+  @override
+  String get chatErrorGeneration => '응답 생성에 실패했습니다. 다시 시도해주세요.';
+
+  @override
+  String get resultStartConsultation => '상담하기';
+
+  @override
+  String get resultSaveBeforeConsult => '먼저 저장해주세요';
+
+  @override
+  String get resultLoginToConsult => '상담하려면 로그인이 필요합니다';
 }

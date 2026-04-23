@@ -156,7 +156,6 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
         }
         return _ReadingCard(
           reading: _readings[i - 1],
-          displayName: widget.displayName,
           onDelete: () => _delete(_readings[i - 1]),
         );
       },
@@ -168,12 +167,10 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
 class _ReadingCard extends StatelessWidget {
   const _ReadingCard({
     required this.reading,
-    required this.displayName,
     required this.onDelete,
   });
 
   final Reading reading;
-  final String displayName;
   final VoidCallback onDelete;
 
   @override
@@ -209,9 +206,30 @@ class _ReadingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${isface ? '관상 분석' : '손금 분석'} ($displayName)',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Row(
+                      children: [
+                        Text(
+                          isface ? '관상 분석' : '손금 분석',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: cs.secondaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            reading.subjectName,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cs.onSecondaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(

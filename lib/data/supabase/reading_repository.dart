@@ -57,6 +57,7 @@ class ReadingRepository {
     required String resultText,
     required String modelUsed,
     required String locale,
+    String subjectName = '나',
   }) async {
     final id = _uuid.v4();
 
@@ -89,6 +90,7 @@ class ReadingRepository {
       'result_text': resultText,
       'model_used': modelUsed,
       'locale': locale,
+      'subject_name': subjectName,
     };
 
     final response = await _client
@@ -107,6 +109,7 @@ class ReadingRepository {
     required String resultText,
     required String modelUsed,
     required String locale,
+    String subjectName = '나',
   }) async {
     final id = _uuid.v4();
 
@@ -140,6 +143,7 @@ class ReadingRepository {
       'result_text': resultText,
       'model_used': modelUsed,
       'locale': locale,
+      'subject_name': subjectName,
     };
 
     final response = await _client
@@ -207,6 +211,7 @@ class ReadingRepository {
       resultText: row['result_text'] as String,
       modelUsed: row['model_used'] as String?,
       locale: row['locale'] as String?,
+      subjectName: (row['subject_name'] as String?) ?? '나',
       createdAt: DateTime.parse(row['created_at'] as String),
     );
   }

@@ -17,6 +17,7 @@ _$ReadingImpl _$$ReadingImplFromJson(Map<String, dynamic> json) =>
       resultText: json['resultText'] as String,
       modelUsed: json['modelUsed'] as String?,
       locale: json['locale'] as String?,
+      subjectName: json['subjectName'] as String? ?? '나',
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
@@ -31,6 +32,7 @@ Map<String, dynamic> _$$ReadingImplToJson(_$ReadingImpl instance) =>
       'resultText': instance.resultText,
       'modelUsed': instance.modelUsed,
       'locale': instance.locale,
+      'subjectName': instance.subjectName,
       'createdAt': instance.createdAt.toIso8601String(),
     };
 

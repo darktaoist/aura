@@ -95,6 +95,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
     required PalmLandmarkResult landmarkResult,
     required String modelUsed,
     required String locale,
+    String subjectName = '나',
   }) async {
     if (state.fullText.isEmpty) return null;
     state = state.copyWith(isSaving: true);
@@ -105,6 +106,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
             resultText: state.fullText,
             modelUsed: modelUsed,
             locale: locale,
+            subjectName: subjectName,
           );
       state = state.copyWith(isSaving: false);
       return reading;

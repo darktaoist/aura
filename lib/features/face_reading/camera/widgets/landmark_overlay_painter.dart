@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../domain/entities/landmark_result.dart';
+import '../../../../../domain/physiognomy/face_mesh_connections.dart';
 import '../../../../../domain/physiognomy/landmark_index.dart';
 
 class LandmarkOverlayPainter extends CustomPainter {
@@ -11,25 +12,29 @@ class LandmarkOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawMesh(canvas, size);
+    _drawMeshLines(canvas, size);
     _drawKeyPoints(canvas, size);
   }
 
-  void _drawMesh(Canvas canvas, Size size) {
+  // ── 선 연결 (face mesh wireframe) ──────────────────────────────────────────
+  void _drawMeshLines(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = AppColors.overlayMesh
-      ..style = PaintingStyle.fill;
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
 
-    for (final lm in result.landmarks) {
-      canvas.drawCircle(
-        Offset(lm.x.clamp(0.0, 1.0) * size.width,
-               lm.y.clamp(0.0, 1.0) * size.height),
-        1.6,
+    final lm = result.landmarks;
+    for (final (a, b) in kFaceMeshConnections) {
+      if (a >= lm.length || b >= lm.length) continue;
+      canvas.drawLine(
+        Offset(lm[a].x * size.width, lm[a].y * size.height),
+        Offset(lm[b].x * size.width, lm[b].y * size.height),
         paint,
       );
     }
   }
 
+  // ── 관상 핵심 17점 (색 점 + 라벨) ──────────────────────────────────────────
   void _drawKeyPoints(Canvas canvas, Size size) {
     final dotPaint = Paint()
       ..color = AppColors.overlayKeyPoint
@@ -47,10 +52,10 @@ class LandmarkOverlayPainter extends CustomPainter {
       if (idx >= result.landmarks.length) continue;
 
       final lm = result.landmarks[idx];
-      final x = lm.x.clamp(0.0, 1.0) * size.width;
-      final y = lm.y.clamp(0.0, 1.0) * size.height;
+      final x = lm.x * size.width;
+      final y = lm.y * size.height;
 
-      canvas.drawCircle(Offset(x, y), 4.5, dotPaint);
+      canvas.drawCircle(Offset(x, y), 4.0, dotPaint);
 
       final tp = TextPainter(
         text: TextSpan(text: entry.key, style: labelStyle),

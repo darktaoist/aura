@@ -1,23 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import 'auth_notifier.dart';
 
-class AuthPage extends StatefulWidget {
+class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key, this.returnPath});
 
   final String? returnPath;
 
   @override
-  State<AuthPage> createState() => _AuthPageState();
+  ConsumerState<AuthPage> createState() => _AuthPageState();
 }
 
-class _AuthPageState extends State<AuthPage> {
+class _AuthPageState extends ConsumerState<AuthPage> {
   bool _agreed = false;
-  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+    final isLoading = authState.isLoading;
+
+    // 로그인 성공 시 이전 화면으로
+    ref.listen(authNotifierProvider, (_, next) {
+      if (next.isLoggedIn && context.mounted) context.pop();
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('로그인'),
@@ -68,7 +77,7 @@ class _AuthPageState extends State<AuthPage> {
               _AuthButton(
                 label: 'Google로 로그인',
                 icon: Icons.g_mobiledata,
-                onPressed: _agreed && !_isLoading ? _signInWithGoogle : null,
+                onPressed: _agreed && !isLoading ? _signInWithGoogle : null,
               ),
               const SizedBox(height: AppSpacing.md),
               // Kakao 로그인
@@ -77,7 +86,7 @@ class _AuthPageState extends State<AuthPage> {
                 icon: Icons.chat_bubble_outline,
                 backgroundColor: const Color(0xFFFEE500),
                 foregroundColor: Colors.black87,
-                onPressed: _agreed && !_isLoading ? _signInWithKakao : null,
+                onPressed: _agreed && !isLoading ? _signInWithKakao : null,
               ),
               const SizedBox(height: AppSpacing.md),
               TextButton(
@@ -98,15 +107,11 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
-    // TODO Phase 7: supabase.auth.signInWithOAuth(OAuthProvider.google)
-    setState(() => _isLoading = false);
+    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
   }
 
   Future<void> _signInWithKakao() async {
-    setState(() => _isLoading = true);
-    // TODO Phase 7: kakao_flutter_sdk → Edge Function kakao-auth → Supabase JWT
-    setState(() => _isLoading = false);
+    await ref.read(authNotifierProvider.notifier).signInWithKakao();
   }
 }
 

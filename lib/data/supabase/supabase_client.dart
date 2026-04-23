@@ -5,4 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 part 'supabase_client.g.dart';
 
 @riverpod
-SupabaseClient supabaseClient(Ref ref) => Supabase.instance.client;
+SupabaseClient supabaseClient(Ref ref) {
+  if (!Supabase.instance.isInitialized) {
+    throw StateError('Supabase가 초기화되지 않았습니다. --dart-define으로 SUPABASE_URL/ANON_KEY를 전달하세요.');
+  }
+  return Supabase.instance.client;
+}

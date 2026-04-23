@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/subject_picker_sheet.dart';
 import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/palm_result.dart';
 import '../../../models/consultation.dart';
@@ -117,7 +118,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     ref.listen(authNotifierProvider, (prev, next) {
       if (_pendingSave && prev?.isLoggedIn == false && next.isLoggedIn) {
         _pendingSave = false;
-        _doSave();
+        _onSave(context);
       }
     });
 
@@ -307,22 +308,12 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('결과 저장'),
-        content: const Text('분석 결과를 저장하시겠습니까?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('저장')),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    await _doSave();
+    final subject = await showSubjectPickerSheet(context);
+    if (subject == null || !context.mounted) return;
+    await _doSave(subjectName: subject);
   }
 
-  Future<void> _doSave() async {
+  Future<void> _doSave({String subjectName = '나'}) async {
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) return;
 
@@ -334,6 +325,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
           landmarkResult: widget.result,
           modelUsed: 'E2B',
           locale: locale,
+          subjectName: subjectName,
         );
 
     if (!mounted) return;

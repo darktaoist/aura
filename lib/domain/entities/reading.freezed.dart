@@ -30,6 +30,7 @@ mixin _$Reading {
   String get resultText => throw _privateConstructorUsedError;
   String? get modelUsed => throw _privateConstructorUsedError;
   String? get locale => throw _privateConstructorUsedError;
+  String get subjectName => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this Reading to a JSON map.
@@ -56,6 +57,7 @@ abstract class $ReadingCopyWith<$Res> {
     String resultText,
     String? modelUsed,
     String? locale,
+    String subjectName,
     DateTime createdAt,
   });
 }
@@ -84,6 +86,7 @@ class _$ReadingCopyWithImpl<$Res, $Val extends Reading>
     Object? resultText = null,
     Object? modelUsed = freezed,
     Object? locale = freezed,
+    Object? subjectName = null,
     Object? createdAt = null,
   }) {
     return _then(
@@ -124,6 +127,10 @@ class _$ReadingCopyWithImpl<$Res, $Val extends Reading>
                 ? _value.locale
                 : locale // ignore: cast_nullable_to_non_nullable
                       as String?,
+            subjectName: null == subjectName
+                ? _value.subjectName
+                : subjectName // ignore: cast_nullable_to_non_nullable
+                      as String,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -152,6 +159,7 @@ abstract class _$$ReadingImplCopyWith<$Res> implements $ReadingCopyWith<$Res> {
     String resultText,
     String? modelUsed,
     String? locale,
+    String subjectName,
     DateTime createdAt,
   });
 }
@@ -179,6 +187,7 @@ class __$$ReadingImplCopyWithImpl<$Res>
     Object? resultText = null,
     Object? modelUsed = freezed,
     Object? locale = freezed,
+    Object? subjectName = null,
     Object? createdAt = null,
   }) {
     return _then(
@@ -219,6 +228,10 @@ class __$$ReadingImplCopyWithImpl<$Res>
             ? _value.locale
             : locale // ignore: cast_nullable_to_non_nullable
                   as String?,
+        subjectName: null == subjectName
+            ? _value.subjectName
+            : subjectName // ignore: cast_nullable_to_non_nullable
+                  as String,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -241,6 +254,7 @@ class _$ReadingImpl implements _Reading {
     required this.resultText,
     this.modelUsed,
     this.locale,
+    this.subjectName = '나',
     required this.createdAt,
   }) : _landmarks = landmarks,
        _features = features;
@@ -281,11 +295,14 @@ class _$ReadingImpl implements _Reading {
   @override
   final String? locale;
   @override
+  @JsonKey()
+  final String subjectName;
+  @override
   final DateTime createdAt;
 
   @override
   String toString() {
-    return 'Reading(id: $id, userId: $userId, type: $type, imagePath: $imagePath, landmarks: $landmarks, features: $features, resultText: $resultText, modelUsed: $modelUsed, locale: $locale, createdAt: $createdAt)';
+    return 'Reading(id: $id, userId: $userId, type: $type, imagePath: $imagePath, landmarks: $landmarks, features: $features, resultText: $resultText, modelUsed: $modelUsed, locale: $locale, subjectName: $subjectName, createdAt: $createdAt)';
   }
 
   @override
@@ -308,6 +325,8 @@ class _$ReadingImpl implements _Reading {
             (identical(other.modelUsed, modelUsed) ||
                 other.modelUsed == modelUsed) &&
             (identical(other.locale, locale) || other.locale == locale) &&
+            (identical(other.subjectName, subjectName) ||
+                other.subjectName == subjectName) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -325,6 +344,7 @@ class _$ReadingImpl implements _Reading {
     resultText,
     modelUsed,
     locale,
+    subjectName,
     createdAt,
   );
 
@@ -353,6 +373,7 @@ abstract class _Reading implements Reading {
     required final String resultText,
     final String? modelUsed,
     final String? locale,
+    final String subjectName,
     required final DateTime createdAt,
   }) = _$ReadingImpl;
 
@@ -376,6 +397,8 @@ abstract class _Reading implements Reading {
   String? get modelUsed;
   @override
   String? get locale;
+  @override
+  String get subjectName;
   @override
   DateTime get createdAt;
 

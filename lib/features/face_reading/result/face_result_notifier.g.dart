@@ -7,7 +7,7 @@ part of 'face_result_notifier.dart';
 // **************************************************************************
 
 String _$faceResultNotifierHash() =>
-    r'818ab6d8370dff3af096c675a3c814312df0406a';
+    r'67a9ae01d66b0ff4b371153152cec2d7b7236e08';
 
 /// See also [FaceResultNotifier].
 @ProviderFor(FaceResultNotifier)

@@ -17,6 +17,7 @@ class Reading with _$Reading {
     required String resultText,
     String? modelUsed,
     String? locale,
+    @Default('나') String subjectName,
     required DateTime createdAt,
   }) = _Reading;
 

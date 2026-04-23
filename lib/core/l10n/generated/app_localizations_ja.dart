@@ -133,4 +133,69 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get rightHand => '右手';
+
+  @override
+  String get mainConsultation => '相談を続ける';
+
+  @override
+  String get mainConsultationSubtitle => '分析結果をさらに深く掘り下げましょう';
+
+  @override
+  String get mainConsultationLoginRequired => 'ログインが必要です';
+
+  @override
+  String get consultationListTitle => '相談履歴';
+
+  @override
+  String get consultationListEmpty => 'まだ相談履歴がありません';
+
+  @override
+  String get consultationListEmptyAction => '観相・手相の分析から始めましょう';
+
+  @override
+  String get consultationListNew => '新しい相談';
+
+  @override
+  String get consultationDeleteConfirm => 'この相談を削除しますか？';
+
+  @override
+  String consultationMessageCount(int count) {
+    return '$count件のメッセージ';
+  }
+
+  @override
+  String get pickerTitle => '分析を選択';
+
+  @override
+  String get pickerTabFace => '観相';
+
+  @override
+  String get pickerTabPalm => '手相';
+
+  @override
+  String get pickerEmpty => '保存された分析結果がありません';
+
+  @override
+  String get pickerEmptyAction => '分析を始める';
+
+  @override
+  String get chatInputHint => '質問を入力してください';
+
+  @override
+  String get chatTitleEdit => 'タイトルを編集';
+
+  @override
+  String get chatDeleteConsultation => '相談を削除';
+
+  @override
+  String get chatErrorGeneration => '応答の生成に失敗しました。もう一度お試しください。';
+
+  @override
+  String get resultStartConsultation => '相談する';
+
+  @override
+  String get resultSaveBeforeConsult => '先に保存してください';
+
+  @override
+  String get resultLoginToConsult => '相談にはログインが必要です';
 }

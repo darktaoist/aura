@@ -133,4 +133,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rightHand => 'Right Hand';
+
+  @override
+  String get mainConsultation => 'Continue Consultation';
+
+  @override
+  String get mainConsultationSubtitle =>
+      'Dive deeper into your reading results';
+
+  @override
+  String get mainConsultationLoginRequired => 'Login required';
+
+  @override
+  String get consultationListTitle => 'Consultations';
+
+  @override
+  String get consultationListEmpty => 'No consultations yet';
+
+  @override
+  String get consultationListEmptyAction => 'Start with a face or palm reading';
+
+  @override
+  String get consultationListNew => 'New Consultation';
+
+  @override
+  String get consultationDeleteConfirm => 'Delete this consultation?';
+
+  @override
+  String consultationMessageCount(int count) {
+    return '$count messages';
+  }
+
+  @override
+  String get pickerTitle => 'Select Reading';
+
+  @override
+  String get pickerTabFace => 'Face';
+
+  @override
+  String get pickerTabPalm => 'Palm';
+
+  @override
+  String get pickerEmpty => 'No saved readings found';
+
+  @override
+  String get pickerEmptyAction => 'Start a reading';
+
+  @override
+  String get chatInputHint => 'Type your question...';
+
+  @override
+  String get chatTitleEdit => 'Edit Title';
+
+  @override
+  String get chatDeleteConsultation => 'Delete Consultation';
+
+  @override
+  String get chatErrorGeneration =>
+      'Failed to generate a response. Please try again.';
+
+  @override
+  String get resultStartConsultation => 'Start Consultation';
+
+  @override
+  String get resultSaveBeforeConsult => 'Please save your results first';
+
+  @override
+  String get resultLoginToConsult => 'Login required to start a consultation';
 }

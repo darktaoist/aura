@@ -26,6 +26,12 @@ void main() async {
     }
   }
 
+  // Supabase 키 진단
+  debugPrint('[main] SUPABASE_URL=${Env.supabaseUrl}');
+  debugPrint('[main] ANON_KEY len=${Env.supabaseAnonKey.length} '
+      'head=${Env.supabaseAnonKey.isEmpty ? "EMPTY" : Env.supabaseAnonKey.substring(0, 20)} '
+      'tail=${Env.supabaseAnonKey.length > 20 ? Env.supabaseAnonKey.substring(Env.supabaseAnonKey.length - 20) : "SHORT"}');
+
   // Gemma 초기화
   await FlutterGemma.initialize();
 

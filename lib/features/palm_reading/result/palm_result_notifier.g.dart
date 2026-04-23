@@ -7,7 +7,7 @@ part of 'palm_result_notifier.dart';
 // **************************************************************************
 
 String _$palmResultNotifierHash() =>
-    r'6c3b73c15984abcdc05c6113df1de7459d3c142c';
+    r'b36c9df20b7bf90d813adf9cdcc8e7a20799dbd7';
 
 /// See also [PalmResultNotifier].
 @ProviderFor(PalmResultNotifier)
