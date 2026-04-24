@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/l10n/generated/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../models/consultation_message.dart';
+import '../../../core/l10n/generated/app_localizations.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../models/consultation_message.dart';
+import 'aura_avatar.dart';
 
 class MessageBubble extends StatefulWidget {
   const MessageBubble({
@@ -26,63 +27,71 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
+    final bubble = GestureDetector(
+      onTap: () => setState(() => _showTime = !_showTime),
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: widget.message.content));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.commonCopied),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
       child: Column(
         crossAxisAlignment:
             _isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => setState(() => _showTime = !_showTime),
-            onLongPress: () {
-              Clipboard.setData(ClipboardData(text: widget.message.content));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppLocalizations.of(context)!.copied),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            },
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              ),
-              decoration: BoxDecoration(
-                gradient: _isUser ? AppColors.brandGradient : null,
-                color: _isUser ? null : cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(AppRadius.md),
-                  topRight: const Radius.circular(AppRadius.md),
-                  bottomLeft: Radius.circular(_isUser ? AppRadius.md : 4),
-                  bottomRight: Radius.circular(_isUser ? 4 : AppRadius.md),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Flexible(
-                    child: Text(
-                      widget.message.content,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: _isUser ? Colors.white : cs.onSurface,
-                          ),
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.78,
+            ),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
+            decoration: _isUser
+                ? BoxDecoration(
+                    gradient: AppColors.brandGradient,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppRadius.lg),
+                      topRight: Radius.circular(4),
+                      bottomLeft: Radius.circular(AppRadius.lg),
+                      bottomRight: Radius.circular(AppRadius.lg),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.seed.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  )
+                : BoxDecoration(
+                    color: aura.surfaceContainer,
+                    border: Border.all(color: aura.cardBorder, width: 1),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(AppRadius.lg),
+                      bottomLeft: Radius.circular(AppRadius.lg),
+                      bottomRight: Radius.circular(AppRadius.lg),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: aura.cardShadow,
+                        blurRadius: 8,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  if (!_isUser && widget.isStreaming) ...[
-                    const SizedBox(width: 6),
-                    _TypingDots(color: cs.onSurface.withValues(alpha: 0.5)),
-                  ],
-                ],
+            child: Text(
+              widget.message.content,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: _isUser ? Colors.white : theme.colorScheme.onSurface,
+                height: 1.6,
+                fontSize: 15,
               ),
             ),
           ),
@@ -91,13 +100,27 @@ class _MessageBubbleState extends State<MessageBubble> {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 _formatTime(widget.message.createdAt),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: cs.onSurface.withValues(alpha: 0.4),
-                    ),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: aura.onSurfaceSubtle,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
         ],
       ),
+    );
+
+    if (_isUser) {
+      return Align(alignment: Alignment.centerRight, child: bubble);
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        const AuraAvatar(size: 24),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(child: bubble),
+      ],
     );
   }
 
@@ -108,104 +131,57 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 }
 
-// 스트리밍 중 도트 인디케이터
-class _TypingDots extends StatefulWidget {
-  const _TypingDots({required this.color});
-  final Color color;
-
-  @override
-  State<_TypingDots> createState() => _TypingDotsState();
-}
-
-class _TypingDotsState extends State<_TypingDots>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, __) {
-        final step = (_ctrl.value * 3).floor();
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (i) {
-            return Padding(
-              padding: const EdgeInsets.only(left: 2),
-              child: Container(
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.color.withValues(alpha: i == step ? 1.0 : 0.3),
-                ),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-}
-
-// 스트리밍 중 임시 버블 (토큰 단위 append)
+/// 스트리밍 중 실시간 텍스트 버블.
 class StreamingBubble extends StatelessWidget {
   const StreamingBubble({super.key, required this.text});
-
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
     if (text.isEmpty) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppRadius.md),
-              topRight: Radius.circular(AppRadius.md),
-              bottomLeft: Radius.circular(4),
-              bottomRight: Radius.circular(AppRadius.md),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        const AuraAvatar(size: 24),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.78,
+            ),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
+            decoration: BoxDecoration(
+              color: aura.surfaceContainer,
+              border: Border.all(color: aura.cardBorderAccent, width: 1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(AppRadius.lg),
+                bottomLeft: Radius.circular(AppRadius.lg),
+                bottomRight: Radius.circular(AppRadius.lg),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: aura.cardShadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Text(
+              text,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+                height: 1.6,
+                fontSize: 15,
+              ),
             ),
           ),
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: cs.onSurface,
-                ),
-          ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -7,12 +7,13 @@ import '../../core/theme/app_colors.dart';
 import '../../models/consultation.dart';
 import '../../models/consultation_message.dart';
 import 'providers/consultation_chat_provider.dart';
+import 'widgets/aura_avatar.dart';
 import 'widgets/chat_input_bar.dart';
+import 'widgets/context_summary_chips.dart';
 import 'widgets/message_bubble.dart';
 
 class ConsultationChatScreen extends ConsumerStatefulWidget {
   const ConsultationChatScreen({super.key, required this.consultationId});
-
   final String consultationId;
 
   @override
@@ -20,8 +21,10 @@ class ConsultationChatScreen extends ConsumerStatefulWidget {
       _ConsultationChatScreenState();
 }
 
-class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen> {
+class _ConsultationChatScreenState
+    extends ConsumerState<ConsultationChatScreen> {
   final _scrollCtrl = ScrollController();
+  bool _contextExpanded = false;
 
   @override
   void dispose() {
@@ -44,7 +47,9 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final chatState = ref.watch(consultationChatProvider(widget.consultationId));
+    final theme = Theme.of(context);
+    final chatState =
+        ref.watch(consultationChatProvider(widget.consultationId));
 
     ref.listen(consultationChatProvider(widget.consultationId), (prev, next) {
       if (prev?.messages.length != next.messages.length ||
@@ -55,14 +60,14 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
 
     if (chatState.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.consultationTitle)),
+        appBar: _buildAppBar(context, ref, null, l10n),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (chatState.error != null && chatState.consultation == null) {
       return Scaffold(
-        appBar: AppBar(),
+        appBar: _buildAppBar(context, ref, null, l10n),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -82,29 +87,70 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
     }
 
     final consultation = chatState.consultation!;
+    final showStreamingBubble =
+        chatState.isStreaming && chatState.streamingText.isNotEmpty;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: _buildAppBar(context, ref, consultation, l10n),
-      body: Column(
+      resizeToAvoidBottomInset: true,
+      body: Stack(
         children: [
-          Expanded(
-            child: _MessageList(
-              scrollCtrl: _scrollCtrl,
-              messages: chatState.messages,
-              streamingText: chatState.streamingText,
-              isStreaming: chatState.isStreaming,
-              l10n: l10n,
+          // 배경 radial 워시
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.8),
+                    radius: 1.2,
+                    colors: [
+                      theme.colorScheme.primary.withValues(
+                        alpha: theme.brightness == Brightness.dark ? 0.07 : 0.03,
+                      ),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          ChatInputBar(
-            isDisabled: chatState.isStreaming || chatState.isLoading,
-            hintText: l10n.chatInputHint,
-            generatingText: l10n.chatGenerating,
-            onSend: (text) {
-              ref.read(consultationChatProvider(widget.consultationId).notifier)
-                  .sendMessage(text);
-            },
+
+          Column(
+            children: [
+              // 컨텍스트 요약 (접기/펼치기)
+              if (consultation.contextSummary.isNotEmpty)
+                ContextSummaryChips(
+                  summary: consultation.contextSummary,
+                  expanded: _contextExpanded,
+                  onToggle: () =>
+                      setState(() => _contextExpanded = !_contextExpanded),
+                ),
+
+              // 메시지 리스트
+              Expanded(
+                child: _MessageList(
+                  scrollCtrl: _scrollCtrl,
+                  messages: chatState.messages,
+                  streamingText: chatState.streamingText,
+                  showStreamingBubble: showStreamingBubble,
+                  isStreaming: chatState.isStreaming,
+                  l10n: l10n,
+                ),
+              ),
+
+              // 입력바
+              ChatInputBar(
+                isDisabled: chatState.isStreaming || chatState.isLoading,
+                hintText: l10n.chatInputHint,
+                generatingText: l10n.chatGenerating,
+                onSend: (text) {
+                  ref
+                      .read(consultationChatProvider(widget.consultationId)
+                          .notifier)
+                      .sendMessage(text);
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -112,44 +158,81 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
   }
 
   AppBar _buildAppBar(
-    BuildContext context, WidgetRef ref,
-    Consultation consultation, AppLocalizations l10n,
+    BuildContext context,
+    WidgetRef ref,
+    Consultation? consultation,
+    AppLocalizations l10n,
   ) {
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
+
     return AppBar(
-      title: GestureDetector(
-        onTap: () => _editTitle(context, ref, consultation, l10n),
-        child: Text(
-          consultation.title ?? l10n.consultationTitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          const AuraAvatar(size: 28),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: consultation == null
+                      ? null
+                      : () => _editTitle(context, ref, consultation, l10n),
+                  child: Text(
+                    consultation?.title ?? l10n.consultationAuraTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                Text(
+                  l10n.consultationSubjectYou,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: aura.onSurfaceMuted,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       actions: [
-        PopupMenuButton<String>(
-          onSelected: (val) async {
-            if (val == 'delete') {
-              final ok = await _confirmDelete(context, l10n);
-              if (ok && context.mounted) {
-                await ref.read(consultationChatProvider(widget.consultationId).notifier)
-                    .deleteConsultation();
-                if (context.mounted) context.go('/consultation');
+        if (consultation != null)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (val) async {
+              if (val == 'delete') {
+                final ok = await _confirmDelete(context, l10n);
+                if (ok && context.mounted) {
+                  await ref
+                      .read(consultationChatProvider(widget.consultationId)
+                          .notifier)
+                      .deleteConsultation();
+                  if (context.mounted) context.go('/consultation');
+                }
               }
-            }
-          },
-          itemBuilder: (_) => [
-            PopupMenuItem(value: 'delete', child: Text(l10n.chatDeleteConsultation)),
-          ],
-        ),
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                  value: 'delete', child: Text(l10n.chatDeleteConsultation)),
+            ],
+          ),
       ],
     );
   }
 
   Future<void> _editTitle(
-    BuildContext context, WidgetRef ref,
-    Consultation consultation, AppLocalizations l10n,
+    BuildContext context,
+    WidgetRef ref,
+    Consultation consultation,
+    AppLocalizations l10n,
   ) async {
     final ctrl = TextEditingController(text: consultation.title);
-    final result = await showDialog<String>(
+    await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.chatTitleEdit),
@@ -159,7 +242,8 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
           decoration: InputDecoration(hintText: l10n.consultationTitleHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
             child: Text(l10n.save),
@@ -168,19 +252,19 @@ class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen>
       ),
     );
     ctrl.dispose();
-    if (result != null && result.isNotEmpty && context.mounted) {
-      // TODO: ConsultationService.updateTitle 호출 후 provider 갱신
-    }
   }
 
-  Future<bool> _confirmDelete(BuildContext context, AppLocalizations l10n) async {
+  Future<bool> _confirmDelete(
+      BuildContext context, AppLocalizations l10n) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.chatDeleteConsultation),
         content: Text(l10n.consultationDeleteContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(l10n.delete),
@@ -197,6 +281,7 @@ class _MessageList extends StatelessWidget {
     required this.scrollCtrl,
     required this.messages,
     required this.streamingText,
+    required this.showStreamingBubble,
     required this.isStreaming,
     required this.l10n,
   });
@@ -204,12 +289,14 @@ class _MessageList extends StatelessWidget {
   final ScrollController scrollCtrl;
   final List<ConsultationMessage> messages;
   final String streamingText;
+  final bool showStreamingBubble;
   final bool isStreaming;
   final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final showStreamingBubble = isStreaming && streamingText.isNotEmpty;
+    final aura = context.auraColors;
+    final theme = Theme.of(context);
 
     if (messages.isEmpty && !showStreamingBubble) {
       return Center(
@@ -218,15 +305,12 @@ class _MessageList extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ShaderMask(
-                shaderCallback: (b) => AppColors.brandGradient.createShader(b),
-                child: const Icon(Icons.chat_bubble_outline, size: 48, color: Colors.white),
-              ),
+              const AuraAvatar(size: 48),
               const SizedBox(height: AppSpacing.md),
               Text(
                 l10n.consultationEmptyHint,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: aura.onSurfaceMuted,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -238,10 +322,14 @@ class _MessageList extends StatelessWidget {
 
     final itemCount = messages.length + (showStreamingBubble ? 1 : 0);
 
-    return ListView.builder(
+    return ListView.separated(
       controller: scrollCtrl,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md,
+      ),
       itemCount: itemCount,
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (_, i) {
         if (i < messages.length) return MessageBubble(message: messages[i]);
         return StreamingBubble(text: streamingText);
