@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/l10n/locale_notifier.dart';
@@ -389,6 +390,12 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   }
 
   void _onShare() {
-    // TODO Phase 7: 공유 기능
+    final l10n = AppLocalizations.of(context)!;
+    final fullText = ref.read(palmResultNotifierProvider).fullText;
+    if (fullText.isEmpty) return;
+
+    final hand = widget.result.isLeftHand ? l10n.leftHand : l10n.rightHand;
+    final shareText = '${l10n.palmResultTitle(hand)}\n\n$fullText\n\n— Aura';
+    SharePlus.instance.share(ShareParams(text: shareText));
   }
 }

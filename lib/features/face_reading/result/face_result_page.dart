@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/l10n/locale_notifier.dart';
@@ -385,7 +386,12 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   }
 
   void _onShare() {
-    // TODO Phase 7: 공유 기능
+    final l10n = AppLocalizations.of(context)!;
+    final fullText = ref.read(faceResultNotifierProvider).fullText;
+    if (fullText.isEmpty) return;
+
+    final shareText = '${l10n.faceResultTitle}\n\n$fullText\n\n— Aura';
+    SharePlus.instance.share(ShareParams(text: shareText));
   }
 }
 
