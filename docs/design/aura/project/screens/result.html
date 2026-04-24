@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Aura — Result</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+:root{
+  --surface:#FDFCFF; --surface-c:#F7F5FB; --surface-ch:#EFEBF4;
+  --border:rgba(0,0,0,.08); --border-accent:rgba(107,92,231,.40);
+  --shadow:0 2px 12px rgba(26,21,51,.06);
+  --on:#1A1533; --on-muted:#5A5470; --on-subtle:#8E89A2;
+  --seed:#6B5CE7;
+  --fh:#7A6CEB; --ey:#6B7BE8; --no:#5E89DD; --mo:#6F77D4; --ch:#8470D9; --ov:#6B5CE7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--on);-webkit-font-smoothing:antialiased}
+.appbar{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid transparent}
+.appbar .ttl{font-size:17px;font-weight:600;margin-left:8px}
+.appbar .sp{flex:1}
+.mi{font-family:'Material Symbols Outlined';font-size:22px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--on)}
+.body{padding:8px 20px 112px}
+.hero{padding:20px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(135deg,rgba(107,92,231,.08),rgba(78,168,222,.04)),var(--surface-c)}
+.hero .meta{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--on-muted);letter-spacing:.6px;margin-bottom:8px}
+.hero .meta .mi{font-size:16px;color:var(--seed)}
+.hero h1{font-size:24px;font-weight:700;letter-spacing:-.3px;line-height:1.3}
+.chips{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:var(--surface);font-size:12px;font-weight:600;color:var(--on-muted)}
+.progress{margin-top:16px;height:4px;border-radius:100px;background:var(--surface-ch);overflow:hidden;position:relative}
+.progress::after{content:"";position:absolute;inset:0;width:60%;background:linear-gradient(90deg,var(--seed),#4EA8DE);animation:slide 1.6s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(180%)}}
+.sec{margin-top:16px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface-c);box-shadow:var(--shadow)}
+.sec.streaming{border-color:var(--border-accent);box-shadow:var(--shadow),0 0 24px rgba(107,92,231,.25)}
+.sec .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sec .ico{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+.sec .lbl{font-size:11px;letter-spacing:1.4px;font-weight:700;text-transform:uppercase}
+.sec .ttl{font-size:18px;font-weight:700;letter-spacing:-.1px;margin-top:2px}
+.sec .txt{font-size:16px;line-height:1.7;letter-spacing:.05px;color:var(--on)}
+.dot{width:8px;height:8px;border-radius:50%;margin-left:auto;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{to{opacity:.4}}
+.cta{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px;display:flex;gap:12px}
+.btn{height:52px;border-radius:12px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;cursor:pointer}
+.btn.outlined{flex:1;background:var(--surface);color:var(--on);border:1px solid var(--border)}
+.btn.filled{flex:2;background:var(--seed);color:#fff}
+.btn .mi{font-size:18px}
+/* section color setters */
+.s-fh .ico{background:rgba(122,108,235,.12);color:var(--fh)} .s-fh .lbl{color:var(--fh)} .s-fh .dot{background:var(--fh)}
+.s-ey .ico{background:rgba(107,123,232,.12);color:var(--ey)} .s-ey .lbl{color:var(--ey)} .s-ey .dot{background:var(--ey)}
+.s-no .ico{background:rgba(94,137,221,.12);color:var(--no)} .s-no .lbl{color:var(--no)}
+.s-mo .ico{background:rgba(111,119,212,.12);color:var(--mo)} .s-mo .lbl{color:var(--mo)}
+.s-ch .ico{background:rgba(132,112,217,.12);color:var(--ch)} .s-ch .lbl{color:var(--ch)}
+.s-ov .ico{background:rgba(107,92,231,.12);color:var(--ov)} .s-ov .lbl{color:var(--ov)}
+</style>
+</head>
+<body>
+<div class="appbar">
+  <button class="icon-btn"><span class="mi">arrow_back</span></button>
+  <div class="ttl">관상 리포트</div>
+  <div class="sp"></div>
+  <button class="icon-btn"><span class="mi">ios_share</span></button>
+</div>
+<div class="body">
+  <div class="hero">
+    <div class="meta"><span class="mi">auto_awesome</span><span>2026. 04. 24. 오전 10:24</span></div>
+    <h1>분석이 한창 진행중이에요</h1>
+    <div class="chips">
+      <div class="chip">#균형잡힌 이마</div>
+      <div class="chip">#온화한 눈매</div>
+      <div class="chip">#안정된 코</div>
+      <div class="chip">#분명한 입</div>
+    </div>
+    <div class="progress"></div>
+  </div>
+
+  <div class="sec s-fh">
+    <div class="head">
+      <div class="ico"><span class="mi">waves</span></div>
+      <div style="flex:1">
+        <div class="lbl">이마 · 상부</div>
+        <div class="ttl">정돈된 흐름, 넓은 시야</div>
+      </div>
+    </div>
+    <div class="txt">이마는 얼굴의 상부를 차지하며 전반적인 사고와 의지의 흐름을 드러냅니다. 당신의 이마는 좌우 비율이 고르고 헤어라인이 자연스러워 의사 결정에서 성급함이 적고, 큰 그림을 먼저 그리는 경향이 보입니다.</div>
+  </div>
+
+  <div class="sec s-ey streaming">
+    <div class="head">
+      <div class="ico"><span class="mi">visibility</span></div>
+      <div style="flex:1">
+        <div class="lbl">눈 · 중부 상단</div>
+        <div class="ttl">관찰력 깊은 시선</div>
+      </div>
+      <div class="dot"></div>
+    </div>
+    <div class="txt">눈꼬리의 완만한 각도와 쌍꺼풀의 섬세한 흐름은 감정의 진폭이 크지 않은 차분한 내면을 시사합니다. 다만 동공의 활력도로 보아 필요한 순간에는 주저 없이 몰입하는 힘이…</div>
+  </div>
+
+  <div class="sec s-no">
+    <div class="head">
+      <div class="ico"><span class="mi">air</span></div>
+      <div style="flex:1">
+        <div class="lbl">코 · 중심</div>
+        <div class="ttl">안정된 재물의 축</div>
+      </div>
+    </div>
+    <div class="txt">콧대가 고르고 콧망울이 단단한 편이어서 자원 관리와 실행력의 토대가 탄탄합니다. 중년기의 경제 흐름은 큰 기복 없이 꾸준히 상승하는 형태가 예상됩니다.</div>
+  </div>
+</div>
+<div class="cta">
+  <button class="btn outlined"><span class="mi">bookmark</span>저장</button>
+  <button class="btn filled"><span class="mi">psychology</span>AI에게 상담하기</button>
+</div>
+</body>
+</html>

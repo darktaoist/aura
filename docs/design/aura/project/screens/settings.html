@@ -1,0 +1,47 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"/><title>Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+:root{--surface:#FDFCFF;--surface-c:#F7F5FB;--surface-ch:#EFEBF4;--border:rgba(0,0,0,.08);--on:#1A1533;--on-muted:#5A5470;--on-subtle:#8E89A2;--seed:#6B5CE7;--grad-start:#6B5CE7;--grad-end:#4EA8DE}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--on)}
+.appbar{display:flex;align-items:center;padding:10px 12px}.appbar .ttl{font-size:17px;font-weight:600;margin-left:8px}
+.mi{font-family:'Material Symbols Outlined';font-size:22px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--on)}
+.profile{margin:8px 20px 20px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface-c);display:flex;gap:14px;align-items:center}
+.ava{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--grad-start),var(--grad-end));display:inline-flex;align-items:center;justify-content:center;color:#fff}
+.ava .mi{font-size:24px}
+.pname{font-size:17px;font-weight:700}
+.pmail{font-size:12px;color:var(--on-muted);margin-top:2px}
+.group{margin:0 20px 16px}
+.gl{font-size:11px;letter-spacing:1.2px;font-weight:700;color:var(--on-subtle);text-transform:uppercase;padding:12px 4px 8px}
+.rows{border:1px solid var(--border);border-radius:16px;background:var(--surface-c);overflow:hidden}
+.row{display:flex;align-items:center;padding:14px 16px;gap:14px}
+.row+.row{border-top:1px solid var(--border)}
+.rico{width:28px;height:28px;border-radius:8px;background:var(--surface-ch);display:inline-flex;align-items:center;justify-content:center;color:var(--seed)}
+.rico .mi{font-size:18px}
+.rt{flex:1;font-size:15px;font-weight:500}
+.rv{font-size:13px;color:var(--on-muted)}
+.chev{color:var(--on-subtle);font-size:18px}
+.switch{width:44px;height:26px;border-radius:100px;background:var(--seed);position:relative}
+.switch::after{content:"";position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:#fff}
+.switch.off{background:var(--surface-ch)}
+.switch.off::after{left:3px}
+</style></head><body>
+<div class="appbar"><button class="icon-btn"><span class="mi">arrow_back</span></button><div class="ttl">설정</div></div>
+<div class="profile"><div class="ava"><span class="mi">person</span></div><div><div class="pname">김지후</div><div class="pmail">jihoo@example.com</div></div></div>
+<div class="group"><div class="gl">분석</div><div class="rows">
+<div class="row"><div class="rico"><span class="mi">model_training</span></div><div class="rt">AI 모델</div><div class="rv">Gemma 2B · 최신</div><span class="chev mi">chevron_right</span></div>
+<div class="row"><div class="rico"><span class="mi">language</span></div><div class="rt">언어</div><div class="rv">한국어</div><span class="chev mi">chevron_right</span></div>
+<div class="row"><div class="rico"><span class="mi">bedtime</span></div><div class="rt">다크 모드</div><div class="switch off"></div></div>
+</div></div>
+<div class="group"><div class="gl">프라이버시</div><div class="rows">
+<div class="row"><div class="rico"><span class="mi">cloud_off</span></div><div class="rt">온디바이스 전용</div><div class="switch"></div></div>
+<div class="row"><div class="rico"><span class="mi">photo_library</span></div><div class="rt">이미지 보관</div><div class="rv">7일 후 자동 삭제</div><span class="chev mi">chevron_right</span></div>
+<div class="row"><div class="rico"><span class="mi">delete_outline</span></div><div class="rt">모든 기록 지우기</div><span class="chev mi">chevron_right</span></div>
+</div></div>
+<div class="group"><div class="gl">정보</div><div class="rows">
+<div class="row"><div class="rico"><span class="mi">description</span></div><div class="rt">이용약관</div><span class="chev mi">chevron_right</span></div>
+<div class="row"><div class="rico"><span class="mi">shield</span></div><div class="rt">개인정보 처리방침</div><span class="chev mi">chevron_right</span></div>
+<div class="row"><div class="rico"><span class="mi">info</span></div><div class="rt">버전</div><div class="rv">1.2.0</div></div>
+</div></div>
+</body></html>

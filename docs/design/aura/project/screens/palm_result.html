@@ -1,0 +1,49 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"/><title>Palm Result</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+:root{--surface:#FDFCFF;--surface-c:#F7F5FB;--surface-ch:#EFEBF4;--border:rgba(0,0,0,.08);--border-accent:rgba(107,92,231,.4);--shadow:0 2px 12px rgba(26,21,51,.06);--on:#1A1533;--on-muted:#5A5470;--on-subtle:#8E89A2;--seed:#6B5CE7;--life:#7A6CEB;--head:#6B7BE8;--heart:#5E89DD;--fate:#6F77D4;--sun:#8470D9;--marr:#6B5CE7}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--on)}
+.appbar{display:flex;align-items:center;padding:10px 12px}.appbar .ttl{font-size:17px;font-weight:600;margin-left:8px}.appbar .sp{flex:1}
+.mi{font-family:'Material Symbols Outlined';font-size:22px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--on)}
+.body{padding:8px 20px 112px}
+.hero{padding:20px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(135deg,rgba(107,123,232,.08),rgba(78,168,222,.04)),var(--surface-c)}
+.hero .meta{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--on-muted);letter-spacing:.6px;margin-bottom:8px}
+.hero .meta .mi{font-size:16px;color:var(--seed)}
+.hero h1{font-size:24px;font-weight:700;letter-spacing:-.3px;line-height:1.3}
+.chips{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:var(--surface);font-size:12px;font-weight:600;color:var(--on-muted)}
+.sec{margin-top:16px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface-c);box-shadow:var(--shadow)}
+.sec.streaming{border-color:var(--border-accent);box-shadow:var(--shadow),0 0 24px rgba(107,92,231,.25)}
+.sec .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sec .ico{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+.sec .lbl{font-size:11px;letter-spacing:1.4px;font-weight:700;text-transform:uppercase}
+.sec .ttl{font-size:18px;font-weight:700;margin-top:2px}
+.sec .txt{font-size:16px;line-height:1.7;letter-spacing:.05px}
+.dot{width:8px;height:8px;border-radius:50%;margin-left:auto;animation:p 1s infinite alternate}
+@keyframes p{to{opacity:.4}}
+.cta{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px;display:flex;gap:12px}
+.btn{height:52px;border-radius:12px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0}
+.btn.outlined{flex:1;background:var(--surface);color:var(--on);border:1px solid var(--border)}
+.btn.filled{flex:2;background:var(--seed);color:#fff}
+.s-li .ico{background:rgba(122,108,235,.12);color:var(--life)}.s-li .lbl{color:var(--life)}.s-li .dot{background:var(--life)}
+.s-he .ico{background:rgba(107,123,232,.12);color:var(--head)}.s-he .lbl{color:var(--head)}
+.s-hr .ico{background:rgba(94,137,221,.12);color:var(--heart)}.s-hr .lbl{color:var(--heart)}
+.s-fa .ico{background:rgba(111,119,212,.12);color:var(--fate)}.s-fa .lbl{color:var(--fate)}
+</style></head><body>
+<div class="appbar"><button class="icon-btn"><span class="mi">arrow_back</span></button><div class="ttl">손금 리포트</div><div class="sp"></div><button class="icon-btn"><span class="mi">ios_share</span></button></div>
+<div class="body">
+<div class="hero"><div class="meta"><span class="mi">auto_awesome</span><span>2026. 04. 24. 오전 11:02</span></div><h1>손에 담긴 흐름을 읽었어요</h1>
+<div class="chips"><div class="chip">#깊은 생명선</div><div class="chip">#또렷한 지혜선</div><div class="chip">#유연한 감정선</div><div class="chip">#안정된 운명선</div></div></div>
+<div class="sec s-li"><div class="head"><div class="ico"><span class="mi">favorite</span></div><div style="flex:1"><div class="lbl">생명선 · LIFE</div><div class="ttl">깊고 완만한 곡선</div></div></div>
+<div class="txt">생명선은 엄지와 검지 사이에서 손목으로 흐르는 주된 에너지의 축입니다. 당신의 생명선은 선이 깊고 곡선이 완만해 기초 체력과 회복력이 뒷받침되어 있고, 중간의 작은 갈래는 방향 전환의 유연함을 의미합니다.</div></div>
+<div class="sec s-he streaming"><div class="head"><div class="ico"><span class="mi">psychology</span></div><div style="flex:1"><div class="lbl">지혜선 · HEAD</div><div class="ttl">또렷한 단일선</div></div><div class="dot"></div></div>
+<div class="txt">지혜선이 손바닥을 가로질러 뚜렷하게 이어져 있습니다. 이는 논리적 사고의 축이 안정되어 있고 한 가지 주제에 깊게 파고드는 성향이…</div></div>
+<div class="sec s-hr"><div class="head"><div class="ico"><span class="mi">volunteer_activism</span></div><div style="flex:1"><div class="lbl">감정선 · HEART</div><div class="ttl">끝이 위로 휘는 부드러움</div></div></div>
+<div class="txt">감정선의 끝이 검지 쪽으로 부드럽게 휘어 있어 타인에게 먼저 손을 내미는 따뜻한 태도를 보입니다. 다만 긴장된 상황에서는 마음을 너무 빨리 닫는 습관이 있을 수 있어요.</div></div>
+<div class="sec s-fa"><div class="head"><div class="ico"><span class="mi">trending_up</span></div><div style="flex:1"><div class="lbl">운명선 · FATE</div><div class="ttl">중앙을 관통하는 주축</div></div></div>
+<div class="txt">운명선이 손목에서 중지까지 곧게 뻗어 있어 삶의 주체성이 뚜렷합니다. 30대 중반 이후 작은 분기가 관찰되므로 새로운 길이 열릴 가능성이 있어요.</div></div>
+</div>
+<div class="cta"><button class="btn outlined"><span class="mi">bookmark</span>저장</button><button class="btn filled"><span class="mi">psychology</span>AI에게 상담하기</button></div>
+</body></html>

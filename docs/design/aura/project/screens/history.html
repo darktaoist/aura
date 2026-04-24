@@ -1,0 +1,42 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"/><title>History</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+:root{--surface:#FDFCFF;--surface-c:#F7F5FB;--surface-ch:#EFEBF4;--border:rgba(0,0,0,.08);--on:#1A1533;--on-muted:#5A5470;--on-subtle:#8E89A2;--seed:#6B5CE7;--overall:#6B5CE7;--eyes:#6B7BE8}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--on)}
+.appbar{display:flex;align-items:center;padding:10px 12px}.appbar .ttl{font-size:17px;font-weight:600;margin-left:8px}
+.mi{font-family:'Material Symbols Outlined';font-size:22px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--on)}
+.h1{padding:8px 20px 12px;font-size:26px;font-weight:700;letter-spacing:-.4px}
+.tabs{display:flex;gap:20px;padding:0 20px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 0;font-size:14px;font-weight:600;color:var(--on-muted);border-bottom:2px solid transparent}
+.tab.active{color:var(--seed);border-bottom-color:var(--seed)}
+.date{padding:20px 20px 8px;font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--on-subtle);text-transform:uppercase}
+.grid{padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid var(--border);border-radius:16px;background:var(--surface-c);overflow:hidden}
+.thumb{aspect-ratio:1.1/1;position:relative;display:flex;align-items:center;justify-content:center}
+.thumb.f{background:linear-gradient(135deg,rgba(107,92,231,.18),rgba(107,92,231,.04))}
+.thumb.p{background:linear-gradient(135deg,rgba(107,123,232,.18),rgba(107,123,232,.04))}
+.thumb .mi{font-size:56px}
+.thumb.f .mi{color:rgba(107,92,231,.7)}
+.thumb.p .mi{color:rgba(107,123,232,.7)}
+.thumb .tag{position:absolute;top:10px;left:10px;padding:3px 8px;font-size:10px;letter-spacing:1px;font-weight:700;background:rgba(255,255,255,.9);border-radius:100px;color:var(--on)}
+.info{padding:12px}.info .t{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info .d{font-size:11px;color:var(--on-subtle);margin-top:2px;letter-spacing:.4px}
+</style></head><body>
+<div class="appbar"><button class="icon-btn"><span class="mi">arrow_back</span></button></div>
+<div class="h1">기록</div>
+<div class="tabs"><div class="tab active">전체</div><div class="tab">관상</div><div class="tab">손금</div></div>
+<div class="date">2026년 4월</div>
+<div class="grid">
+<div class="card"><div class="thumb f"><span class="tag">관상</span><span class="mi">face_retouching_natural</span></div><div class="info"><div class="t">오전 리딩 · 나</div><div class="d">4월 24일</div></div></div>
+<div class="card"><div class="thumb p"><span class="tag">손금</span><span class="mi">back_hand</span></div><div class="info"><div class="t">내 왼손</div><div class="d">4월 24일</div></div></div>
+<div class="card"><div class="thumb f"><span class="tag">관상</span><span class="mi">face_retouching_natural</span></div><div class="info"><div class="t">가족 세션</div><div class="d">4월 18일</div></div></div>
+<div class="card"><div class="thumb p"><span class="tag">손금</span><span class="mi">back_hand</span></div><div class="info"><div class="t">오른손 비교</div><div class="d">4월 12일</div></div></div>
+</div>
+<div class="date">2026년 3월</div>
+<div class="grid">
+<div class="card"><div class="thumb f"><span class="tag">관상</span><span class="mi">face_retouching_natural</span></div><div class="info"><div class="t">봄의 시작</div><div class="d">3월 30일</div></div></div>
+<div class="card"><div class="thumb p"><span class="tag">손금</span><span class="mi">back_hand</span></div><div class="info"><div class="t">친구 K</div><div class="d">3월 21일</div></div></div>
+</div>
+</body></html>

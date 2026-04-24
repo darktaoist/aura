@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Aura — Design Preview</title>
+<meta name="ext-resource-dependency" content="screens/home.html" data-resource-id="home" />
+<meta name="ext-resource-dependency" content="screens/result.html" data-resource-id="result" />
+<meta name="ext-resource-dependency" content="screens/chat.html" data-resource-id="chat" />
+<meta name="ext-resource-dependency" content="screens/auth.html" data-resource-id="auth" />
+<meta name="ext-resource-dependency" content="screens/palm_result.html" data-resource-id="palm" />
+<meta name="ext-resource-dependency" content="screens/history.html" data-resource-id="history" />
+<meta name="ext-resource-dependency" content="screens/consultation_list.html" data-resource-id="clist" />
+<meta name="ext-resource-dependency" content="screens/settings.html" data-resource-id="settings" />
+<meta name="ext-resource-dependency" content="screens/camera.html" data-resource-id="camera" />
+<meta name="ext-resource-dependency" content="screens/model_setup.html" data-resource-id="setup" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Noto Sans KR',sans-serif;background:#0F0E13;color:#EDEAF5}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#0F0E13">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6B5CE7"/>
+        <stop offset="1" stop-color="#4EA8DE"/>
+      </linearGradient>
+    </defs>
+    <text x="600" y="460" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="280" letter-spacing="-8" fill="url(#g)">aura</text>
+  </svg>
+</template>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { AndroidDevice } = window;
+const R = window.__resources || {};
+
+function Screen({ resId, w = 412, h = 892 }) {
+  return (
+    <AndroidDevice width={w} height={h}>
+      <iframe src={R[resId] || ("screens/" + resId + ".html")} style={{ width: "100%", height: "100%", border: 0, background: "#FDFCFF", display: "block" }} />
+    </AndroidDevice>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas title="Aura — UI Redesign Preview" subtitle="보라-블루 그라데이션 × 화이트 베이스 · Material3 + Aura 토큰">
+      <DCSection id="screens" title="주요 화면 4종">
+        <DCArtboard id="home" label="홈" width={460} height={960}><Screen resId="home" /></DCArtboard>
+        <DCArtboard id="result" label="관상 결과" width={460} height={960}><Screen resId="result" /></DCArtboard>
+        <DCArtboard id="chat" label="AI 상담" width={460} height={960}><Screen resId="chat" /></DCArtboard>
+        <DCArtboard id="auth" label="로그인" width={460} height={960}><Screen resId="auth" /></DCArtboard>
+      </DCSection>
+      <DCSection id="more" title="추가 6개 화면">
+        <DCArtboard id="palm" label="손금 결과" width={460} height={960}><Screen resId="palm" /></DCArtboard>
+        <DCArtboard id="history" label="기록" width={460} height={960}><Screen resId="history" /></DCArtboard>
+        <DCArtboard id="clist" label="상담 목록" width={460} height={960}><Screen resId="clist" /></DCArtboard>
+        <DCArtboard id="settings" label="설정" width={460} height={960}><Screen resId="settings" /></DCArtboard>
+        <DCArtboard id="camera" label="카메라" width={460} height={960}><Screen resId="camera" /></DCArtboard>
+        <DCArtboard id="setup" label="모델 설정" width={460} height={960}><Screen resId="setup" /></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"/><title>Camera</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+:root{--seed:#6B5CE7;--grad-start:#6B5CE7;--grad-end:#4EA8DE}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:#0a0710;color:#fff;min-height:100vh;position:relative;overflow:hidden}
+body::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#2d1f4a 0%,#0a0710 70%)}
+.mi{font-family:'Material Symbols Outlined';font-size:22px}
+.top{position:relative;display:flex;align-items:center;padding:12px 12px;z-index:2}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:0;color:#fff;backdrop-filter:blur(8px)}
+.ttl{flex:1;text-align:center;font-size:15px;font-weight:600;margin:0 8px}
+.guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:280px;height:360px;border-radius:200px/240px;border:2px dashed rgba(255,255,255,.35);z-index:1}
+.guide::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:2px solid transparent;background:linear-gradient(135deg,var(--grad-start),var(--grad-end)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.6;animation:glow 2s ease-in-out infinite alternate}
+@keyframes glow{to{opacity:1}}
+.landmarks{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:280px;height:360px;z-index:2}
+.landmarks div{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(107,92,231,.9);box-shadow:0 0 6px rgba(107,92,231,.7);animation:blink 2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.3}}
+.hint{position:absolute;top:calc(50% + 210px);left:0;right:0;text-align:center;z-index:3;font-size:14px;color:rgba(255,255,255,.9);letter-spacing:.3px;font-weight:500}
+.stab{position:absolute;bottom:180px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);border-radius:100px;backdrop-filter:blur(8px);font-size:12px;font-weight:600}
+.stab .dot{width:8px;height:8px;border-radius:50%;background:#3FB27F;box-shadow:0 0 8px rgba(63,178,127,.8);animation:p 1s infinite}
+@keyframes p{50%{opacity:.5}}
+.stab .bars{display:flex;gap:2px}
+.stab .bars span{width:3px;height:10px;background:rgba(255,255,255,.25);border-radius:2px}
+.stab .bars span.on{background:#3FB27F}
+.actions{position:absolute;bottom:40px;left:0;right:0;display:flex;align-items:center;justify-content:space-around;z-index:3;padding:0 40px}
+.sec-btn{width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.08);display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12)}
+.shutter{width:72px;height:72px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;border:4px solid rgba(255,255,255,.3);position:relative}
+.shutter::after{content:"";width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--grad-start),var(--grad-end))}
+</style></head><body>
+<div class="top"><button class="icon-btn"><span class="mi">close</span></button><div class="ttl">얼굴 촬영</div><button class="icon-btn"><span class="mi">flip_camera_ios</span></button></div>
+<div class="guide"></div>
+<div class="landmarks" id="lm"></div>
+<div class="hint">얼굴을 가이드 안에 맞추고 잠시 멈춰주세요</div>
+<div class="stab"><div class="dot"></div>안정됨<div class="bars"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div></div>
+<div class="actions"><div class="sec-btn"><span class="mi" style="color:rgba(255,255,255,.85)">bolt</span></div><div class="shutter"></div><div class="sec-btn"><span class="mi" style="color:rgba(255,255,255,.85)">image</span></div></div>
+<script>
+const lm=document.getElementById('lm');
+const pts=[[50,8],[50,96],[20,18],[80,18],[15,40],[85,40],[15,60],[85,60],[22,82],[78,82],[50,30],[50,50],[50,65],[38,50],[62,50],[45,75],[55,75],[50,20],[35,25],[65,25],[30,45],[70,45],[40,60],[60,60],[50,40]];
+pts.forEach((p,i)=>{const d=document.createElement('div');d.style.left=p[0]+'%';d.style.top=p[1]+'%';d.style.animationDelay=(i*.06)+'s';lm.appendChild(d)});
+</script>
+</body></html>
