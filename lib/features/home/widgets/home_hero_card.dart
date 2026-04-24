@@ -79,7 +79,7 @@ class HomeHeroCard extends StatelessWidget {
                             label,
                             style: theme.textTheme.labelMedium?.copyWith(
                               color: accent,
-                              fontSize: 22,
+                              fontSize: 18,
                               letterSpacing: 0.5,
                               fontWeight: FontWeight.w700,
                             ),
