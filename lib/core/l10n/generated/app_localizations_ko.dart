@@ -198,4 +198,258 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get resultLoginToConsult => '상담하려면 로그인이 필요합니다';
+
+  @override
+  String get todayReading => '오늘의 분석';
+
+  @override
+  String get login => '로그인';
+
+  @override
+  String get theme => '테마';
+
+  @override
+  String get themeSystem => '시스템 설정 따름';
+
+  @override
+  String get languageSelect => '언어 선택';
+
+  @override
+  String get faceAnalysis => '관상 분석';
+
+  @override
+  String get palmAnalysis => '손금 분석';
+
+  @override
+  String get historyEmpty => '아직 저장된 분석이 없습니다';
+
+  @override
+  String get historyLoginPrompt => '로그인 후 분석 기록을 확인하세요';
+
+  @override
+  String get cancel => '취소';
+
+  @override
+  String get delete => '삭제';
+
+  @override
+  String get deleteRecord => '기록 삭제';
+
+  @override
+  String get deleteRecordContent =>
+      '이 분석 기록을 삭제하시겠습니까?\n연결된 상담 기록도 함께 삭제됩니다.\n삭제된 기록은 복구할 수 없습니다.';
+
+  @override
+  String get deleteFailed => '삭제 실패';
+
+  @override
+  String get cacheDeleteConfirm => '앱 캐시를 삭제하시겠습니까?';
+
+  @override
+  String cacheDeleteSuccess(String mb) {
+    return '캐시 삭제 완료 (${mb}MB)';
+  }
+
+  @override
+  String get cacheDeleteFailed => '캐시 삭제 실패';
+
+  @override
+  String get loginRequired => '로그인 필요';
+
+  @override
+  String get loginRequiredContent => '저장하려면 로그인이 필요합니다.\n로그인 후 자동으로 저장됩니다.';
+
+  @override
+  String saveSuccess(String name) {
+    return '$name님의 결과가 저장되었습니다';
+  }
+
+  @override
+  String get saveFailed => '저장에 실패했습니다. 다시 시도해주세요.';
+
+  @override
+  String get palmViewResults => '손금 결과 보기';
+
+  @override
+  String get cameraPermissionRequired => '카메라 권한이 필요합니다';
+
+  @override
+  String get facePermissionDesc => '얼굴 분석을 위해 카메라 접근 권한을 허용해 주세요';
+
+  @override
+  String get palmPermissionDesc => '손금 분석을 위해 카메라 접근 권한을 허용해 주세요';
+
+  @override
+  String get openSettings => '설정에서 권한 허용';
+
+  @override
+  String get goBack => '돌아가기';
+
+  @override
+  String get palmGuide => '손바닥을 화면 쪽으로\n펼쳐서 보여주세요';
+
+  @override
+  String get aiEngineInitializing => 'AI 엔진 초기화 중...';
+
+  @override
+  String get faceAnalyzing => '관상 분석 중...';
+
+  @override
+  String get palmAnalyzing => '손금 분석 중...';
+
+  @override
+  String get faceAnalysisResult => '관상 분석 결과';
+
+  @override
+  String get palmAnalysisResult => '손금 분석 결과';
+
+  @override
+  String get analysisError => '분석 중 오류가 발생했습니다';
+
+  @override
+  String get aiModelError => 'AI 모델 오류';
+
+  @override
+  String get modelReinstall => '모델 재설치';
+
+  @override
+  String get consultationCreateFailed => '상담 생성 실패';
+
+  @override
+  String get sectionLifeline => '생명선';
+
+  @override
+  String get sectionHeartline => '감정선';
+
+  @override
+  String get sectionHeadline => '두뇌선';
+
+  @override
+  String get sectionFateline => '운명선';
+
+  @override
+  String get sectionHandshape => '손모양';
+
+  @override
+  String palmResultTitle(String hand) {
+    return '$hand 손금 분석';
+  }
+
+  @override
+  String get consultationTitle => '상담';
+
+  @override
+  String get consultationNotFound => '상담을 찾을 수 없습니다';
+
+  @override
+  String get backToList => '목록으로';
+
+  @override
+  String get consultationDeleteContent => '이 상담을 삭제할까요?\n대화 내용이 모두 사라집니다.';
+
+  @override
+  String get consultationTitleHint => '상담 제목';
+
+  @override
+  String get consultationEmptyHint => '분석 결과에 대해 궁금한 점을 물어보세요';
+
+  @override
+  String get faceConsultation => '관상 상담';
+
+  @override
+  String get palmConsultation => '손금 상담';
+
+  @override
+  String get pickerEmptyFace => '저장된 관상 분석이 없습니다';
+
+  @override
+  String get pickerEmptyPalm => '저장된 손금 분석이 없습니다';
+
+  @override
+  String get chatGenerating => '응답 생성 중...';
+
+  @override
+  String get copied => '복사되었습니다';
+
+  @override
+  String get modelScanning => '기기 확인 중...';
+
+  @override
+  String get modelScanningDesc => '설치된 AI 모델을 찾고 있습니다';
+
+  @override
+  String get modelFound => '모델 발견!';
+
+  @override
+  String modelDownloadingWith(String name) {
+    return 'AI 모델 준비 중 ($name)';
+  }
+
+  @override
+  String modelDownloadDescWithSize(String size) {
+    return '처음 한 번만 다운로드합니다 (약 ${size}GB)';
+  }
+
+  @override
+  String get downloadFailed => '다운로드 실패';
+
+  @override
+  String get errorPrefix => '오류';
+
+  @override
+  String get agreePrefix => '동의합니다: ';
+
+  @override
+  String get agreeConnector => ' 및 ';
+
+  @override
+  String get subjectPickerTitle => '누구의 분석인가요?';
+
+  @override
+  String get subjectPickerSubtitle => '분석 결과를 저장할 대상을 선택하세요';
+
+  @override
+  String get subjectPickerCustom => '직접 입력';
+
+  @override
+  String get subjectPickerCustomHint => '이름 또는 관계를 입력하세요';
+
+  @override
+  String get subjectPickerConfirm => '저장하기';
+
+  @override
+  String get subjectMe => '나';
+
+  @override
+  String get subjectSpouse => '배우자';
+
+  @override
+  String get subjectFriend => '친구';
+
+  @override
+  String get subjectParents => '부모님';
+
+  @override
+  String get subjectChild => '자녀';
+
+  @override
+  String get subjectSibling => '형제/자매';
+
+  @override
+  String get justNow => '방금';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count분 전';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '$count시간 전';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return '$count일 전';
+  }
 }

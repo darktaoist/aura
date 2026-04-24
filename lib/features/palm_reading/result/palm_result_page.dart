@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/l10n/generated/app_localizations.dart';
+import '../../../core/l10n/locale_notifier.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/subject_picker_sheet.dart';
 import '../../../data/supabase/reading_repository.dart';
@@ -12,15 +13,6 @@ import '../../../services/consultation_service.dart';
 import '../../auth/auth_notifier.dart';
 import '../../face_reading/result/widgets/reading_section_card.dart';
 import 'palm_result_notifier.dart';
-
-const _kSections = [
-  (key: 'lifeline',   label: '생명선', icon: Icons.favorite_outline),
-  (key: 'heartline',  label: '감정선', icon: Icons.volunteer_activism_outlined),
-  (key: 'headline',   label: '두뇌선', icon: Icons.psychology_outlined),
-  (key: 'fateline',   label: '운명선', icon: Icons.auto_awesome_outlined),
-  (key: 'handshape',  label: '손모양', icon: Icons.back_hand_outlined),
-  (key: 'overall',    label: '종합',   icon: Icons.star_outline),
-];
 
 class PalmResultPage extends ConsumerStatefulWidget {
   const PalmResultPage({super.key, required this.result});
@@ -51,36 +43,27 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   }
 
   Future<void> _loadLocaleAndAnalyze() async {
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
-
-    if (!mounted) return;
+    // localeNotifierProvider에서 직접 읽어 항상 현재 locale 반영
+    final locale = ref.read(localeNotifierProvider).languageCode;
 
     List<String> ragChunks = [];
     try {
       ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
-        type: 'palm',
-        queryEmbedding: _buildQueryEmbedding(),
+        type: 'palm', queryEmbedding: _buildQueryEmbedding(),
       );
     } catch (e) {
       debugPrint('[PalmResultPage] RAG search failed (non-fatal): $e');
     }
-
     if (!mounted) return;
 
     ref.read(palmResultNotifierProvider.notifier).analyze(
-          result: widget.result,
-          locale: locale,
-          ragChunks: ragChunks,
-        );
+      result: widget.result, locale: locale, ragChunks: ragChunks,
+    );
   }
 
   List<double> _buildQueryEmbedding() {
     final f = widget.result.features;
-    final base = [
-      f.palmWidth, f.indexLength, f.middleLength,
-      f.ringLength, f.pinkyLength, f.thumbLength, f.fingerSpread,
-    ];
+    final base = [f.palmWidth, f.indexLength, f.middleLength, f.ringLength, f.pinkyLength, f.thumbLength, f.fingerSpread];
     return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
   }
 
@@ -99,16 +82,14 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
 
     for (final entry in patterns.entries) {
       final match = entry.value.firstMatch(text);
-      if (match != null) {
-        result[entry.key] = match.group(2)?.trim() ?? '';
-      }
+      if (match != null) result[entry.key] = match.group(2)?.trim() ?? '';
     }
-
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final notifierState = ref.watch(palmResultNotifierProvider);
     final isStreaming = notifierState.isStreaming;
     final fullText = notifierState.fullText;
@@ -122,31 +103,41 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
       }
     });
 
+    final hand = widget.result.isLeftHand ? l10n.leftHand : l10n.rightHand;
+    final kSections = [
+      (key: 'lifeline',   label: l10n.sectionLifeline,   icon: Icons.favorite_outline),
+      (key: 'heartline',  label: l10n.sectionHeartline,  icon: Icons.volunteer_activism_outlined),
+      (key: 'headline',   label: l10n.sectionHeadline,   icon: Icons.psychology_outlined),
+      (key: 'fateline',   label: l10n.sectionFateline,   icon: Icons.auto_awesome_outlined),
+      (key: 'handshape',  label: l10n.sectionHandshape,  icon: Icons.back_hand_outlined),
+      (key: 'overall',    label: l10n.sectionOverall,    icon: Icons.star_outline),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.result.isLeftHand ? '왼손' : '오른손'} 손금 분석'),
+        title: Text(l10n.palmResultTitle(hand)),
         actions: [
           IconButton(
             icon: const Icon(Icons.save_outlined),
             onPressed: isStreaming ? null : () => _onSave(context),
-            tooltip: '저장',
+            tooltip: l10n.save,
           ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: isStreaming ? null : _onShare,
-            tooltip: '공유',
+            tooltip: l10n.share,
           ),
         ],
       ),
       body: error != null
-          ? _buildError(error, isModelError: isModelError)
+          ? _buildError(context, l10n, error, isModelError: isModelError)
           : isStreaming && fullText.isEmpty
-              ? _buildLoading()
-              : _buildContent(context, fullText, isStreaming),
+              ? _buildLoading(context, l10n)
+              : _buildContent(context, l10n, fullText, isStreaming, kSections),
     );
   }
 
-  Widget _buildLoading() {
+  Widget _buildLoading(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +147,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
             child: const Icon(Icons.back_hand, size: 48, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('손금 분석 중...', style: Theme.of(context).textTheme.bodyLarge),
+          Text(l10n.palmAnalyzing, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: AppSpacing.md),
           const CircularProgressIndicator(),
         ],
@@ -164,7 +155,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     );
   }
 
-  Widget _buildError(String errorMsg, {bool isModelError = false}) {
+  Widget _buildError(BuildContext context, AppLocalizations l10n, String errorMsg, {bool isModelError = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -174,32 +165,24 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
           children: [
             Icon(
               isModelError ? Icons.memory_outlined : Icons.error_outline,
-              color: Colors.redAccent,
-              size: 48,
+              color: Colors.redAccent, size: 48,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              isModelError ? 'AI 모델 오류' : '분석 중 오류가 발생했습니다',
+              isModelError ? l10n.aiModelError : l10n.analysisError,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              errorMsg,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
+            Text(errorMsg, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             if (isModelError) ...[
               FilledButton.icon(
                 onPressed: () => context.go('/model_setup'),
                 icon: const Icon(Icons.download_outlined),
-                label: const Text('모델 재설치'),
+                label: Text(l10n.modelReinstall),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text('돌아가기'),
-              ),
+              TextButton(onPressed: () => context.pop(), child: Text(l10n.goBack)),
             ] else
               FilledButton.icon(
                 onPressed: () {
@@ -207,7 +190,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
                   _loadLocaleAndAnalyze();
                 },
                 icon: const Icon(Icons.refresh),
-                label: const Text('다시 시도'),
+                label: Text(l10n.retry),
               ),
           ],
         ),
@@ -215,7 +198,13 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, String fullText, bool isStreaming) {
+  Widget _buildContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    String fullText,
+    bool isStreaming,
+    List<({String key, String label, IconData icon})> kSections,
+  ) {
     final sections = _sections(fullText);
     final hasSections = sections.values.any((v) => v.isNotEmpty);
 
@@ -224,20 +213,20 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
       children: [
         if (isStreaming && !hasSections)
           ReadingSectionCard(
-            title: '분석 중...',
+            title: l10n.analyzing,
             content: fullText,
             icon: Icons.back_hand,
             isStreaming: true,
           )
         else if (!hasSections && fullText.isNotEmpty)
           ReadingSectionCard(
-            title: '손금 분석 결과',
+            title: l10n.palmAnalysisResult,
             content: fullText,
             icon: Icons.back_hand_outlined,
             isStreaming: isStreaming,
           )
         else
-          ..._kSections.map((s) {
+          ...kSections.map((s) {
             final text = sections[s.key] ?? '';
             if (text.isEmpty) return const SizedBox.shrink();
             return ReadingSectionCard(
@@ -256,7 +245,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
                 child: OutlinedButton.icon(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('다시 보기'),
+                  label: Text(l10n.retry),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -264,7 +253,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
                 child: FilledButton.icon(
                   onPressed: isStreaming ? null : () => _onSave(context),
                   icon: const Icon(Icons.bookmark_outline),
-                  label: const Text('저장'),
+                  label: Text(l10n.save),
                 ),
               ),
             ],
@@ -278,7 +267,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
             child: FilledButton.tonalIcon(
               onPressed: isStreaming ? null : () => _onStartConsultation(context),
               icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text('상담하기'),
+              label: Text(l10n.resultStartConsultation),
             ),
           ),
         ),
@@ -288,17 +277,18 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   }
 
   Future<void> _onSave(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
 
     if (!authState.isLoggedIn) {
       final goLogin = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('로그인 필요'),
-          content: const Text('저장하려면 로그인이 필요합니다.\n로그인 후 자동으로 저장됩니다.'),
+          title: Text(l10n.loginRequired),
+          content: Text(l10n.loginRequiredContent),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('로그인')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.login)),
           ],
         ),
       );
@@ -314,84 +304,78 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   }
 
   Future<void> _doSave({String subjectName = '나'}) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
+    final locale = ref.read(localeNotifierProvider).languageCode;
 
     final reading = await ref.read(palmResultNotifierProvider.notifier).saveReading(
-          userId: authState.user!.id,
-          landmarkResult: widget.result,
-          modelUsed: 'E2B',
-          locale: locale,
-          subjectName: subjectName,
-        );
+      userId: authState.user!.id,
+      landmarkResult: widget.result,
+      modelUsed: 'E2B',
+      locale: locale,
+      subjectName: subjectName,
+    );
 
     if (!mounted) return;
     final email = authState.user?.email ?? '';
     final displayName = email.contains('@') ? email.split('@').first : email;
 
-    if (reading != null) {
-      setState(() => _savedReadingId = reading.id);
-    }
+    if (reading != null) setState(() => _savedReadingId = reading.id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(reading != null
-            ? '$displayName님의 결과가 저장되었습니다'
-            : '저장에 실패했습니다. 다시 시도해주세요.'),
+        content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed),
       ),
     );
   }
 
   Future<void> _onStartConsultation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('상담하려면 로그인이 필요합니다')),
+        SnackBar(content: Text(l10n.resultLoginToConsult)),
       );
       context.push('/auth');
       return;
     }
     if (_savedReadingId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 저장해주세요')),
+        SnackBar(content: Text(l10n.resultSaveBeforeConsult)),
       );
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
+    final locale = ref.read(localeNotifierProvider).languageCode;
     final fullText = ref.read(palmResultNotifierProvider).fullText;
 
     try {
       final consultation = await ref.read(consultationServiceProvider).createConsultation(
-            userId: authState.user!.id,
-            analysisType: AnalysisType.palm,
-            analysisId: _savedReadingId!,
-            contextSummary: fullText.length > 600
-                ? '${fullText.substring(0, 600)}…'
-                : fullText,
-            contextFeatures: {
-              'palmWidth': widget.result.features.palmWidth,
-              'indexLength': widget.result.features.indexLength,
-              'middleLength': widget.result.features.middleLength,
-              'ringLength': widget.result.features.ringLength,
-              'pinkyLength': widget.result.features.pinkyLength,
-              'thumbLength': widget.result.features.thumbLength,
-              'fingerSpread': widget.result.features.fingerSpread,
-              'isLeftHand': widget.result.isLeftHand,
-            },
-            locale: locale,
-            modelUsed: 'E2B',
-          );
+        userId: authState.user!.id,
+        analysisType: AnalysisType.palm,
+        analysisId: _savedReadingId!,
+        contextSummary: fullText.length > 600 ? '${fullText.substring(0, 600)}…' : fullText,
+        contextFeatures: {
+          'palmWidth': widget.result.features.palmWidth,
+          'indexLength': widget.result.features.indexLength,
+          'middleLength': widget.result.features.middleLength,
+          'ringLength': widget.result.features.ringLength,
+          'pinkyLength': widget.result.features.pinkyLength,
+          'thumbLength': widget.result.features.thumbLength,
+          'fingerSpread': widget.result.features.fingerSpread,
+          'isLeftHand': widget.result.isLeftHand,
+        },
+        locale: locale,
+        modelUsed: 'E2B',
+      );
       if (!context.mounted) return;
       context.push('/consultation/${consultation.id}');
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상담 생성 실패: $e')),
+        SnackBar(content: Text('${l10n.consultationCreateFailed}: $e')),
       );
     }
   }

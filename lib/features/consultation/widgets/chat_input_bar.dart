@@ -7,12 +7,14 @@ class ChatInputBar extends StatefulWidget {
     super.key,
     required this.onSend,
     this.isDisabled = false,
-    this.hintText = '질문을 입력하세요',
+    this.hintText = '',
+    this.generatingText = '',
   });
 
   final void Function(String text) onSend;
   final bool isDisabled;
   final String hintText;
+  final String generatingText;
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -64,7 +66,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 minLines: 1,
                 textInputAction: TextInputAction.newline,
                 decoration: InputDecoration(
-                  hintText: widget.isDisabled ? '응답 생성 중...' : widget.hintText,
+                  hintText: widget.isDisabled ? widget.generatingText : widget.hintText,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     borderSide: BorderSide.none,

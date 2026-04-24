@@ -70,5 +70,114 @@
 
   "resultStartConsultation": "相談する",
   "resultSaveBeforeConsult": "先に保存してください",
-  "resultLoginToConsult": "相談にはログインが必要です"
+  "resultLoginToConsult": "相談にはログインが必要です",
+
+  "todayReading": "今日の分析",
+  "login": "ログイン",
+  "theme": "テーマ",
+  "themeSystem": "システム設定に従う",
+  "languageSelect": "言語を選択",
+  "faceAnalysis": "観相分析",
+  "palmAnalysis": "手相分析",
+  "historyEmpty": "まだ保存された分析がありません",
+  "historyLoginPrompt": "ログイン後に分析履歴を確認できます",
+  "cancel": "キャンセル",
+  "delete": "削除",
+  "deleteRecord": "履歴削除",
+  "deleteRecordContent": "この分析履歴を削除しますか？\n関連する相談履歴も一緒に削除されます。\n削除したデータは復元できません。",
+  "deleteFailed": "削除失敗",
+  "cacheDeleteConfirm": "アプリキャッシュを削除しますか？",
+  "cacheDeleteSuccess": "キャッシュを削除しました（{mb}MB）",
+  "@cacheDeleteSuccess": {
+    "placeholders": { "mb": { "type": "String" } }
+  },
+  "cacheDeleteFailed": "キャッシュの削除に失敗しました",
+  "loginRequired": "ログインが必要",
+  "loginRequiredContent": "保存するにはログインが必要です。\nログイン後に自動的に保存されます。",
+  "saveSuccess": "{name}さんの結果が保存されました",
+  "@saveSuccess": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "saveFailed": "保存に失敗しました。もう一度お試しください。",
+
+  "palmViewResults": "手相結果を見る",
+  "cameraPermissionRequired": "カメラの許可が必要です",
+  "facePermissionDesc": "顔分析のためカメラアクセスを許可してください",
+  "palmPermissionDesc": "手相分析のためカメラアクセスを許可してください",
+  "openSettings": "設定で許可する",
+  "goBack": "戻る",
+  "palmGuide": "手のひらを画面に\n向けて広げてください",
+  "aiEngineInitializing": "AIエンジンを初期化中...",
+
+  "faceAnalyzing": "観相分析中...",
+  "palmAnalyzing": "手相分析中...",
+  "faceAnalysisResult": "観相分析結果",
+  "palmAnalysisResult": "手相分析結果",
+  "analysisError": "分析中にエラーが発生しました",
+  "aiModelError": "AIモデルエラー",
+  "modelReinstall": "モデルを再インストール",
+  "consultationCreateFailed": "相談の作成に失敗しました",
+
+  "sectionLifeline": "生命線",
+  "sectionHeartline": "感情線",
+  "sectionHeadline": "頭脳線",
+  "sectionFateline": "運命線",
+  "sectionHandshape": "手の形",
+
+  "palmResultTitle": "{hand}手相分析",
+  "@palmResultTitle": {
+    "placeholders": { "hand": { "type": "String" } }
+  },
+
+  "consultationTitle": "相談",
+  "consultationNotFound": "相談が見つかりません",
+  "backToList": "一覧へ",
+  "consultationDeleteContent": "この相談を削除しますか？\n全ての会話が消えます。",
+  "consultationTitleHint": "相談タイトル",
+  "consultationEmptyHint": "分析結果について気になることを聞いてください",
+  "faceConsultation": "観相相談",
+  "palmConsultation": "手相相談",
+
+  "pickerEmptyFace": "保存された観相分析がありません",
+  "pickerEmptyPalm": "保存された手相分析がありません",
+
+  "chatGenerating": "応答を生成中...",
+  "copied": "コピーしました",
+
+  "modelScanning": "デバイスを確認中...",
+  "modelScanningDesc": "インストールされたAIモデルを探しています",
+  "modelFound": "モデルを発見！",
+  "modelDownloadingWith": "AIモデル準備中 ({name})",
+  "@modelDownloadingWith": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "modelDownloadDescWithSize": "初回のみダウンロードします（約{size}GB）",
+  "@modelDownloadDescWithSize": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "downloadFailed": "ダウンロード失敗",
+  "errorPrefix": "エラー",
+
+  "agreePrefix": "同意します：",
+  "agreeConnector": "および",
+
+  "subjectPickerTitle": "誰の分析ですか？",
+  "subjectPickerSubtitle": "分析結果を保存する対象を選択してください",
+  "subjectPickerCustom": "カスタム入力",
+  "subjectPickerCustomHint": "名前または関係を入力してください",
+  "subjectPickerConfirm": "保存する",
+  "subjectMe": "自分",
+  "subjectSpouse": "配偶者",
+  "subjectFriend": "友達",
+  "subjectParents": "親",
+  "subjectChild": "子供",
+  "subjectSibling": "兄弟/姉妹",
+
+  "justNow": "たった今",
+  "minutesAgo": "{count}分前",
+  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "hoursAgo": "{count}時間前",
+  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "daysAgo": "{count}日前",
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
 }

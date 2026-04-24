@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/consultation.dart';
 import '../../models/consultation_message.dart';
@@ -19,8 +20,7 @@ class ConsultationChatScreen extends ConsumerStatefulWidget {
       _ConsultationChatScreenState();
 }
 
-class _ConsultationChatScreenState
-    extends ConsumerState<ConsultationChatScreen> {
+class _ConsultationChatScreenState extends ConsumerState<ConsultationChatScreen> {
   final _scrollCtrl = ScrollController();
 
   @override
@@ -43,10 +43,9 @@ class _ConsultationChatScreenState
 
   @override
   Widget build(BuildContext context) {
-    final chatState =
-        ref.watch(consultationChatProvider(widget.consultationId));
+    final l10n = AppLocalizations.of(context)!;
+    final chatState = ref.watch(consultationChatProvider(widget.consultationId));
 
-    // 새 메시지 / 스트리밍 변화 시 자동 스크롤
     ref.listen(consultationChatProvider(widget.consultationId), (prev, next) {
       if (prev?.messages.length != next.messages.length ||
           prev?.streamingText != next.streamingText) {
@@ -56,7 +55,7 @@ class _ConsultationChatScreenState
 
     if (chatState.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('상담')),
+        appBar: AppBar(title: Text(l10n.consultationTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -70,11 +69,11 @@ class _ConsultationChatScreenState
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
               const SizedBox(height: AppSpacing.md),
-              const Text('상담을 찾을 수 없습니다'),
+              Text(l10n.consultationNotFound),
               const SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: () => context.go('/consultation'),
-                child: const Text('목록으로'),
+                child: Text(l10n.backToList),
               ),
             ],
           ),
@@ -86,7 +85,7 @@ class _ConsultationChatScreenState
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: _buildAppBar(context, ref, consultation),
+      appBar: _buildAppBar(context, ref, consultation, l10n),
       body: Column(
         children: [
           Expanded(
@@ -95,13 +94,15 @@ class _ConsultationChatScreenState
               messages: chatState.messages,
               streamingText: chatState.streamingText,
               isStreaming: chatState.isStreaming,
+              l10n: l10n,
             ),
           ),
           ChatInputBar(
             isDisabled: chatState.isStreaming || chatState.isLoading,
+            hintText: l10n.chatInputHint,
+            generatingText: l10n.chatGenerating,
             onSend: (text) {
-              ref
-                  .read(consultationChatProvider(widget.consultationId).notifier)
+              ref.read(consultationChatProvider(widget.consultationId).notifier)
                   .sendMessage(text);
             },
           ),
@@ -111,15 +112,14 @@ class _ConsultationChatScreenState
   }
 
   AppBar _buildAppBar(
-    BuildContext context,
-    WidgetRef ref,
-    Consultation consultation,
+    BuildContext context, WidgetRef ref,
+    Consultation consultation, AppLocalizations l10n,
   ) {
     return AppBar(
       title: GestureDetector(
-        onTap: () => _editTitle(context, ref, consultation),
+        onTap: () => _editTitle(context, ref, consultation, l10n),
         child: Text(
-          consultation.title ?? '상담',
+          consultation.title ?? l10n.consultationTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -128,17 +128,16 @@ class _ConsultationChatScreenState
         PopupMenuButton<String>(
           onSelected: (val) async {
             if (val == 'delete') {
-              final ok = await _confirmDelete(context);
+              final ok = await _confirmDelete(context, l10n);
               if (ok && context.mounted) {
-                await ref
-                    .read(consultationChatProvider(widget.consultationId).notifier)
+                await ref.read(consultationChatProvider(widget.consultationId).notifier)
                     .deleteConsultation();
                 if (context.mounted) context.go('/consultation');
               }
             }
           },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'delete', child: Text('상담 삭제')),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'delete', child: Text(l10n.chatDeleteConsultation)),
           ],
         ),
       ],
@@ -146,28 +145,24 @@ class _ConsultationChatScreenState
   }
 
   Future<void> _editTitle(
-    BuildContext context,
-    WidgetRef ref,
-    Consultation consultation,
+    BuildContext context, WidgetRef ref,
+    Consultation consultation, AppLocalizations l10n,
   ) async {
     final ctrl = TextEditingController(text: consultation.title);
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('제목 편집'),
+        title: Text(l10n.chatTitleEdit),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '상담 제목'),
+          decoration: InputDecoration(hintText: l10n.consultationTitleHint),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('취소'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-            child: const Text('저장'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -178,20 +173,17 @@ class _ConsultationChatScreenState
     }
   }
 
-  Future<bool> _confirmDelete(BuildContext context) async {
+  Future<bool> _confirmDelete(BuildContext context, AppLocalizations l10n) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('상담 삭제'),
-        content: const Text('이 상담을 삭제할까요?\n대화 내용이 모두 사라집니다.'),
+        title: Text(l10n.chatDeleteConsultation),
+        content: Text(l10n.consultationDeleteContent),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('삭제'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -206,18 +198,19 @@ class _MessageList extends StatelessWidget {
     required this.messages,
     required this.streamingText,
     required this.isStreaming,
+    required this.l10n,
   });
 
   final ScrollController scrollCtrl;
   final List<ConsultationMessage> messages;
   final String streamingText;
   final bool isStreaming;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final showStreamingBubble = isStreaming && streamingText.isNotEmpty;
 
-    // 전체 아이템 수: 메시지 + 스트리밍 버블(있으면) + 빈 항목(없으면)
     if (messages.isEmpty && !showStreamingBubble) {
       return Center(
         child: Padding(
@@ -227,21 +220,14 @@ class _MessageList extends StatelessWidget {
             children: [
               ShaderMask(
                 shaderCallback: (b) => AppColors.brandGradient.createShader(b),
-                child: const Icon(
-                  Icons.chat_bubble_outline,
-                  size: 48,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.chat_bubble_outline, size: 48, color: Colors.white),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                '분석 결과에 대해 궁금한 점을 물어보세요',
+                l10n.consultationEmptyHint,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5),
-                    ),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -257,10 +243,7 @@ class _MessageList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       itemCount: itemCount,
       itemBuilder: (_, i) {
-        if (i < messages.length) {
-          return MessageBubble(message: messages[i]);
-        }
-        // 스트리밍 버블
+        if (i < messages.length) return MessageBubble(message: messages[i]);
         return StreamingBubble(text: streamingText);
       },
     );

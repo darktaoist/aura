@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/l10n/generated/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/consultation_message.dart';
 
@@ -41,9 +42,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             onLongPress: () {
               Clipboard.setData(ClipboardData(text: widget.message.content));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('복사되었습니다'),
-                  duration: Duration(seconds: 1),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.copied),
+                  duration: const Duration(seconds: 1),
                 ),
               );
             },

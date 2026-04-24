@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/supabase/reading_repository.dart';
 import '../../domain/entities/reading.dart';
@@ -15,8 +16,7 @@ class AnalysisPickerScreen extends ConsumerStatefulWidget {
   const AnalysisPickerScreen({super.key});
 
   @override
-  ConsumerState<AnalysisPickerScreen> createState() =>
-      _AnalysisPickerScreenState();
+  ConsumerState<AnalysisPickerScreen> createState() => _AnalysisPickerScreenState();
 }
 
 class _AnalysisPickerScreenState extends ConsumerState<AnalysisPickerScreen>
@@ -49,22 +49,22 @@ class _AnalysisPickerScreenState extends ConsumerState<AnalysisPickerScreen>
       final locale = prefs.getString('locale') ?? 'ko';
 
       final consultation = await ref.read(consultationServiceProvider).createConsultation(
-            userId: authState.user!.id,
-            analysisType:
-                reading.type == ReadingType.face ? AnalysisType.face : AnalysisType.palm,
-            analysisId: reading.id,
-            contextSummary: _buildSummary(reading.resultText),
-            contextFeatures: reading.features ?? {},
-            locale: locale,
-            modelUsed: reading.modelUsed ?? 'E2B',
-          );
+        userId: authState.user!.id,
+        analysisType: reading.type == ReadingType.face ? AnalysisType.face : AnalysisType.palm,
+        analysisId: reading.id,
+        contextSummary: _buildSummary(reading.resultText),
+        contextFeatures: reading.features ?? {},
+        locale: locale,
+        modelUsed: reading.modelUsed ?? 'E2B',
+      );
 
       if (!mounted) return;
       context.pushReplacement('/consultation/${consultation.id}');
     } catch (e) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상담 생성 실패: $e')),
+        SnackBar(content: Text('${l10n.consultationCreateFailed}: $e')),
       );
     } finally {
       if (mounted) setState(() => _isCreating = false);
@@ -78,14 +78,16 @@ class _AnalysisPickerScreenState extends ConsumerState<AnalysisPickerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('분석 선택'),
+        title: Text(l10n.pickerTitle),
         bottom: TabBar(
           controller: _tabCtrl,
-          tabs: const [
-            Tab(text: '관상'),
-            Tab(text: '손금'),
+          tabs: [
+            Tab(text: l10n.pickerTabFace),
+            Tab(text: l10n.pickerTabPalm),
           ],
         ),
       ),
@@ -98,14 +100,12 @@ class _AnalysisPickerScreenState extends ConsumerState<AnalysisPickerScreen>
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('오류: ${snapshot.error}'));
+                return Center(child: Text('${l10n.errorPrefix}: ${snapshot.error}'));
               }
 
               final all = snapshot.data ?? [];
-              final faceReadings =
-                  all.where((r) => r.type == ReadingType.face).toList();
-              final palmReadings =
-                  all.where((r) => r.type == ReadingType.palm).toList();
+              final faceReadings = all.where((r) => r.type == ReadingType.face).toList();
+              final palmReadings = all.where((r) => r.type == ReadingType.palm).toList();
 
               return TabBarView(
                 controller: _tabCtrl,
@@ -113,14 +113,16 @@ class _AnalysisPickerScreenState extends ConsumerState<AnalysisPickerScreen>
                   _ReadingList(
                     readings: faceReadings,
                     emptyIcon: Icons.face_retouching_natural,
-                    emptyLabel: '저장된 관상 분석이 없습니다',
+                    emptyLabel: l10n.pickerEmptyFace,
+                    startLabel: l10n.pickerEmptyAction,
                     onStartCamera: () => context.push('/face/camera'),
                     onPick: _startConsultation,
                   ),
                   _ReadingList(
                     readings: palmReadings,
                     emptyIcon: Icons.back_hand_outlined,
-                    emptyLabel: '저장된 손금 분석이 없습니다',
+                    emptyLabel: l10n.pickerEmptyPalm,
+                    startLabel: l10n.pickerEmptyAction,
                     onStartCamera: () => context.push('/palm/camera'),
                     onPick: _startConsultation,
                   ),
@@ -144,6 +146,7 @@ class _ReadingList extends StatelessWidget {
     required this.readings,
     required this.emptyIcon,
     required this.emptyLabel,
+    required this.startLabel,
     required this.onStartCamera,
     required this.onPick,
   });
@@ -151,6 +154,7 @@ class _ReadingList extends StatelessWidget {
   final List<Reading> readings;
   final IconData emptyIcon;
   final String emptyLabel;
+  final String startLabel;
   final VoidCallback onStartCamera;
   final void Function(Reading) onPick;
 
@@ -161,26 +165,19 @@ class _ReadingList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              emptyIcon,
-              size: 64,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
+            Icon(emptyIcon, size: 64, color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: AppSpacing.md),
             Text(
               emptyLabel,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.5),
-                  ),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
               onPressed: onStartCamera,
               icon: const Icon(Icons.camera_alt_outlined),
-              label: const Text('분석 시작하기'),
+              label: Text(startLabel),
             ),
           ],
         ),

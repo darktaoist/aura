@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../domain/entities/landmark_result.dart';
 import '../../../../../domain/physiognomy/face_mesh_connections.dart';
-import '../../../../../domain/physiognomy/landmark_index.dart';
 
 class LandmarkOverlayPainter extends CustomPainter {
-  const LandmarkOverlayPainter({required this.result});
+  const LandmarkOverlayPainter({required this.result, required this.labels});
 
   final FaceLandmarkResult result;
+  /// index → localized label (from keyLandmarkLabels(locale))
+  final Map<int, String> labels;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -47,8 +48,8 @@ class LandmarkOverlayPainter extends CustomPainter {
       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
     );
 
-    for (final entry in kKeyLandmarks.entries) {
-      final idx = entry.value;
+    for (final entry in labels.entries) {
+      final idx = entry.key;
       if (idx >= result.landmarks.length) continue;
 
       final lm = result.landmarks[idx];
@@ -58,7 +59,7 @@ class LandmarkOverlayPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), 4.0, dotPaint);
 
       final tp = TextPainter(
-        text: TextSpan(text: entry.key, style: labelStyle),
+        text: TextSpan(text: entry.value, style: labelStyle),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(x + 5, y - 5));
@@ -67,5 +68,5 @@ class LandmarkOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant LandmarkOverlayPainter old) =>
-      !identical(old.result, result);
+      !identical(old.result, result) || old.labels != labels;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/gemma/gemma_service.dart';
@@ -43,6 +45,8 @@ class PalmResultState {
 
 @riverpod
 class PalmResultNotifier extends _$PalmResultNotifier {
+  StreamSubscription<String>? _sub;
+
   @override
   PalmResultState build() => const PalmResultState();
 
@@ -51,7 +55,10 @@ class PalmResultNotifier extends _$PalmResultNotifier {
     required String locale,
     List<String> ragChunks = const [],
   }) async {
-    if (state.isStreaming) return; // 중복 호출 방어
+    // 진행 중인 분석 취소 후 재시작 (locale 변경 시 등)
+    await _sub?.cancel();
+    _sub = null;
+
     state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
     try {
@@ -62,20 +69,37 @@ class PalmResultNotifier extends _$PalmResultNotifier {
         ragChunks: ragChunks,
       );
 
-      // 토큰을 20자씩 묶어 state 갱신 → 리빌드 횟수 대폭 감소
       var buffer = '';
-      await for (final token in stream) {
-        buffer += token;
-        if (buffer.length >= 20) {
-          state = state.copyWith(fullText: state.fullText + buffer);
-          buffer = '';
-        }
-      }
-      if (buffer.isNotEmpty) {
-        state = state.copyWith(fullText: state.fullText + buffer);
-      }
-
-      state = state.copyWith(isStreaming: false);
+      _sub = stream.listen(
+        (token) {
+          buffer += token;
+          if (buffer.length >= 20) {
+            state = state.copyWith(fullText: state.fullText + buffer);
+            buffer = '';
+          }
+        },
+        onDone: () {
+          if (buffer.isNotEmpty) {
+            state = state.copyWith(fullText: state.fullText + buffer);
+          }
+          state = state.copyWith(isStreaming: false);
+          _sub = null;
+        },
+        onError: (e) {
+          final msg = e.toString();
+          final isModelErr = msg.contains('model') ||
+              msg.contains('Model') ||
+              msg.contains('Unsupported') ||
+              msg.contains('StateError');
+          state = state.copyWith(
+            isStreaming: false,
+            error: msg,
+            isModelError: isModelErr,
+          );
+          _sub = null;
+        },
+        cancelOnError: true,
+      );
     } catch (e) {
       final msg = e.toString();
       final isModelErr = msg.contains('model') ||

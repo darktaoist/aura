@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+
+import '../../core/l10n/generated/app_localizations.dart';
 
 class PrivacyPage extends StatefulWidget {
   const PrivacyPage({super.key});
@@ -11,26 +13,37 @@ class PrivacyPage extends StatefulWidget {
 
 class _PrivacyPageState extends State<PrivacyPage> {
   String _content = '';
+  String? _loadedLocale;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context).languageCode;
+    if (locale != _loadedLocale) {
+      _loadedLocale = locale;
+      _load(locale);
+    }
   }
 
-  Future<void> _load() async {
+  Future<void> _load(String locale) async {
     try {
-      final text = await rootBundle.loadString('assets/legal/ko/privacy.md');
-      setState(() => _content = text);
+      final text = await rootBundle.loadString('assets/legal/$locale/privacy.md');
+      if (mounted) setState(() => _content = text);
     } catch (_) {
-      setState(() => _content = '# 개인정보처리방침\n\n준비 중입니다.');
+      try {
+        final text = await rootBundle.loadString('assets/legal/ko/privacy.md');
+        if (mounted) setState(() => _content = text);
+      } catch (_) {
+        if (mounted) setState(() => _content = '');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('개인정보처리방침')),
+      appBar: AppBar(title: Text(l10n.privacyPolicy)),
       body: _content.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Markdown(data: _content),

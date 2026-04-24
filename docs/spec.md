@@ -340,10 +340,29 @@ create index on palmistry_kb   using ivfflat (embedding vector_cosine_ops);
 
 ---
 
-## 11. 다국어
+## 11. 다국어 (국제화, i18n)
 
-- `flutter gen-l10n` + `lib/core/l10n/app_{ko,en,ja,zh}.arb`
-- Gemma 프롬프트도 locale 별로 분리(`assets/prompts/`)
+> **원칙: 앱의 모든 화면·위젯·출력물은 KO / EN / JA / ZH 4개 언어를 완전 지원한다.**
+> 어떤 화면에도 하드코딩된 한국어(또는 기타 언어) 문자열이 남아 있어서는 안 된다.
+
+### 구현 방식
+- `flutter gen-l10n` + `lib/core/l10n/app_{ko,en,ja,zh}.arb` → `lib/core/l10n/generated/`
+- **LocaleNotifier** (`lib/core/l10n/locale_notifier.dart`) — Riverpod `keepAlive: true` 상태로 앱 전체에 locale 전파
+- `MaterialApp.router`의 `locale:` 파라미터에 `ref.watch(localeNotifierProvider)` 바인딩
+- 설정 화면에서 언어 변경 시 `localeNotifierProvider.setLocale(code)` 호출 → 전체 UI 즉시 반응
+- Gemma 프롬프트도 locale 별로 분리 (`assets/prompts/{face|palm}_{ko,en,ja,zh}.txt`)
+- 약관·개인정보처리방침: `assets/legal/{ko,en,ja,zh}/{terms,privacy}.md` — `Localizations.localeOf(context)`로 동적 로드
+
+### 커버리지 체크리스트
+모든 신규 위젯·화면 작성 시 아래를 확인한다:
+- [ ] 화면 제목 (AppBar title)
+- [ ] 버튼·레이블 텍스트
+- [ ] 빈 상태(empty state) 메시지
+- [ ] 오류(error) 메시지 및 스낵바
+- [ ] 다이얼로그 제목·본문·액션
+- [ ] 상대 시간 표현 (n분 전, n시간 전 등)
+- [ ] 플레이스홀더(hint) 텍스트
+- [ ] 법적 문서(약관·개인정보) 로딩 경로
 
 ---
 
@@ -391,6 +410,7 @@ create index on palmistry_kb   using ivfflat (embedding vector_cosine_ops);
 5. Light/Dark 전환 UI 무결성
 6. RLS 위반 시 저장 실패 e2e 통과
 7. Play Console 권한 사유 심사 통과
+8. **4개 언어(KO/EN/JA/ZH) 완전 지원** — 앱 내 모든 화면·위젯·오류 메시지·약관 문서가 선택된 언어로 출력되며, 설정에서 언어 변경 시 즉시 전체 UI가 전환된다
 
 ---
 

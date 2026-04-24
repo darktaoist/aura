@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-const _kQuickSubjects = ['나', '배우자', '친구', '부모님', '자녀', '형제/자매'];
+import '../l10n/generated/app_localizations.dart';
 
-/// 저장 전 "누구의 분석인지" 선택하는 바텀시트.
-/// 반환값: 사용자가 선택/입력한 이름, 취소 시 null.
 Future<String?> showSubjectPickerSheet(BuildContext context) {
   return showModalBottomSheet<String>(
     context: context,
@@ -23,7 +21,7 @@ class _SubjectPickerContent extends StatefulWidget {
 }
 
 class _SubjectPickerContentState extends State<_SubjectPickerContent> {
-  String _selected = '나';
+  int _selectedIndex = 0;
   bool _showCustom = false;
   final _controller = TextEditingController();
 
@@ -34,15 +32,28 @@ class _SubjectPickerContentState extends State<_SubjectPickerContent> {
   }
 
   void _confirm() {
+    final l10n = AppLocalizations.of(context)!;
+    final subjects = _quickSubjects(l10n);
     final name = _showCustom
-        ? (_controller.text.trim().isEmpty ? '나' : _controller.text.trim())
-        : _selected;
+        ? (_controller.text.trim().isEmpty ? subjects[0] : _controller.text.trim())
+        : subjects[_selectedIndex];
     Navigator.pop(context, name);
   }
+
+  List<String> _quickSubjects(AppLocalizations l10n) => [
+        l10n.subjectMe,
+        l10n.subjectSpouse,
+        l10n.subjectFriend,
+        l10n.subjectParents,
+        l10n.subjectChild,
+        l10n.subjectSibling,
+      ];
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final subjects = _quickSubjects(l10n);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -63,30 +74,35 @@ class _SubjectPickerContentState extends State<_SubjectPickerContent> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('누구의 분석인가요?',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            l10n.subjectPickerTitle,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 4),
-          Text('분석 결과를 저장할 대상을 선택하세요',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: cs.onSurface.withValues(alpha: 0.55))),
+          Text(
+            l10n.subjectPickerSubtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: cs.onSurface.withValues(alpha: 0.55),
+                ),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              ..._kQuickSubjects.map((s) => _Chip(
-                    label: s,
-                    selected: !_showCustom && _selected == s,
+              ...subjects.asMap().entries.map((e) => _Chip(
+                    label: e.value,
+                    selected: !_showCustom && _selectedIndex == e.key,
                     onTap: () => setState(() {
-                      _selected = s;
+                      _selectedIndex = e.key;
                       _showCustom = false;
                     }),
                   )),
               _Chip(
-                label: '직접 입력',
+                label: l10n.subjectPickerCustom,
                 selected: _showCustom,
                 onTap: () => setState(() => _showCustom = true),
                 icon: Icons.edit_outlined,
@@ -100,7 +116,7 @@ class _SubjectPickerContentState extends State<_SubjectPickerContent> {
               autofocus: true,
               maxLength: 20,
               decoration: InputDecoration(
-                hintText: '이름 또는 관계를 입력하세요',
+                hintText: l10n.subjectPickerCustomHint,
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12)),
                 contentPadding:
@@ -119,7 +135,8 @@ class _SubjectPickerContentState extends State<_SubjectPickerContent> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('저장하기', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.subjectPickerConfirm,
+                  style: const TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(height: 4),
@@ -127,7 +144,7 @@ class _SubjectPickerContentState extends State<_SubjectPickerContent> {
             width: double.infinity,
             child: TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+              child: Text(l10n.cancel),
             ),
           ),
         ],
@@ -177,11 +194,8 @@ class _Chip extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight:
-                    selected ? FontWeight.bold : FontWeight.normal,
-                color: selected
-                    ? cs.onPrimaryContainer
-                    : cs.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected ? cs.onPrimaryContainer : cs.onSurfaceVariant,
               ),
             ),
           ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/consultation.dart';
 import '../../services/consultation_service.dart';
@@ -13,48 +14,42 @@ class ConsultationListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final asyncList = ref.watch(consultationListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('상담 기록')),
+      appBar: AppBar(title: Text(l10n.consultationListTitle)),
       body: asyncList.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('오류: $e')),
+        error: (e, _) => Center(child: Text('${l10n.errorPrefix}: $e')),
         data: (list) => list.isEmpty
-            ? _Empty(onStartAnalysis: () => context.push('/face/camera'))
+            ? _Empty(onStartAnalysis: () => context.push('/face/camera'), l10n: l10n)
             : _List(
                 consultations: list,
                 onTap: (c) => context.push('/consultation/${c.id}'),
-                onDelete: (c) => _confirmDelete(context, ref, c),
+                onDelete: (c) => _confirmDelete(context, ref, c, l10n),
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/consultation/picker'),
         icon: const Icon(Icons.add),
-        label: const Text('새 상담'),
+        label: Text(l10n.consultationListNew),
       ),
     );
   }
 
   Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Consultation consultation,
+    BuildContext context, WidgetRef ref,
+    Consultation consultation, AppLocalizations l10n,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('상담 삭제'),
-        content: const Text('이 상담을 삭제할까요?\n대화 내용이 모두 사라집니다.'),
+        title: Text(l10n.chatDeleteConsultation),
+        content: Text(l10n.consultationDeleteContent),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('삭제'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.delete)),
         ],
       ),
     );
@@ -65,8 +60,9 @@ class ConsultationListScreen extends ConsumerWidget {
 }
 
 class _Empty extends StatelessWidget {
-  const _Empty({required this.onStartAnalysis});
+  const _Empty({required this.onStartAnalysis, required this.l10n});
   final VoidCallback onStartAnalysis;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -74,26 +70,20 @@ class _Empty extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 64,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          Icon(Icons.chat_bubble_outline, size: 64,
+              color: Theme.of(context).colorScheme.outlineVariant),
           const SizedBox(height: AppSpacing.md),
           Text(
-            '아직 상담 기록이 없습니다',
+            l10n.consultationListEmpty,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
-                ),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           FilledButton.icon(
             onPressed: onStartAnalysis,
             icon: const Icon(Icons.camera_alt_outlined),
-            label: const Text('관상/손금 분석부터 시작하세요'),
+            label: Text(l10n.consultationListEmptyAction),
           ),
         ],
       ),

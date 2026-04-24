@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/supabase/reading_repository.dart';
 import '../../domain/entities/reading.dart';
@@ -19,9 +20,10 @@ class HistoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('분석 기록')),
+      appBar: AppBar(title: Text(l10n.history)),
       body: authState.isLoggedIn
           ? _HistoryList(
               userId: authState.user!.id,
@@ -35,6 +37,7 @@ class HistoryPage extends ConsumerWidget {
 class _LoginPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -42,14 +45,14 @@ class _LoginPrompt extends StatelessWidget {
           Icon(Icons.history_outlined, size: 64,
               color: Theme.of(context).colorScheme.outlineVariant),
           const SizedBox(height: AppSpacing.md),
-          Text('로그인 후 분석 기록을 확인하세요',
+          Text(l10n.historyLoginPrompt,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   )),
           const SizedBox(height: AppSpacing.lg),
           FilledButton(
             onPressed: () => context.push('/auth'),
-            child: const Text('로그인'),
+            child: Text(l10n.login),
           ),
         ],
       ),
@@ -89,17 +92,18 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
   }
 
   Future<void> _delete(Reading reading) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('기록 삭제'),
-        content: const Text('이 분석 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.'),
+        title: Text(l10n.deleteRecord),
+        content: Text(l10n.deleteRecordContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('삭제'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -111,17 +115,19 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
       setState(() => _readings.removeWhere((r) => r.id == reading.id));
     } catch (e) {
       if (!mounted) return;
+      final l10n2 = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('삭제 실패: $e')),
+        SnackBar(content: Text('${l10n2.deleteFailed}: $e')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
-      return Center(child: Text('오류: $_error'));
+      return Center(child: Text('${l10n.deleteFailed}: $_error'));
     }
     if (_readings.isEmpty) {
       return Center(
@@ -131,7 +137,7 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
             Icon(Icons.auto_awesome_outlined, size: 64,
                 color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: AppSpacing.md),
-            Text('아직 저장된 분석이 없습니다',
+            Text(l10n.historyEmpty,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                     )),
@@ -148,7 +154,7 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
       itemBuilder: (context, i) {
         if (i == 0) {
           return Text(
-            '${widget.displayName}님의 분석 기록',
+            '${widget.displayName}님의 ${l10n.history}',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -176,6 +182,7 @@ class _ReadingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isface = reading.type == ReadingType.face;
 
     return Card(
@@ -209,7 +216,7 @@ class _ReadingCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          isface ? '관상 분석' : '손금 분석',
+                          isface ? l10n.faceAnalysis : l10n.palmAnalysis,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(width: 6),
@@ -242,7 +249,7 @@ class _ReadingCard extends StatelessWidget {
               ),
               IconButton(
                 icon: Icon(Icons.delete_outline, color: cs.error),
-                tooltip: '삭제',
+                tooltip: l10n.delete,
                 onPressed: onDelete,
               ),
               Icon(Icons.chevron_right, color: cs.primary),

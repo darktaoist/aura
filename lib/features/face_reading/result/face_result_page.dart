@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/l10n/generated/app_localizations.dart';
+import '../../../core/l10n/locale_notifier.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/subject_picker_sheet.dart';
 import '../../../data/supabase/reading_repository.dart';
@@ -12,15 +13,6 @@ import '../../../services/consultation_service.dart';
 import '../../auth/auth_notifier.dart';
 import 'face_result_notifier.dart';
 import 'widgets/reading_section_card.dart';
-
-const _kSections = [
-  (key: 'forehead', label: '이마',  icon: Icons.person_outline),
-  (key: 'eyes',     label: '눈',    icon: Icons.visibility_outlined),
-  (key: 'nose',     label: '코',    icon: Icons.face_outlined),
-  (key: 'mouth',    label: '입',    icon: Icons.sentiment_satisfied_outlined),
-  (key: 'chin',     label: '턱',    icon: Icons.face_retouching_natural),
-  (key: 'overall',  label: '종합',  icon: Icons.auto_awesome_outlined),
-];
 
 class FaceResultPage extends ConsumerStatefulWidget {
   const FaceResultPage({super.key, required this.result});
@@ -32,12 +24,9 @@ class FaceResultPage extends ConsumerStatefulWidget {
 }
 
 class _FaceResultPageState extends ConsumerState<FaceResultPage> {
-  // _sections 메모이제이션
   String _lastParsedText = '';
   Map<String, String> _cachedSections = {};
-  // 비로그인 상태에서 저장 요청 → 로그인 후 자동 저장 플래그
   bool _pendingSave = false;
-  // 저장 완료 후 상담 가능 상태
   String? _savedReadingId;
 
   Map<String, String> _sections(String text) {
@@ -54,40 +43,26 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   }
 
   Future<void> _loadLocaleAndAnalyze() async {
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
+    final locale = ref.read(localeNotifierProvider).languageCode;
 
-    if (!mounted) return;
-
-    // RAG 검색 (실패 시 빈 목록으로 폴백 — 분석 자체는 항상 진행)
     List<String> ragChunks = [];
     try {
       ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
-        type: 'face',
-        queryEmbedding: _buildQueryEmbedding(),
+        type: 'face', queryEmbedding: _buildQueryEmbedding(),
       );
     } catch (e) {
       debugPrint('[FaceResultPage] RAG search failed (non-fatal): $e');
     }
-
     if (!mounted) return;
 
     ref.read(faceResultNotifierProvider.notifier).analyze(
-          result: widget.result,
-          locale: locale,
-          ragChunks: ragChunks,
-        );
+      result: widget.result, locale: locale, ragChunks: ragChunks,
+    );
   }
 
-  /// 랜드마크 기반 간단 쿼리 임베딩 (placeholder — v1.1에서 MiniLM으로 교체)
-  /// 현재는 특이점 값들의 정규화된 배열을 임베딩 대신 전송
   List<double> _buildQueryEmbedding() {
     final f = widget.result.features;
-    // 768차원 zero-padded (실제 임베딩 미구현 단계)
-    final base = [
-      f.eyeSpan, f.faceHeight, f.noseRatio,
-      f.mouthWidth, f.symmetry, f.foreheadHeight, f.eyebrowDistance,
-    ];
+    final base = [f.eyeSpan, f.faceHeight, f.noseRatio, f.mouthWidth, f.symmetry, f.foreheadHeight, f.eyebrowDistance];
     return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
   }
 
@@ -106,16 +81,14 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
     for (final entry in patterns.entries) {
       final match = entry.value.firstMatch(text);
-      if (match != null) {
-        result[entry.key] = match.group(2)?.trim() ?? '';
-      }
+      if (match != null) result[entry.key] = match.group(2)?.trim() ?? '';
     }
-
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final notifierState = ref.watch(faceResultNotifierProvider);
     final isStreaming = notifierState.isStreaming;
     final fullText = notifierState.fullText;
@@ -130,31 +103,40 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       }
     });
 
+    final kSections = [
+      (key: 'forehead', label: l10n.sectionForehead, icon: Icons.person_outline),
+      (key: 'eyes',     label: l10n.sectionEyes,     icon: Icons.visibility_outlined),
+      (key: 'nose',     label: l10n.sectionNose,      icon: Icons.face_outlined),
+      (key: 'mouth',    label: l10n.sectionMouth,     icon: Icons.sentiment_satisfied_outlined),
+      (key: 'chin',     label: l10n.sectionChin,      icon: Icons.face_retouching_natural),
+      (key: 'overall',  label: l10n.sectionOverall,   icon: Icons.auto_awesome_outlined),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('관상 분석 결과'),
+        title: Text(l10n.faceAnalysisResult),
         actions: [
           IconButton(
             icon: const Icon(Icons.save_outlined),
             onPressed: isStreaming ? null : () => _onSave(context),
-            tooltip: '저장',
+            tooltip: l10n.save,
           ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: isStreaming ? null : _onShare,
-            tooltip: '공유',
+            tooltip: l10n.share,
           ),
         ],
       ),
       body: error != null
-          ? _buildError(error, isModelError: isModelError)
+          ? _buildError(context, l10n, error, isModelError: isModelError)
           : isStreaming && fullText.isEmpty
-              ? _buildLoading()
-              : _buildContent(context, fullText, isStreaming),
+              ? _buildLoading(context, l10n)
+              : _buildContent(context, l10n, fullText, isStreaming, kSections),
     );
   }
 
-  Widget _buildLoading() {
+  Widget _buildLoading(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -164,7 +146,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
             child: const Icon(Icons.auto_awesome, size: 48, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('관상 분석 중...', style: Theme.of(context).textTheme.bodyLarge),
+          Text(l10n.faceAnalyzing, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: AppSpacing.md),
           const CircularProgressIndicator(),
         ],
@@ -172,7 +154,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     );
   }
 
-  Widget _buildError(String errorMsg, {bool isModelError = false}) {
+  Widget _buildError(BuildContext context, AppLocalizations l10n, String errorMsg, {bool isModelError = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -182,32 +164,24 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
           children: [
             Icon(
               isModelError ? Icons.memory_outlined : Icons.error_outline,
-              color: Colors.redAccent,
-              size: 48,
+              color: Colors.redAccent, size: 48,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              isModelError ? 'AI 모델 오류' : '분석 중 오류가 발생했습니다',
+              isModelError ? l10n.aiModelError : l10n.analysisError,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              errorMsg,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
+            Text(errorMsg, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             if (isModelError) ...[
               FilledButton.icon(
                 onPressed: () => context.go('/model_setup'),
                 icon: const Icon(Icons.download_outlined),
-                label: const Text('모델 재설치'),
+                label: Text(l10n.modelReinstall),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text('돌아가기'),
-              ),
+              TextButton(onPressed: () => context.pop(), child: Text(l10n.goBack)),
             ] else
               FilledButton.icon(
                 onPressed: () {
@@ -215,7 +189,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
                   _loadLocaleAndAnalyze();
                 },
                 icon: const Icon(Icons.refresh),
-                label: const Text('다시 시도'),
+                label: Text(l10n.retry),
               ),
           ],
         ),
@@ -223,7 +197,13 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, String fullText, bool isStreaming) {
+  Widget _buildContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    String fullText,
+    bool isStreaming,
+    List<({String key, String label, IconData icon})> kSections,
+  ) {
     final sections = _sections(fullText);
     final hasSections = sections.values.any((v) => v.isNotEmpty);
 
@@ -231,23 +211,21 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       children: [
         if (isStreaming && !hasSections)
-          // 스트리밍 중 섹션 파싱 전: 원문 표시
           ReadingSectionCard(
-            title: '분석 중...',
+            title: l10n.analyzing,
             content: fullText,
             icon: Icons.auto_awesome,
             isStreaming: true,
           )
         else if (!hasSections && fullText.isNotEmpty)
-          // 섹션 파싱 실패: 전체 텍스트 단일 카드로 표시
           ReadingSectionCard(
-            title: '분석 결과',
+            title: l10n.faceAnalysisResult,
             content: fullText,
             icon: Icons.auto_awesome_outlined,
             isStreaming: isStreaming,
           )
         else
-          ..._kSections.map((s) {
+          ...kSections.map((s) {
             final text = sections[s.key] ?? '';
             if (text.isEmpty) return const SizedBox.shrink();
             return ReadingSectionCard(
@@ -266,7 +244,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
                 child: OutlinedButton.icon(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('다시 보기'),
+                  label: Text(l10n.retry),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -274,7 +252,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
                 child: FilledButton.icon(
                   onPressed: isStreaming ? null : () => _onSave(context),
                   icon: const Icon(Icons.bookmark_outline),
-                  label: const Text('저장'),
+                  label: Text(l10n.save),
                 ),
               ),
             ],
@@ -288,7 +266,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
             child: FilledButton.tonalIcon(
               onPressed: isStreaming ? null : () => _onStartConsultation(context),
               icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text('상담하기'),
+              label: Text(l10n.resultStartConsultation),
             ),
           ),
         ),
@@ -298,18 +276,18 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   }
 
   Future<void> _onSave(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
 
     if (!authState.isLoggedIn) {
-      // 비로그인: 저장 대기 플래그 설정 후 로그인으로 이동
       final goLogin = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('로그인 필요'),
-          content: const Text('저장하려면 로그인이 필요합니다.\n로그인 후 자동으로 저장됩니다.'),
+          title: Text(l10n.loginRequired),
+          content: Text(l10n.loginRequiredContent),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('로그인')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.login)),
           ],
         ),
       );
@@ -325,83 +303,77 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   }
 
   Future<void> _doSave({String subjectName = '나'}) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
+    final locale = ref.read(localeNotifierProvider).languageCode;
 
     final reading = await ref.read(faceResultNotifierProvider.notifier).saveReading(
-          userId: authState.user!.id,
-          landmarkResult: widget.result,
-          modelUsed: 'E2B',
-          locale: locale,
-          subjectName: subjectName,
-        );
+      userId: authState.user!.id,
+      landmarkResult: widget.result,
+      modelUsed: 'E2B',
+      locale: locale,
+      subjectName: subjectName,
+    );
 
     if (!mounted) return;
     final email = authState.user?.email ?? '';
     final displayName = email.contains('@') ? email.split('@').first : email;
 
-    if (reading != null) {
-      setState(() => _savedReadingId = reading.id);
-    }
+    if (reading != null) setState(() => _savedReadingId = reading.id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(reading != null
-            ? '$displayName님의 결과가 저장되었습니다'
-            : '저장에 실패했습니다. 다시 시도해주세요.'),
+        content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed),
       ),
     );
   }
 
   Future<void> _onStartConsultation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('상담하려면 로그인이 필요합니다')),
+        SnackBar(content: Text(l10n.resultLoginToConsult)),
       );
       context.push('/auth');
       return;
     }
     if (_savedReadingId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('먼저 저장해주세요')),
+        SnackBar(content: Text(l10n.resultSaveBeforeConsult)),
       );
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final locale = prefs.getString('locale') ?? 'ko';
+    final locale = ref.read(localeNotifierProvider).languageCode;
     final fullText = ref.read(faceResultNotifierProvider).fullText;
 
     try {
       final consultation = await ref.read(consultationServiceProvider).createConsultation(
-            userId: authState.user!.id,
-            analysisType: AnalysisType.face,
-            analysisId: _savedReadingId!,
-            contextSummary: fullText.length > 600
-                ? '${fullText.substring(0, 600)}…'
-                : fullText,
-            contextFeatures: {
-              'eyeSpan': widget.result.features.eyeSpan,
-              'faceHeight': widget.result.features.faceHeight,
-              'noseRatio': widget.result.features.noseRatio,
-              'mouthWidth': widget.result.features.mouthWidth,
-              'symmetry': widget.result.features.symmetry,
-              'foreheadHeight': widget.result.features.foreheadHeight,
-              'eyebrowDistance': widget.result.features.eyebrowDistance,
-            },
-            locale: locale,
-            modelUsed: 'E2B',
-          );
+        userId: authState.user!.id,
+        analysisType: AnalysisType.face,
+        analysisId: _savedReadingId!,
+        contextSummary: fullText.length > 600 ? '${fullText.substring(0, 600)}…' : fullText,
+        contextFeatures: {
+          'eyeSpan': widget.result.features.eyeSpan,
+          'faceHeight': widget.result.features.faceHeight,
+          'noseRatio': widget.result.features.noseRatio,
+          'mouthWidth': widget.result.features.mouthWidth,
+          'symmetry': widget.result.features.symmetry,
+          'foreheadHeight': widget.result.features.foreheadHeight,
+          'eyebrowDistance': widget.result.features.eyebrowDistance,
+        },
+        locale: locale,
+        modelUsed: 'E2B',
+      );
       if (!context.mounted) return;
       context.push('/consultation/${consultation.id}');
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상담 생성 실패: $e')),
+        SnackBar(content: Text('${l10n.consultationCreateFailed}: $e')),
       );
     }
   }

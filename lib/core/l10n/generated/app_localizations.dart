@@ -479,6 +479,480 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'상담하려면 로그인이 필요합니다'**
   String get resultLoginToConsult;
+
+  /// No description provided for @todayReading.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘의 분석'**
+  String get todayReading;
+
+  /// No description provided for @login.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인'**
+  String get login;
+
+  /// No description provided for @theme.
+  ///
+  /// In ko, this message translates to:
+  /// **'테마'**
+  String get theme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In ko, this message translates to:
+  /// **'시스템 설정 따름'**
+  String get themeSystem;
+
+  /// No description provided for @languageSelect.
+  ///
+  /// In ko, this message translates to:
+  /// **'언어 선택'**
+  String get languageSelect;
+
+  /// No description provided for @faceAnalysis.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상 분석'**
+  String get faceAnalysis;
+
+  /// No description provided for @palmAnalysis.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 분석'**
+  String get palmAnalysis;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 저장된 분석이 없습니다'**
+  String get historyEmpty;
+
+  /// No description provided for @historyLoginPrompt.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인 후 분석 기록을 확인하세요'**
+  String get historyLoginPrompt;
+
+  /// No description provided for @cancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'취소'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In ko, this message translates to:
+  /// **'삭제'**
+  String get delete;
+
+  /// No description provided for @deleteRecord.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 삭제'**
+  String get deleteRecord;
+
+  /// No description provided for @deleteRecordContent.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 분석 기록을 삭제하시겠습니까?\n연결된 상담 기록도 함께 삭제됩니다.\n삭제된 기록은 복구할 수 없습니다.'**
+  String get deleteRecordContent;
+
+  /// No description provided for @deleteFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'삭제 실패'**
+  String get deleteFailed;
+
+  /// No description provided for @cacheDeleteConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱 캐시를 삭제하시겠습니까?'**
+  String get cacheDeleteConfirm;
+
+  /// No description provided for @cacheDeleteSuccess.
+  ///
+  /// In ko, this message translates to:
+  /// **'캐시 삭제 완료 ({mb}MB)'**
+  String cacheDeleteSuccess(String mb);
+
+  /// No description provided for @cacheDeleteFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'캐시 삭제 실패'**
+  String get cacheDeleteFailed;
+
+  /// No description provided for @loginRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인 필요'**
+  String get loginRequired;
+
+  /// No description provided for @loginRequiredContent.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장하려면 로그인이 필요합니다.\n로그인 후 자동으로 저장됩니다.'**
+  String get loginRequiredContent;
+
+  /// No description provided for @saveSuccess.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name}님의 결과가 저장되었습니다'**
+  String saveSuccess(String name);
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장에 실패했습니다. 다시 시도해주세요.'**
+  String get saveFailed;
+
+  /// No description provided for @palmViewResults.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 결과 보기'**
+  String get palmViewResults;
+
+  /// No description provided for @cameraPermissionRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라 권한이 필요합니다'**
+  String get cameraPermissionRequired;
+
+  /// No description provided for @facePermissionDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'얼굴 분석을 위해 카메라 접근 권한을 허용해 주세요'**
+  String get facePermissionDesc;
+
+  /// No description provided for @palmPermissionDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 분석을 위해 카메라 접근 권한을 허용해 주세요'**
+  String get palmPermissionDesc;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정에서 권한 허용'**
+  String get openSettings;
+
+  /// No description provided for @goBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'돌아가기'**
+  String get goBack;
+
+  /// No description provided for @palmGuide.
+  ///
+  /// In ko, this message translates to:
+  /// **'손바닥을 화면 쪽으로\n펼쳐서 보여주세요'**
+  String get palmGuide;
+
+  /// No description provided for @aiEngineInitializing.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 엔진 초기화 중...'**
+  String get aiEngineInitializing;
+
+  /// No description provided for @faceAnalyzing.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상 분석 중...'**
+  String get faceAnalyzing;
+
+  /// No description provided for @palmAnalyzing.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 분석 중...'**
+  String get palmAnalyzing;
+
+  /// No description provided for @faceAnalysisResult.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상 분석 결과'**
+  String get faceAnalysisResult;
+
+  /// No description provided for @palmAnalysisResult.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 분석 결과'**
+  String get palmAnalysisResult;
+
+  /// No description provided for @analysisError.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 중 오류가 발생했습니다'**
+  String get analysisError;
+
+  /// No description provided for @aiModelError.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 모델 오류'**
+  String get aiModelError;
+
+  /// No description provided for @modelReinstall.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델 재설치'**
+  String get modelReinstall;
+
+  /// No description provided for @consultationCreateFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담 생성 실패'**
+  String get consultationCreateFailed;
+
+  /// No description provided for @sectionLifeline.
+  ///
+  /// In ko, this message translates to:
+  /// **'생명선'**
+  String get sectionLifeline;
+
+  /// No description provided for @sectionHeartline.
+  ///
+  /// In ko, this message translates to:
+  /// **'감정선'**
+  String get sectionHeartline;
+
+  /// No description provided for @sectionHeadline.
+  ///
+  /// In ko, this message translates to:
+  /// **'두뇌선'**
+  String get sectionHeadline;
+
+  /// No description provided for @sectionFateline.
+  ///
+  /// In ko, this message translates to:
+  /// **'운명선'**
+  String get sectionFateline;
+
+  /// No description provided for @sectionHandshape.
+  ///
+  /// In ko, this message translates to:
+  /// **'손모양'**
+  String get sectionHandshape;
+
+  /// No description provided for @palmResultTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'{hand} 손금 분석'**
+  String palmResultTitle(String hand);
+
+  /// No description provided for @consultationTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담'**
+  String get consultationTitle;
+
+  /// No description provided for @consultationNotFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담을 찾을 수 없습니다'**
+  String get consultationNotFound;
+
+  /// No description provided for @backToList.
+  ///
+  /// In ko, this message translates to:
+  /// **'목록으로'**
+  String get backToList;
+
+  /// No description provided for @consultationDeleteContent.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 상담을 삭제할까요?\n대화 내용이 모두 사라집니다.'**
+  String get consultationDeleteContent;
+
+  /// No description provided for @consultationTitleHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담 제목'**
+  String get consultationTitleHint;
+
+  /// No description provided for @consultationEmptyHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 결과에 대해 궁금한 점을 물어보세요'**
+  String get consultationEmptyHint;
+
+  /// No description provided for @faceConsultation.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상 상담'**
+  String get faceConsultation;
+
+  /// No description provided for @palmConsultation.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금 상담'**
+  String get palmConsultation;
+
+  /// No description provided for @pickerEmptyFace.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장된 관상 분석이 없습니다'**
+  String get pickerEmptyFace;
+
+  /// No description provided for @pickerEmptyPalm.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장된 손금 분석이 없습니다'**
+  String get pickerEmptyPalm;
+
+  /// No description provided for @chatGenerating.
+  ///
+  /// In ko, this message translates to:
+  /// **'응답 생성 중...'**
+  String get chatGenerating;
+
+  /// No description provided for @copied.
+  ///
+  /// In ko, this message translates to:
+  /// **'복사되었습니다'**
+  String get copied;
+
+  /// No description provided for @modelScanning.
+  ///
+  /// In ko, this message translates to:
+  /// **'기기 확인 중...'**
+  String get modelScanning;
+
+  /// No description provided for @modelScanningDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'설치된 AI 모델을 찾고 있습니다'**
+  String get modelScanningDesc;
+
+  /// No description provided for @modelFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델 발견!'**
+  String get modelFound;
+
+  /// No description provided for @modelDownloadingWith.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 모델 준비 중 ({name})'**
+  String modelDownloadingWith(String name);
+
+  /// No description provided for @modelDownloadDescWithSize.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음 한 번만 다운로드합니다 (약 {size}GB)'**
+  String modelDownloadDescWithSize(String size);
+
+  /// No description provided for @downloadFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'다운로드 실패'**
+  String get downloadFailed;
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In ko, this message translates to:
+  /// **'오류'**
+  String get errorPrefix;
+
+  /// No description provided for @agreePrefix.
+  ///
+  /// In ko, this message translates to:
+  /// **'동의합니다: '**
+  String get agreePrefix;
+
+  /// No description provided for @agreeConnector.
+  ///
+  /// In ko, this message translates to:
+  /// **' 및 '**
+  String get agreeConnector;
+
+  /// No description provided for @subjectPickerTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'누구의 분석인가요?'**
+  String get subjectPickerTitle;
+
+  /// No description provided for @subjectPickerSubtitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 결과를 저장할 대상을 선택하세요'**
+  String get subjectPickerSubtitle;
+
+  /// No description provided for @subjectPickerCustom.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 입력'**
+  String get subjectPickerCustom;
+
+  /// No description provided for @subjectPickerCustomHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름 또는 관계를 입력하세요'**
+  String get subjectPickerCustomHint;
+
+  /// No description provided for @subjectPickerConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장하기'**
+  String get subjectPickerConfirm;
+
+  /// No description provided for @subjectMe.
+  ///
+  /// In ko, this message translates to:
+  /// **'나'**
+  String get subjectMe;
+
+  /// No description provided for @subjectSpouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'배우자'**
+  String get subjectSpouse;
+
+  /// No description provided for @subjectFriend.
+  ///
+  /// In ko, this message translates to:
+  /// **'친구'**
+  String get subjectFriend;
+
+  /// No description provided for @subjectParents.
+  ///
+  /// In ko, this message translates to:
+  /// **'부모님'**
+  String get subjectParents;
+
+  /// No description provided for @subjectChild.
+  ///
+  /// In ko, this message translates to:
+  /// **'자녀'**
+  String get subjectChild;
+
+  /// No description provided for @subjectSibling.
+  ///
+  /// In ko, this message translates to:
+  /// **'형제/자매'**
+  String get subjectSibling;
+
+  /// No description provided for @justNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'방금'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}분 전'**
+  String minutesAgo(int count);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}시간 전'**
+  String hoursAgo(int count);
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}일 전'**
+  String daysAgo(int count);
 }
 
 class _AppLocalizationsDelegate

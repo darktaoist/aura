@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/gemma/gemma_service.dart';
@@ -20,7 +22,6 @@ class FaceResultState {
   final bool isStreaming;
   final bool isSaving;
   final String? error;
-  /// true: 모델 파일 손상/누락 → 모델 재설치 안내 필요
   final bool isModelError;
 
   bool get hasContent => fullText.isNotEmpty;
@@ -44,6 +45,8 @@ class FaceResultState {
 
 @riverpod
 class FaceResultNotifier extends _$FaceResultNotifier {
+  StreamSubscription<String>? _sub;
+
   @override
   FaceResultState build() => const FaceResultState();
 
@@ -52,7 +55,10 @@ class FaceResultNotifier extends _$FaceResultNotifier {
     required String locale,
     List<String> ragChunks = const [],
   }) async {
-    if (state.isStreaming) return; // 중복 호출 방어
+    // 진행 중인 분석 취소 후 재시작 (locale 변경 시 등)
+    await _sub?.cancel();
+    _sub = null;
+
     state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
     try {
@@ -64,18 +70,36 @@ class FaceResultNotifier extends _$FaceResultNotifier {
       );
 
       var buffer = '';
-      await for (final token in stream) {
-        buffer += token;
-        if (buffer.length >= 20) {
-          state = state.copyWith(fullText: state.fullText + buffer);
-          buffer = '';
-        }
-      }
-      if (buffer.isNotEmpty) {
-        state = state.copyWith(fullText: state.fullText + buffer);
-      }
-
-      state = state.copyWith(isStreaming: false);
+      _sub = stream.listen(
+        (token) {
+          buffer += token;
+          if (buffer.length >= 20) {
+            state = state.copyWith(fullText: state.fullText + buffer);
+            buffer = '';
+          }
+        },
+        onDone: () {
+          if (buffer.isNotEmpty) {
+            state = state.copyWith(fullText: state.fullText + buffer);
+          }
+          state = state.copyWith(isStreaming: false);
+          _sub = null;
+        },
+        onError: (e) {
+          final msg = e.toString();
+          final isModelErr = msg.contains('model') ||
+              msg.contains('Model') ||
+              msg.contains('Unsupported') ||
+              msg.contains('StateError');
+          state = state.copyWith(
+            isStreaming: false,
+            error: msg,
+            isModelError: isModelErr,
+          );
+          _sub = null;
+        },
+        cancelOnError: true,
+      );
     } catch (e) {
       final msg = e.toString();
       final isModelErr = msg.contains('model') ||
@@ -112,7 +136,6 @@ class FaceResultNotifier extends _$FaceResultNotifier {
       state = state.copyWith(isSaving: false);
       return reading;
     } catch (e) {
-      // 저장 실패는 분석 결과를 지우지 않도록 error 상태에 반영하지 않음
       state = state.copyWith(isSaving: false);
       return null;
     }

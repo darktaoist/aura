@@ -3,18 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsPage extends ConsumerStatefulWidget {
+import '../../core/l10n/generated/app_localizations.dart';
+import '../../core/l10n/locale_notifier.dart';
+
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
-  @override
-  ConsumerState<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _locale = 'ko';
-  // 버전은 pubspec.yaml 과 동기화 — 자동화는 package_info_plus 추가 후 진행
   static const _version = '1.0.0+1';
 
   static const _localeLabels = {
@@ -25,93 +20,71 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   };
 
   @override
-  void initState() {
-    super.initState();
-    _loadPrefs();
-  }
-
-  Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _locale = prefs.getString('locale') ?? 'ko';
-    });
-  }
-
-  Future<void> _setLocale(String locale) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('locale', locale);
-    if (mounted) setState(() => _locale = locale);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
+    final locale = ref.watch(localeNotifierProvider).languageCode;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('설정')),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
-          // 언어 설정
           ListTile(
             leading: const Icon(Icons.language_outlined),
-            title: const Text('언어'),
-            subtitle: Text(_localeLabels[_locale] ?? _locale),
-            onTap: () => _showLocaleDialog(context),
+            title: Text(l10n.language),
+            subtitle: Text(_localeLabels[locale] ?? locale),
+            onTap: () => _showLocaleDialog(context, ref, locale),
           ),
           const Divider(height: 1),
-          // 테마 (TODO Phase 7: Riverpod themeNotifier 연결)
           ListTile(
             leading: const Icon(Icons.dark_mode_outlined),
-            title: const Text('테마'),
-            subtitle: const Text('시스템 설정 따름'),
+            title: Text(l10n.theme),
+            subtitle: Text(l10n.themeSystem),
             onTap: () {},
           ),
           const Divider(height: 1),
-          // AI 모델
           ListTile(
             leading: const Icon(Icons.memory_outlined),
-            title: const Text('AI 모델'),
+            title: Text(l10n.model),
             subtitle: const Text('Gemma 4 E2B'),
             onTap: () {},
           ),
           const Divider(height: 1),
-          // 캐시 삭제
           ListTile(
             leading: Icon(Icons.delete_outline, color: cs.error),
-            title: Text('캐시 삭제', style: TextStyle(color: cs.error)),
-            onTap: () => _clearCache(context),
+            title: Text(l10n.clearCache, style: TextStyle(color: cs.error)),
+            onTap: () => _clearCache(context, l10n),
           ),
           const Divider(height: 1),
-          // 버전
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('버전'),
-            subtitle: Text(_version),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.version),
+            subtitle: const Text(_version),
           ),
         ],
       ),
     );
   }
 
-  void _showLocaleDialog(BuildContext context) {
+  void _showLocaleDialog(BuildContext context, WidgetRef ref, String current) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-        title: const Text('언어 선택'),
+        title: Text(l10n.languageSelect),
         children: _localeLabels.entries
             .map(
               (e) => SimpleDialogOption(
                 onPressed: () {
-                  _setLocale(e.key);
+                  ref.read(localeNotifierProvider.notifier).setLocale(e.key);
                   Navigator.pop(context);
                 },
                 child: Text(
                   e.value,
                   style: TextStyle(
                     fontWeight:
-                        _locale == e.key ? FontWeight.bold : FontWeight.normal,
-                    color: _locale == e.key
+                        current == e.key ? FontWeight.bold : FontWeight.normal,
+                    color: current == e.key
                         ? Theme.of(context).colorScheme.primary
                         : null,
                   ),
@@ -123,19 +96,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Future<void> _clearCache(BuildContext context) async {
+  Future<void> _clearCache(BuildContext context, AppLocalizations l10n) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('캐시 삭제'),
-        content: const Text('앱 캐시를 삭제하시겠습니까?'),
+        title: Text(l10n.clearCache),
+        content: Text(l10n.cacheDeleteConfirm),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소')),
+              child: Text(l10n.cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('삭제')),
+              child: Text(l10n.delete)),
         ],
       ),
     );
@@ -144,11 +117,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     int deletedBytes = 0;
     try {
-      // 임시 디렉토리 삭제
       final tmpDir = await getTemporaryDirectory();
       if (tmpDir.existsSync()) {
-        final entities = tmpDir.listSync();
-        for (final entity in entities) {
+        for (final entity in tmpDir.listSync()) {
           try {
             if (entity is File) {
               deletedBytes += await entity.length();
@@ -162,7 +133,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('캐시 삭제 실패: $e')),
+          SnackBar(content: Text('${l10n.cacheDeleteFailed}: $e')),
         );
       }
       return;
@@ -171,7 +142,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (context.mounted) {
       final mb = (deletedBytes / 1024 / 1024).toStringAsFixed(1);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('캐시 삭제 완료 (${mb}MB)')),
+        SnackBar(content: Text(l10n.cacheDeleteSuccess(mb))),
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/generated/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/consultation.dart';
 
@@ -18,6 +19,7 @@ class ConsultationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isface = consultation.analysisType == AnalysisType.face;
 
     return Card(
@@ -50,7 +52,8 @@ class ConsultationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      consultation.title ?? (isface ? '관상 상담' : '손금 상담'),
+                      consultation.title ??
+                          (isface ? l10n.faceConsultation : l10n.palmConsultation),
                       style: Theme.of(context).textTheme.titleMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -59,14 +62,14 @@ class ConsultationCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          _relativeTime(consultation.lastMessageAt),
+                          _relativeTime(context, consultation.lastMessageAt),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: cs.onSurface.withValues(alpha: 0.5),
                               ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
-                          '· ${consultation.messageCount}개 메시지',
+                          '· ${l10n.consultationMessageCount(consultation.messageCount)}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: cs.onSurface.withValues(alpha: 0.4),
                               ),
@@ -84,12 +87,13 @@ class ConsultationCard extends StatelessWidget {
     );
   }
 
-  String _relativeTime(DateTime dt) {
+  String _relativeTime(BuildContext context, DateTime dt) {
+    final l10n = AppLocalizations.of(context)!;
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return '방금';
-    if (diff.inHours < 1) return '${diff.inMinutes}분 전';
-    if (diff.inDays < 1) return '${diff.inHours}시간 전';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    if (diff.inMinutes < 1) return l10n.justNow;
+    if (diff.inHours < 1) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.hoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.daysAgo(diff.inDays);
     return '${dt.month}.${dt.day}';
   }
 }

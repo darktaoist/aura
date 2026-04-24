@@ -70,5 +70,114 @@
 
   "resultStartConsultation": "开始咨询",
   "resultSaveBeforeConsult": "请先保存结果",
-  "resultLoginToConsult": "咨询需要登录"
+  "resultLoginToConsult": "咨询需要登录",
+
+  "todayReading": "今日分析",
+  "login": "登录",
+  "theme": "主题",
+  "themeSystem": "跟随系统",
+  "languageSelect": "选择语言",
+  "faceAnalysis": "面相分析",
+  "palmAnalysis": "手相分析",
+  "historyEmpty": "暂无保存的分析",
+  "historyLoginPrompt": "登录后查看分析历史",
+  "cancel": "取消",
+  "delete": "删除",
+  "deleteRecord": "删除记录",
+  "deleteRecordContent": "确定删除此分析记录？\n相关咨询记录也将一并删除。\n删除后无法恢复。",
+  "deleteFailed": "删除失败",
+  "cacheDeleteConfirm": "清除应用缓存？",
+  "cacheDeleteSuccess": "缓存已清除（{mb}MB）",
+  "@cacheDeleteSuccess": {
+    "placeholders": { "mb": { "type": "String" } }
+  },
+  "cacheDeleteFailed": "清除缓存失败",
+  "loginRequired": "需要登录",
+  "loginRequiredContent": "保存需要登录。\n登录后将自动保存。",
+  "saveSuccess": "已保存{name}的结果",
+  "@saveSuccess": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "saveFailed": "保存失败，请重试。",
+
+  "palmViewResults": "查看手相结果",
+  "cameraPermissionRequired": "需要相机权限",
+  "facePermissionDesc": "请允许相机访问以进行面相分析",
+  "palmPermissionDesc": "请允许相机访问以进行手相分析",
+  "openSettings": "在设置中允许",
+  "goBack": "返回",
+  "palmGuide": "请将手掌朝向\n屏幕展开",
+  "aiEngineInitializing": "AI引擎初始化中...",
+
+  "faceAnalyzing": "面相分析中...",
+  "palmAnalyzing": "手相分析中...",
+  "faceAnalysisResult": "面相分析结果",
+  "palmAnalysisResult": "手相分析结果",
+  "analysisError": "分析过程中发生错误",
+  "aiModelError": "AI模型错误",
+  "modelReinstall": "重新安装模型",
+  "consultationCreateFailed": "创建咨询失败",
+
+  "sectionLifeline": "生命线",
+  "sectionHeartline": "感情线",
+  "sectionHeadline": "头脑线",
+  "sectionFateline": "命运线",
+  "sectionHandshape": "手形",
+
+  "palmResultTitle": "{hand}手相分析",
+  "@palmResultTitle": {
+    "placeholders": { "hand": { "type": "String" } }
+  },
+
+  "consultationTitle": "咨询",
+  "consultationNotFound": "找不到咨询",
+  "backToList": "返回列表",
+  "consultationDeleteContent": "删除此咨询？\n所有消息将被删除。",
+  "consultationTitleHint": "咨询标题",
+  "consultationEmptyHint": "请提问关于分析结果的问题",
+  "faceConsultation": "面相咨询",
+  "palmConsultation": "手相咨询",
+
+  "pickerEmptyFace": "没有保存的面相分析",
+  "pickerEmptyPalm": "没有保存的手相分析",
+
+  "chatGenerating": "正在生成回复...",
+  "copied": "已复制",
+
+  "modelScanning": "扫描设备中...",
+  "modelScanningDesc": "正在搜索已安装的AI模型",
+  "modelFound": "发现模型！",
+  "modelDownloadingWith": "AI模型准备中 ({name})",
+  "@modelDownloadingWith": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "modelDownloadDescWithSize": "仅需下载一次（约{size}GB）",
+  "@modelDownloadDescWithSize": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "downloadFailed": "下载失败",
+  "errorPrefix": "错误",
+
+  "agreePrefix": "我同意：",
+  "agreeConnector": "和",
+
+  "subjectPickerTitle": "这是谁的分析？",
+  "subjectPickerSubtitle": "请选择保存分析结果的对象",
+  "subjectPickerCustom": "自定义输入",
+  "subjectPickerCustomHint": "输入姓名或关系",
+  "subjectPickerConfirm": "保存",
+  "subjectMe": "我",
+  "subjectSpouse": "配偶",
+  "subjectFriend": "朋友",
+  "subjectParents": "父母",
+  "subjectChild": "子女",
+  "subjectSibling": "兄弟/姐妹",
+
+  "justNow": "刚才",
+  "minutesAgo": "{count}分钟前",
+  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "hoursAgo": "{count}小时前",
+  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "daysAgo": "{count}天前",
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
 }

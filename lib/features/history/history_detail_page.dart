@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/entities/reading.dart';
 
@@ -12,10 +13,11 @@ class HistoryDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isface = reading.type == ReadingType.face;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isface ? '관상 분석 결과' : '손금 분석 결과'),
+        title: Text(isface ? l10n.faceAnalysisResult : l10n.palmAnalysisResult),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),

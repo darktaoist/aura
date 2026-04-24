@@ -200,4 +200,262 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resultLoginToConsult => 'Login required to start a consultation';
+
+  @override
+  String get todayReading => 'Today\'s Reading';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSystem => 'System Default';
+
+  @override
+  String get languageSelect => 'Select Language';
+
+  @override
+  String get faceAnalysis => 'Face Analysis';
+
+  @override
+  String get palmAnalysis => 'Palm Analysis';
+
+  @override
+  String get historyEmpty => 'No readings saved yet';
+
+  @override
+  String get historyLoginPrompt => 'Log in to view your reading history';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteRecord => 'Delete Record';
+
+  @override
+  String get deleteRecordContent =>
+      'Delete this reading?\nLinked consultations will also be deleted.\nThis action cannot be undone.';
+
+  @override
+  String get deleteFailed => 'Delete failed';
+
+  @override
+  String get cacheDeleteConfirm => 'Clear app cache?';
+
+  @override
+  String cacheDeleteSuccess(String mb) {
+    return 'Cache cleared (${mb}MB)';
+  }
+
+  @override
+  String get cacheDeleteFailed => 'Failed to clear cache';
+
+  @override
+  String get loginRequired => 'Login Required';
+
+  @override
+  String get loginRequiredContent =>
+      'Login required to save.\nYou will be redirected back after login.';
+
+  @override
+  String saveSuccess(String name) {
+    return 'Reading saved for $name';
+  }
+
+  @override
+  String get saveFailed => 'Save failed. Please try again.';
+
+  @override
+  String get palmViewResults => 'View Palm Reading Results';
+
+  @override
+  String get cameraPermissionRequired => 'Camera Permission Required';
+
+  @override
+  String get facePermissionDesc =>
+      'Please allow camera access for face analysis';
+
+  @override
+  String get palmPermissionDesc =>
+      'Please allow camera access for palm analysis';
+
+  @override
+  String get openSettings => 'Allow in Settings';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get palmGuide => 'Show your palm\nfacing the screen';
+
+  @override
+  String get aiEngineInitializing => 'Initializing AI engine...';
+
+  @override
+  String get faceAnalyzing => 'Reading face...';
+
+  @override
+  String get palmAnalyzing => 'Reading palm...';
+
+  @override
+  String get faceAnalysisResult => 'Face Reading Result';
+
+  @override
+  String get palmAnalysisResult => 'Palm Reading Result';
+
+  @override
+  String get analysisError => 'An error occurred during analysis';
+
+  @override
+  String get aiModelError => 'AI Model Error';
+
+  @override
+  String get modelReinstall => 'Reinstall Model';
+
+  @override
+  String get consultationCreateFailed => 'Failed to create consultation';
+
+  @override
+  String get sectionLifeline => 'Life Line';
+
+  @override
+  String get sectionHeartline => 'Heart Line';
+
+  @override
+  String get sectionHeadline => 'Head Line';
+
+  @override
+  String get sectionFateline => 'Fate Line';
+
+  @override
+  String get sectionHandshape => 'Hand Shape';
+
+  @override
+  String palmResultTitle(String hand) {
+    return '$hand Palm Reading';
+  }
+
+  @override
+  String get consultationTitle => 'Consultation';
+
+  @override
+  String get consultationNotFound => 'Consultation not found';
+
+  @override
+  String get backToList => 'Back to List';
+
+  @override
+  String get consultationDeleteContent =>
+      'Delete this consultation?\nAll messages will be lost.';
+
+  @override
+  String get consultationTitleHint => 'Consultation title';
+
+  @override
+  String get consultationEmptyHint => 'Ask anything about your reading results';
+
+  @override
+  String get faceConsultation => 'Face Consultation';
+
+  @override
+  String get palmConsultation => 'Palm Consultation';
+
+  @override
+  String get pickerEmptyFace => 'No saved face readings';
+
+  @override
+  String get pickerEmptyPalm => 'No saved palm readings';
+
+  @override
+  String get chatGenerating => 'Generating response...';
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get modelScanning => 'Scanning device...';
+
+  @override
+  String get modelScanningDesc => 'Searching for installed AI model';
+
+  @override
+  String get modelFound => 'Model Found!';
+
+  @override
+  String modelDownloadingWith(String name) {
+    return 'Preparing AI Model ($name)';
+  }
+
+  @override
+  String modelDownloadDescWithSize(String size) {
+    return 'One-time download only (approx. ${size}GB)';
+  }
+
+  @override
+  String get downloadFailed => 'Download Failed';
+
+  @override
+  String get errorPrefix => 'Error';
+
+  @override
+  String get agreePrefix => 'I agree to: ';
+
+  @override
+  String get agreeConnector => ' and ';
+
+  @override
+  String get subjectPickerTitle => 'Who is this reading for?';
+
+  @override
+  String get subjectPickerSubtitle => 'Select who this reading belongs to';
+
+  @override
+  String get subjectPickerCustom => 'Custom';
+
+  @override
+  String get subjectPickerCustomHint => 'Enter name or relation';
+
+  @override
+  String get subjectPickerConfirm => 'Save';
+
+  @override
+  String get subjectMe => 'Me';
+
+  @override
+  String get subjectSpouse => 'Spouse';
+
+  @override
+  String get subjectFriend => 'Friend';
+
+  @override
+  String get subjectParents => 'Parents';
+
+  @override
+  String get subjectChild => 'Child';
+
+  @override
+  String get subjectSibling => 'Sibling';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '$count hr ago';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return '$count day ago';
+  }
 }

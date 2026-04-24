@@ -198,4 +198,258 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get resultLoginToConsult => '相談にはログインが必要です';
+
+  @override
+  String get todayReading => '今日の分析';
+
+  @override
+  String get login => 'ログイン';
+
+  @override
+  String get theme => 'テーマ';
+
+  @override
+  String get themeSystem => 'システム設定に従う';
+
+  @override
+  String get languageSelect => '言語を選択';
+
+  @override
+  String get faceAnalysis => '観相分析';
+
+  @override
+  String get palmAnalysis => '手相分析';
+
+  @override
+  String get historyEmpty => 'まだ保存された分析がありません';
+
+  @override
+  String get historyLoginPrompt => 'ログイン後に分析履歴を確認できます';
+
+  @override
+  String get cancel => 'キャンセル';
+
+  @override
+  String get delete => '削除';
+
+  @override
+  String get deleteRecord => '履歴削除';
+
+  @override
+  String get deleteRecordContent =>
+      'この分析履歴を削除しますか？\n関連する相談履歴も一緒に削除されます。\n削除したデータは復元できません。';
+
+  @override
+  String get deleteFailed => '削除失敗';
+
+  @override
+  String get cacheDeleteConfirm => 'アプリキャッシュを削除しますか？';
+
+  @override
+  String cacheDeleteSuccess(String mb) {
+    return 'キャッシュを削除しました（${mb}MB）';
+  }
+
+  @override
+  String get cacheDeleteFailed => 'キャッシュの削除に失敗しました';
+
+  @override
+  String get loginRequired => 'ログインが必要';
+
+  @override
+  String get loginRequiredContent => '保存するにはログインが必要です。\nログイン後に自動的に保存されます。';
+
+  @override
+  String saveSuccess(String name) {
+    return '$nameさんの結果が保存されました';
+  }
+
+  @override
+  String get saveFailed => '保存に失敗しました。もう一度お試しください。';
+
+  @override
+  String get palmViewResults => '手相結果を見る';
+
+  @override
+  String get cameraPermissionRequired => 'カメラの許可が必要です';
+
+  @override
+  String get facePermissionDesc => '顔分析のためカメラアクセスを許可してください';
+
+  @override
+  String get palmPermissionDesc => '手相分析のためカメラアクセスを許可してください';
+
+  @override
+  String get openSettings => '設定で許可する';
+
+  @override
+  String get goBack => '戻る';
+
+  @override
+  String get palmGuide => '手のひらを画面に\n向けて広げてください';
+
+  @override
+  String get aiEngineInitializing => 'AIエンジンを初期化中...';
+
+  @override
+  String get faceAnalyzing => '観相分析中...';
+
+  @override
+  String get palmAnalyzing => '手相分析中...';
+
+  @override
+  String get faceAnalysisResult => '観相分析結果';
+
+  @override
+  String get palmAnalysisResult => '手相分析結果';
+
+  @override
+  String get analysisError => '分析中にエラーが発生しました';
+
+  @override
+  String get aiModelError => 'AIモデルエラー';
+
+  @override
+  String get modelReinstall => 'モデルを再インストール';
+
+  @override
+  String get consultationCreateFailed => '相談の作成に失敗しました';
+
+  @override
+  String get sectionLifeline => '生命線';
+
+  @override
+  String get sectionHeartline => '感情線';
+
+  @override
+  String get sectionHeadline => '頭脳線';
+
+  @override
+  String get sectionFateline => '運命線';
+
+  @override
+  String get sectionHandshape => '手の形';
+
+  @override
+  String palmResultTitle(String hand) {
+    return '$hand手相分析';
+  }
+
+  @override
+  String get consultationTitle => '相談';
+
+  @override
+  String get consultationNotFound => '相談が見つかりません';
+
+  @override
+  String get backToList => '一覧へ';
+
+  @override
+  String get consultationDeleteContent => 'この相談を削除しますか？\n全ての会話が消えます。';
+
+  @override
+  String get consultationTitleHint => '相談タイトル';
+
+  @override
+  String get consultationEmptyHint => '分析結果について気になることを聞いてください';
+
+  @override
+  String get faceConsultation => '観相相談';
+
+  @override
+  String get palmConsultation => '手相相談';
+
+  @override
+  String get pickerEmptyFace => '保存された観相分析がありません';
+
+  @override
+  String get pickerEmptyPalm => '保存された手相分析がありません';
+
+  @override
+  String get chatGenerating => '応答を生成中...';
+
+  @override
+  String get copied => 'コピーしました';
+
+  @override
+  String get modelScanning => 'デバイスを確認中...';
+
+  @override
+  String get modelScanningDesc => 'インストールされたAIモデルを探しています';
+
+  @override
+  String get modelFound => 'モデルを発見！';
+
+  @override
+  String modelDownloadingWith(String name) {
+    return 'AIモデル準備中 ($name)';
+  }
+
+  @override
+  String modelDownloadDescWithSize(String size) {
+    return '初回のみダウンロードします（約${size}GB）';
+  }
+
+  @override
+  String get downloadFailed => 'ダウンロード失敗';
+
+  @override
+  String get errorPrefix => 'エラー';
+
+  @override
+  String get agreePrefix => '同意します：';
+
+  @override
+  String get agreeConnector => 'および';
+
+  @override
+  String get subjectPickerTitle => '誰の分析ですか？';
+
+  @override
+  String get subjectPickerSubtitle => '分析結果を保存する対象を選択してください';
+
+  @override
+  String get subjectPickerCustom => 'カスタム入力';
+
+  @override
+  String get subjectPickerCustomHint => '名前または関係を入力してください';
+
+  @override
+  String get subjectPickerConfirm => '保存する';
+
+  @override
+  String get subjectMe => '自分';
+
+  @override
+  String get subjectSpouse => '配偶者';
+
+  @override
+  String get subjectFriend => '友達';
+
+  @override
+  String get subjectParents => '親';
+
+  @override
+  String get subjectChild => '子供';
+
+  @override
+  String get subjectSibling => '兄弟/姉妹';
+
+  @override
+  String get justNow => 'たった今';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count分前';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '$count時間前';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return '$count日前';
+  }
 }

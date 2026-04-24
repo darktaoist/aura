@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/l10n/generated/app_localizations.dart';
+import 'core/l10n/locale_notifier.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-
-// TODO: flutter gen-l10n 실행 후 아래 import 활성화
-// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AuraApp extends ConsumerWidget {
   const AuraApp({super.key});
@@ -14,12 +13,14 @@ class AuraApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final locale = ref.watch(localeNotifierProvider);
 
     return MaterialApp.router(
       title: 'Aura',
       debugShowCheckedModeBanner: false,
-      // 다국어 설정
+      locale: locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -30,11 +31,9 @@ class AuraApp extends ConsumerWidget {
         Locale('ja'),
         Locale('zh'),
       ],
-      // 테마
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      // 라우터
       routerConfig: router,
     );
   }

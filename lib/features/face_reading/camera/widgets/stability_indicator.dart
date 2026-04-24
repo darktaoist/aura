@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/l10n/generated/app_localizations.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 /// 3초 안정 감지 진행바
@@ -34,7 +35,9 @@ class StabilityIndicator extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                isStable ? '특이점 추출 완료' : '얼굴 안정화 중...',
+                isStable
+                    ? AppLocalizations.of(context)!.stabilityDone
+                    : AppLocalizations.of(context)!.stabilizing,
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ],

@@ -70,5 +70,114 @@
 
   "resultStartConsultation": "Start Consultation",
   "resultSaveBeforeConsult": "Please save your results first",
-  "resultLoginToConsult": "Login required to start a consultation"
+  "resultLoginToConsult": "Login required to start a consultation",
+
+  "todayReading": "Today's Reading",
+  "login": "Login",
+  "theme": "Theme",
+  "themeSystem": "System Default",
+  "languageSelect": "Select Language",
+  "faceAnalysis": "Face Analysis",
+  "palmAnalysis": "Palm Analysis",
+  "historyEmpty": "No readings saved yet",
+  "historyLoginPrompt": "Log in to view your reading history",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteRecord": "Delete Record",
+  "deleteRecordContent": "Delete this reading?\nLinked consultations will also be deleted.\nThis action cannot be undone.",
+  "deleteFailed": "Delete failed",
+  "cacheDeleteConfirm": "Clear app cache?",
+  "cacheDeleteSuccess": "Cache cleared ({mb}MB)",
+  "@cacheDeleteSuccess": {
+    "placeholders": { "mb": { "type": "String" } }
+  },
+  "cacheDeleteFailed": "Failed to clear cache",
+  "loginRequired": "Login Required",
+  "loginRequiredContent": "Login required to save.\nYou will be redirected back after login.",
+  "saveSuccess": "Reading saved for {name}",
+  "@saveSuccess": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "saveFailed": "Save failed. Please try again.",
+
+  "palmViewResults": "View Palm Reading Results",
+  "cameraPermissionRequired": "Camera Permission Required",
+  "facePermissionDesc": "Please allow camera access for face analysis",
+  "palmPermissionDesc": "Please allow camera access for palm analysis",
+  "openSettings": "Allow in Settings",
+  "goBack": "Go Back",
+  "palmGuide": "Show your palm\nfacing the screen",
+  "aiEngineInitializing": "Initializing AI engine...",
+
+  "faceAnalyzing": "Reading face...",
+  "palmAnalyzing": "Reading palm...",
+  "faceAnalysisResult": "Face Reading Result",
+  "palmAnalysisResult": "Palm Reading Result",
+  "analysisError": "An error occurred during analysis",
+  "aiModelError": "AI Model Error",
+  "modelReinstall": "Reinstall Model",
+  "consultationCreateFailed": "Failed to create consultation",
+
+  "sectionLifeline": "Life Line",
+  "sectionHeartline": "Heart Line",
+  "sectionHeadline": "Head Line",
+  "sectionFateline": "Fate Line",
+  "sectionHandshape": "Hand Shape",
+
+  "palmResultTitle": "{hand} Palm Reading",
+  "@palmResultTitle": {
+    "placeholders": { "hand": { "type": "String" } }
+  },
+
+  "consultationTitle": "Consultation",
+  "consultationNotFound": "Consultation not found",
+  "backToList": "Back to List",
+  "consultationDeleteContent": "Delete this consultation?\nAll messages will be lost.",
+  "consultationTitleHint": "Consultation title",
+  "consultationEmptyHint": "Ask anything about your reading results",
+  "faceConsultation": "Face Consultation",
+  "palmConsultation": "Palm Consultation",
+
+  "pickerEmptyFace": "No saved face readings",
+  "pickerEmptyPalm": "No saved palm readings",
+
+  "chatGenerating": "Generating response...",
+  "copied": "Copied",
+
+  "modelScanning": "Scanning device...",
+  "modelScanningDesc": "Searching for installed AI model",
+  "modelFound": "Model Found!",
+  "modelDownloadingWith": "Preparing AI Model ({name})",
+  "@modelDownloadingWith": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "modelDownloadDescWithSize": "One-time download only (approx. {size}GB)",
+  "@modelDownloadDescWithSize": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "downloadFailed": "Download Failed",
+  "errorPrefix": "Error",
+
+  "agreePrefix": "I agree to: ",
+  "agreeConnector": " and ",
+
+  "subjectPickerTitle": "Who is this reading for?",
+  "subjectPickerSubtitle": "Select who this reading belongs to",
+  "subjectPickerCustom": "Custom",
+  "subjectPickerCustomHint": "Enter name or relation",
+  "subjectPickerConfirm": "Save",
+  "subjectMe": "Me",
+  "subjectSpouse": "Spouse",
+  "subjectFriend": "Friend",
+  "subjectParents": "Parents",
+  "subjectChild": "Child",
+  "subjectSibling": "Sibling",
+
+  "justNow": "Just now",
+  "minutesAgo": "{count} min ago",
+  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "hoursAgo": "{count} hr ago",
+  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "daysAgo": "{count} day ago",
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
 }

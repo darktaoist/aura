@@ -15,18 +15,26 @@ class HandLandmarkService {
   HandLandmarkService._();
 
   HandLandmarkerPlugin? _plugin;
-  bool get isReady => _plugin != null;
+  bool _pluginInitialized = false;
+  bool get isReady => _pluginInitialized;
 
   bool _coordsLogged = false;
 
   static Future<HandLandmarkService> create() async {
-    final svc = HandLandmarkService._();
-    svc._plugin = HandLandmarkerPlugin.create(
-      numHands: 1,
-      minHandDetectionConfidence: 0.6,
-      delegate: HandLandmarkerDelegate.gpu,
-    );
-    return svc;
+    // 인스턴스만 반환 — GPU 플러그인은 첫 process() 시점에 lazy init
+    return HandLandmarkService._();
+  }
+
+  HandLandmarkerPlugin _getPlugin() {
+    if (!_pluginInitialized) {
+      _plugin = HandLandmarkerPlugin.create(
+        numHands: 1,
+        minHandDetectionConfidence: 0.6,
+        delegate: HandLandmarkerDelegate.gpu,
+      );
+      _pluginInitialized = true;
+    }
+    return _plugin!;
   }
 
   /// CameraImage → PalmLandmarkResult?  (async 래퍼)
@@ -35,8 +43,7 @@ class HandLandmarkService {
     CameraDescription camera,
     bool isLeftHand,
   ) async {
-    final plugin = _plugin;
-    if (plugin == null) return null;
+    final plugin = _getPlugin();
 
     try {
       final List<Hand> hands = plugin.detect(
@@ -148,5 +155,6 @@ class HandLandmarkService {
   void dispose() {
     _plugin?.dispose();
     _plugin = null;
+    _pluginInitialized = false;
   }
 }

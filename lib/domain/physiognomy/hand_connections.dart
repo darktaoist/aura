@@ -26,7 +26,7 @@ const List<(int, int)> kHandConnections = [
   (5, 13), (9, 17),   // 손바닥 주 대각선
 ];
 
-/// 손금 주요 랜드마크 인덱스 레이블
+/// 손금 주요 랜드마크 인덱스 레이블 (KO 기본값)
 const Map<String, int> kKeyHandLandmarks = {
   '손목': 0,
   '엄지끝': 4,
@@ -35,3 +35,17 @@ const Map<String, int> kKeyHandLandmarks = {
   '약지끝': 16,
   '소지끝': 20,
 };
+
+/// 랜드마크 인덱스 → 로케일별 표시 라벨 (index → label)
+Map<int, String> keyHandLandmarkLabels(String locale) {
+  switch (locale) {
+    case 'en':
+      return {0: 'Wrist', 4: 'Thumb', 8: 'Index', 12: 'Middle', 16: 'Ring', 20: 'Pinky'};
+    case 'ja':
+      return {0: '手首', 4: '親指先', 8: '人差指先', 12: '中指先', 16: '薬指先', 20: '小指先'};
+    case 'zh':
+      return {0: '手腕', 4: '拇指尖', 8: '食指尖', 12: '中指尖', 16: '无名指尖', 20: '小指尖'};
+    default: // 'ko'
+      return {0: '손목', 4: '엄지끝', 8: '검지끝', 12: '중지끝', 16: '약지끝', 20: '소지끝'};
+  }
+}

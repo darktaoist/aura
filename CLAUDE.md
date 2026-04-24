@@ -33,6 +33,7 @@
 5. 커밋 메시지 형식: `[<에이전트명>] <요약>` (예: `[app-developer] face camera page 리팩터링`)
 6. Supabase `service_role` key는 클라이언트 코드에 절대 하드코딩하지 않는다. 환경변수·Edge Function 전용.
 7. 사용자 얼굴·손 이미지는 저장 액션 시에만 Storage 업로드. 그 외엔 로컬 보관.
+8. **모든 화면·위젯·출력물은 KO/EN/JA/ZH 4개 언어를 완전 지원**한다. 하드코딩된 문자열 금지. `AppLocalizations.of(context)!` + ARB 키 사용. 새 키 추가 시 4개 ARB 파일 모두 업데이트 후 `flutter gen-l10n` 실행.
 
 ---
 

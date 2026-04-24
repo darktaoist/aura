@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import 'auth_notifier.dart';
 
@@ -19,17 +20,17 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
 
-    // 로그인 성공 시 이전 화면으로
     ref.listen(authNotifierProvider, (_, next) {
       if (next.isLoggedIn && context.mounted) context.pop();
     });
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('로그인'),
+        title: Text(l10n.login),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -41,7 +42,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           child: Column(
             children: [
               const Spacer(),
-              // 로고
               ShaderMask(
                 shaderCallback: (b) => AppColors.brandGradient.createShader(b),
                 child: const Icon(Icons.auto_awesome, size: 64, color: Colors.white),
@@ -49,40 +49,33 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Aura',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '결과를 저장하려면 로그인하세요',
+                l10n.loginPrompt,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                    ),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
-              // 약관 동의
               _AgreementCheckbox(
                 value: _agreed,
                 onChanged: (v) => setState(() => _agreed = v ?? false),
                 onTermsTap: () => context.push('/terms'),
                 onPrivacyTap: () => context.push('/privacy'),
+                l10n: l10n,
               ),
               const SizedBox(height: AppSpacing.lg),
-              // Google 로그인
               _AuthButton(
-                label: 'Google로 로그인',
+                label: l10n.loginWithGoogle,
                 icon: Icons.g_mobiledata,
                 onPressed: _agreed && !isLoading ? _signInWithGoogle : null,
               ),
               const SizedBox(height: AppSpacing.md),
-              // Kakao 로그인
               _AuthButton(
-                label: '카카오로 로그인',
+                label: l10n.loginWithKakao,
                 icon: Icons.chat_bubble_outline,
                 backgroundColor: const Color(0xFFFEE500),
                 foregroundColor: Colors.black87,
@@ -92,7 +85,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               TextButton(
                 onPressed: () => context.pop(),
                 child: Text(
-                  '건너뛰기',
+                  l10n.skip,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
@@ -154,12 +147,14 @@ class _AgreementCheckbox extends StatelessWidget {
     required this.onChanged,
     required this.onTermsTap,
     required this.onPrivacyTap,
+    required this.l10n,
   });
 
   final bool value;
   final ValueChanged<bool?> onChanged;
   final VoidCallback onTermsTap;
   final VoidCallback onPrivacyTap;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -169,22 +164,22 @@ class _AgreementCheckbox extends StatelessWidget {
         Expanded(
           child: Wrap(
             children: [
-              const Text('동의합니다: '),
+              Text(l10n.agreePrefix),
               GestureDetector(
                 onTap: onTermsTap,
                 child: Text(
-                  '이용약관',
+                  l10n.termsOfService,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     decoration: TextDecoration.underline,
                   ),
                 ),
               ),
-              const Text(' 및 '),
+              Text(l10n.agreeConnector),
               GestureDetector(
                 onTap: onPrivacyTap,
                 child: Text(
-                  '개인정보처리방침',
+                  l10n.privacyPolicy,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     decoration: TextDecoration.underline,

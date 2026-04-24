@@ -198,4 +198,257 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get resultLoginToConsult => '咨询需要登录';
+
+  @override
+  String get todayReading => '今日分析';
+
+  @override
+  String get login => '登录';
+
+  @override
+  String get theme => '主题';
+
+  @override
+  String get themeSystem => '跟随系统';
+
+  @override
+  String get languageSelect => '选择语言';
+
+  @override
+  String get faceAnalysis => '面相分析';
+
+  @override
+  String get palmAnalysis => '手相分析';
+
+  @override
+  String get historyEmpty => '暂无保存的分析';
+
+  @override
+  String get historyLoginPrompt => '登录后查看分析历史';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get delete => '删除';
+
+  @override
+  String get deleteRecord => '删除记录';
+
+  @override
+  String get deleteRecordContent => '确定删除此分析记录？\n相关咨询记录也将一并删除。\n删除后无法恢复。';
+
+  @override
+  String get deleteFailed => '删除失败';
+
+  @override
+  String get cacheDeleteConfirm => '清除应用缓存？';
+
+  @override
+  String cacheDeleteSuccess(String mb) {
+    return '缓存已清除（${mb}MB）';
+  }
+
+  @override
+  String get cacheDeleteFailed => '清除缓存失败';
+
+  @override
+  String get loginRequired => '需要登录';
+
+  @override
+  String get loginRequiredContent => '保存需要登录。\n登录后将自动保存。';
+
+  @override
+  String saveSuccess(String name) {
+    return '已保存$name的结果';
+  }
+
+  @override
+  String get saveFailed => '保存失败，请重试。';
+
+  @override
+  String get palmViewResults => '查看手相结果';
+
+  @override
+  String get cameraPermissionRequired => '需要相机权限';
+
+  @override
+  String get facePermissionDesc => '请允许相机访问以进行面相分析';
+
+  @override
+  String get palmPermissionDesc => '请允许相机访问以进行手相分析';
+
+  @override
+  String get openSettings => '在设置中允许';
+
+  @override
+  String get goBack => '返回';
+
+  @override
+  String get palmGuide => '请将手掌朝向\n屏幕展开';
+
+  @override
+  String get aiEngineInitializing => 'AI引擎初始化中...';
+
+  @override
+  String get faceAnalyzing => '面相分析中...';
+
+  @override
+  String get palmAnalyzing => '手相分析中...';
+
+  @override
+  String get faceAnalysisResult => '面相分析结果';
+
+  @override
+  String get palmAnalysisResult => '手相分析结果';
+
+  @override
+  String get analysisError => '分析过程中发生错误';
+
+  @override
+  String get aiModelError => 'AI模型错误';
+
+  @override
+  String get modelReinstall => '重新安装模型';
+
+  @override
+  String get consultationCreateFailed => '创建咨询失败';
+
+  @override
+  String get sectionLifeline => '生命线';
+
+  @override
+  String get sectionHeartline => '感情线';
+
+  @override
+  String get sectionHeadline => '头脑线';
+
+  @override
+  String get sectionFateline => '命运线';
+
+  @override
+  String get sectionHandshape => '手形';
+
+  @override
+  String palmResultTitle(String hand) {
+    return '$hand手相分析';
+  }
+
+  @override
+  String get consultationTitle => '咨询';
+
+  @override
+  String get consultationNotFound => '找不到咨询';
+
+  @override
+  String get backToList => '返回列表';
+
+  @override
+  String get consultationDeleteContent => '删除此咨询？\n所有消息将被删除。';
+
+  @override
+  String get consultationTitleHint => '咨询标题';
+
+  @override
+  String get consultationEmptyHint => '请提问关于分析结果的问题';
+
+  @override
+  String get faceConsultation => '面相咨询';
+
+  @override
+  String get palmConsultation => '手相咨询';
+
+  @override
+  String get pickerEmptyFace => '没有保存的面相分析';
+
+  @override
+  String get pickerEmptyPalm => '没有保存的手相分析';
+
+  @override
+  String get chatGenerating => '正在生成回复...';
+
+  @override
+  String get copied => '已复制';
+
+  @override
+  String get modelScanning => '扫描设备中...';
+
+  @override
+  String get modelScanningDesc => '正在搜索已安装的AI模型';
+
+  @override
+  String get modelFound => '发现模型！';
+
+  @override
+  String modelDownloadingWith(String name) {
+    return 'AI模型准备中 ($name)';
+  }
+
+  @override
+  String modelDownloadDescWithSize(String size) {
+    return '仅需下载一次（约${size}GB）';
+  }
+
+  @override
+  String get downloadFailed => '下载失败';
+
+  @override
+  String get errorPrefix => '错误';
+
+  @override
+  String get agreePrefix => '我同意：';
+
+  @override
+  String get agreeConnector => '和';
+
+  @override
+  String get subjectPickerTitle => '这是谁的分析？';
+
+  @override
+  String get subjectPickerSubtitle => '请选择保存分析结果的对象';
+
+  @override
+  String get subjectPickerCustom => '自定义输入';
+
+  @override
+  String get subjectPickerCustomHint => '输入姓名或关系';
+
+  @override
+  String get subjectPickerConfirm => '保存';
+
+  @override
+  String get subjectMe => '我';
+
+  @override
+  String get subjectSpouse => '配偶';
+
+  @override
+  String get subjectFriend => '朋友';
+
+  @override
+  String get subjectParents => '父母';
+
+  @override
+  String get subjectChild => '子女';
+
+  @override
+  String get subjectSibling => '兄弟/姐妹';
+
+  @override
+  String get justNow => '刚才';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count分钟前';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '$count小时前';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return '$count天前';
+  }
 }

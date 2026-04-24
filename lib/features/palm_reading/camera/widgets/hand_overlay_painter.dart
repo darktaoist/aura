@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../domain/entities/palm_result.dart';
-import '../../../../../domain/physiognomy/hand_connections.dart';
 
 class HandOverlayPainter extends CustomPainter {
-  const HandOverlayPainter({required this.result});
+  const HandOverlayPainter({required this.result, required this.labels});
 
   final PalmLandmarkResult result;
+  /// index → localized label (from keyHandLandmarkLabels(locale))
+  final Map<int, String> labels;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -83,8 +84,8 @@ class HandOverlayPainter extends CustomPainter {
       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
     );
 
-    for (final entry in kKeyHandLandmarks.entries) {
-      final idx = entry.value;
+    for (final entry in labels.entries) {
+      final idx = entry.key;
       if (idx >= result.landmarks.length) continue;
 
       final lm = result.landmarks[idx];
@@ -94,7 +95,7 @@ class HandOverlayPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), 5.0, dotPaint);
 
       final tp = TextPainter(
-        text: TextSpan(text: entry.key, style: labelStyle),
+        text: TextSpan(text: entry.value, style: labelStyle),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(x + 6, y - 6));
@@ -103,5 +104,5 @@ class HandOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant HandOverlayPainter old) =>
-      !identical(old.result, result);
+      !identical(old.result, result) || old.labels != labels;
 }

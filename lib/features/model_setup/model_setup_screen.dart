@@ -8,6 +8,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/l10n/generated/app_localizations.dart';
 import 'model_config.dart';
 import 'model_selector.dart';
 
@@ -271,19 +272,20 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   }
 
   Widget _buildBody() {
+    final l10n = AppLocalizations.of(context)!;
     switch (_phase) {
       case _Phase.scanning:
-        return const _StatusTile(
+        return _StatusTile(
           icon: Icons.search,
-          title: '기기 확인 중...',
-          subtitle: '설치된 AI 모델을 찾고 있습니다',
+          title: l10n.modelScanning,
+          subtitle: l10n.modelScanningDesc,
           showSpinner: true,
         );
 
       case _Phase.registering:
         return _StatusTile(
           icon: Icons.check_circle_outline,
-          title: '모델 발견!',
+          title: l10n.modelFound,
           subtitle: _foundLocalPath!.split('/').last,
           showSpinner: true,
         );
@@ -295,8 +297,8 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
           children: [
             _StatusTile(
               icon: Icons.download_rounded,
-              title: 'AI 모델 준비 중 (${_model.name})',
-              subtitle: '처음 한 번만 다운로드합니다 (약 ${sizeGb}GB)',
+              title: l10n.modelDownloadingWith(_model.name),
+              subtitle: l10n.modelDownloadDescWithSize(sizeGb.toString()),
               showSpinner: false,
             ),
             const SizedBox(height: 28),
@@ -336,9 +338,9 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.redAccent, size: 40),
             const SizedBox(height: 12),
-            const Text(
-              '다운로드 실패',
-              style: TextStyle(
+            Text(
+              l10n.downloadFailed,
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold),
@@ -360,7 +362,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
                 _start();
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('다시 시도'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigoAccent,
                 foregroundColor: Colors.white,

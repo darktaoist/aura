@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../auth/auth_notifier.dart';
 import '../model_setup/model_config.dart';
@@ -12,9 +14,10 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setupState = ref.watch(modelSetupNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: _buildAppBar(context, ref),
+      appBar: _buildAppBar(context, ref, l10n),
       body: Column(
         children: [
           Expanded(
@@ -25,43 +28,43 @@ class HomePage extends ConsumerWidget {
                 children: [
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    '오늘의 분석',
+                    l10n.todayReading,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   _ReadingCard(
-                    title: '관상 보기',
-                    description: '얼굴 특징으로 읽는 당신의 운명',
+                    title: l10n.faceReading,
+                    description: l10n.faceReadingDesc,
                     icon: Icons.face_retouching_natural,
                     onTap: () => context.push('/face/camera'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _ReadingCard(
-                    title: '손금 보기',
-                    description: '손바닥 선으로 읽는 당신의 미래',
+                    title: l10n.palmReading,
+                    description: l10n.palmReadingDesc,
                     icon: Icons.back_hand_outlined,
                     onTap: () => context.push('/palm/camera'),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _ConsultationCard(ref: ref),
+                  _ConsultationCard(ref: ref, l10n: l10n),
                 ],
               ),
             ),
           ),
-          // 모델 다운로드 진행 배너
           if (setupState.isDownloading)
             _ModelDownloadBanner(
               progress: setupState.progress,
               modelSizeGb: kDefaultModel.sizeGb,
+              l10n: l10n,
             ),
         ],
       ),
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, WidgetRef ref) {
+  AppBar _buildAppBar(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final isLoggedIn = ref.watch(authNotifierProvider).isLoggedIn;
     return AppBar(
       title: ShaderMask(
@@ -95,13 +98,13 @@ class HomePage extends ConsumerWidget {
           },
           itemBuilder: (_) => [
             if (!isLoggedIn)
-              const PopupMenuItem(value: 'login',   child: Text('로그인'))
+              PopupMenuItem(value: 'login',   child: Text(l10n.login))
             else
-              const PopupMenuItem(value: 'logout',  child: Text('로그아웃')),
-            const PopupMenuItem(value: 'history',  child: Text('분석 기록')),
-            const PopupMenuItem(value: 'settings', child: Text('설정')),
-            const PopupMenuItem(value: 'terms',    child: Text('이용약관')),
-            const PopupMenuItem(value: 'privacy',  child: Text('개인정보처리방침')),
+              PopupMenuItem(value: 'logout',  child: Text(l10n.logout)),
+            PopupMenuItem(value: 'history',  child: Text(l10n.history)),
+            PopupMenuItem(value: 'settings', child: Text(l10n.settings)),
+            PopupMenuItem(value: 'terms',    child: Text(l10n.termsOfService)),
+            PopupMenuItem(value: 'privacy',  child: Text(l10n.privacyPolicy)),
           ],
         ),
       ],
@@ -110,8 +113,9 @@ class HomePage extends ConsumerWidget {
 }
 
 class _ConsultationCard extends StatelessWidget {
-  const _ConsultationCard({required this.ref});
+  const _ConsultationCard({required this.ref, required this.l10n});
   final WidgetRef ref;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -140,10 +144,7 @@ class _ConsultationCard extends StatelessWidget {
                   gradient: isLoggedIn
                       ? AppColors.brandGradient
                       : LinearGradient(
-                          colors: [
-                            cs.outlineVariant,
-                            cs.outlineVariant,
-                          ],
+                          colors: [cs.outlineVariant, cs.outlineVariant],
                         ),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -159,14 +160,14 @@ class _ConsultationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '상담 이어가기',
+                      l10n.mainConsultation,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       isLoggedIn
-                          ? '분석 결과를 더 깊이 알아보세요'
-                          : '로그인이 필요합니다',
+                          ? l10n.mainConsultationSubtitle
+                          : l10n.mainConsultationLoginRequired,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: cs.onSurface.withValues(alpha: 0.6),
                           ),
@@ -250,10 +251,12 @@ class _ModelDownloadBanner extends StatelessWidget {
   const _ModelDownloadBanner({
     required this.progress,
     required this.modelSizeGb,
+    required this.l10n,
   });
 
   final int progress;
   final double modelSizeGb;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +279,7 @@ class _ModelDownloadBanner extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'AI 모델 준비 중...',
+                '${l10n.modelDownloading}...',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
