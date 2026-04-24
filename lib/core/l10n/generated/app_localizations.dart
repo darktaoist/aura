@@ -953,6 +953,246 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}일 전'**
   String daysAgo(int count);
+
+  /// No description provided for @homeGreeting.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘의 아우라'**
+  String get homeGreeting;
+
+  /// No description provided for @homeDailyFallback.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 하루도 당신의 결이 흐려지지 않기를.'**
+  String get homeDailyFallback;
+
+  /// No description provided for @homeFaceLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 관상'**
+  String get homeFaceLabel;
+
+  /// No description provided for @homeFaceTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'얼굴을 읽다'**
+  String get homeFaceTitle;
+
+  /// No description provided for @homeFaceDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'468 랜드마크'**
+  String get homeFaceDesc;
+
+  /// No description provided for @homePalmLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 손금'**
+  String get homePalmLabel;
+
+  /// No description provided for @homePalmTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'손을 읽다'**
+  String get homePalmTitle;
+
+  /// No description provided for @homePalmDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'21 랜드마크'**
+  String get homePalmDesc;
+
+  /// No description provided for @homeResumeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'이어가기'**
+  String get homeResumeTitle;
+
+  /// No description provided for @homeResumeEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 진행 중인 상담이 없어요.'**
+  String get homeResumeEmpty;
+
+  /// No description provided for @commonSeeAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'모두 보기'**
+  String get commonSeeAll;
+
+  /// No description provided for @commonGuest.
+  ///
+  /// In ko, this message translates to:
+  /// **'게스트'**
+  String get commonGuest;
+
+  /// No description provided for @commonShare.
+  ///
+  /// In ko, this message translates to:
+  /// **'공유'**
+  String get commonShare;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장'**
+  String get commonSave;
+
+  /// No description provided for @commonCopied.
+  ///
+  /// In ko, this message translates to:
+  /// **'복사됨'**
+  String get commonCopied;
+
+  /// No description provided for @commonLoadError.
+  ///
+  /// In ko, this message translates to:
+  /// **'불러오지 못했어요'**
+  String get commonLoadError;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록'**
+  String get historyTitle;
+
+  /// No description provided for @historyAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get historyAll;
+
+  /// No description provided for @historyFace.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상'**
+  String get historyFace;
+
+  /// No description provided for @historyPalm.
+  ///
+  /// In ko, this message translates to:
+  /// **'손금'**
+  String get historyPalm;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정'**
+  String get settingsTitle;
+
+  /// No description provided for @faceResultTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'관상 리포트'**
+  String get faceResultTitle;
+
+  /// No description provided for @faceResultAnalyzedAt.
+  ///
+  /// In ko, this message translates to:
+  /// **'{time} 분석'**
+  String faceResultAnalyzedAt(String time);
+
+  /// No description provided for @faceResultStreamingTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석이 한창 진행중이에요'**
+  String get faceResultStreamingTitle;
+
+  /// No description provided for @faceResultReadyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'리포트가 준비되었어요'**
+  String get faceResultReadyTitle;
+
+  /// No description provided for @resultConsult.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI에게 상담하기'**
+  String get resultConsult;
+
+  /// No description provided for @consultationsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'상담'**
+  String get consultationsTitle;
+
+  /// No description provided for @consultationAuraTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'Aura'**
+  String get consultationAuraTitle;
+
+  /// No description provided for @consultationSubjectYou.
+  ///
+  /// In ko, this message translates to:
+  /// **'당신의 분석 기반'**
+  String get consultationSubjectYou;
+
+  /// No description provided for @consultationContextTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 컨텍스트'**
+  String get consultationContextTitle;
+
+  /// No description provided for @consultationComposerHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'Aura에게 물어보기…'**
+  String get consultationComposerHint;
+
+  /// No description provided for @consultationEmptyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 상담 기록이 없어요'**
+  String get consultationEmptyTitle;
+
+  /// No description provided for @consultationEmptyBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 결과를 열고 궁금한 점을 물어보세요.'**
+  String get consultationEmptyBody;
+
+  /// No description provided for @consultationStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 상담 시작'**
+  String get consultationStart;
+
+  /// No description provided for @authTagline.
+  ///
+  /// In ko, this message translates to:
+  /// **'얼굴과 손으로 읽는 AI 관상·손금'**
+  String get authTagline;
+
+  /// No description provided for @authAgreeTerms.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용약관에 동의합니다'**
+  String get authAgreeTerms;
+
+  /// No description provided for @authAgreePrivacy.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인정보 처리방침에 동의합니다'**
+  String get authAgreePrivacy;
+
+  /// No description provided for @authSignInGoogle.
+  ///
+  /// In ko, this message translates to:
+  /// **'Google로 계속하기'**
+  String get authSignInGoogle;
+
+  /// No description provided for @authSignInApple.
+  ///
+  /// In ko, this message translates to:
+  /// **'Apple로 계속하기'**
+  String get authSignInApple;
+
+  /// No description provided for @authContinueGuest.
+  ///
+  /// In ko, this message translates to:
+  /// **'둘러보기 · 게스트로 시작'**
+  String get authContinueGuest;
 }
 
 class _AppLocalizationsDelegate

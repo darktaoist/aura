@@ -451,4 +451,126 @@ class AppLocalizationsZh extends AppLocalizations {
   String daysAgo(int count) {
     return '$count天前';
   }
+
+  @override
+  String get homeGreeting => '今日气场';
+
+  @override
+  String get homeDailyFallback => '愿你今日气息清晰、心神安稳。';
+
+  @override
+  String get homeFaceLabel => 'AI 面相';
+
+  @override
+  String get homeFaceTitle => '读面';
+
+  @override
+  String get homeFaceDesc => '468 关键点';
+
+  @override
+  String get homePalmLabel => 'AI 手相';
+
+  @override
+  String get homePalmTitle => '读手';
+
+  @override
+  String get homePalmDesc => '21 关键点';
+
+  @override
+  String get homeResumeTitle => '继续未完';
+
+  @override
+  String get homeResumeEmpty => '暂无进行中的咨询。';
+
+  @override
+  String get commonSeeAll => '查看全部';
+
+  @override
+  String get commonGuest => '访客';
+
+  @override
+  String get commonShare => '分享';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get commonCopied => '已复制';
+
+  @override
+  String get commonLoadError => '加载失败';
+
+  @override
+  String get historyTitle => '记录';
+
+  @override
+  String get historyAll => '全部';
+
+  @override
+  String get historyFace => '面相';
+
+  @override
+  String get historyPalm => '手相';
+
+  @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get faceResultTitle => '面相报告';
+
+  @override
+  String faceResultAnalyzedAt(String time) {
+    return '$time 分析';
+  }
+
+  @override
+  String get faceResultStreamingTitle => '正在为您生成报告';
+
+  @override
+  String get faceResultReadyTitle => '报告已完成';
+
+  @override
+  String get resultConsult => '向 Aura 咨询';
+
+  @override
+  String get consultationsTitle => '咨询';
+
+  @override
+  String get consultationAuraTitle => 'Aura';
+
+  @override
+  String get consultationSubjectYou => '基于你的分析';
+
+  @override
+  String get consultationContextTitle => '分析上下文';
+
+  @override
+  String get consultationComposerHint => '向 Aura 提问…';
+
+  @override
+  String get consultationEmptyTitle => '还没有咨询';
+
+  @override
+  String get consultationEmptyBody => '打开一份报告,问问你想知道的。';
+
+  @override
+  String get consultationStart => '开始新咨询';
+
+  @override
+  String get authTagline => '用面与手读你的 AI 面相·手相';
+
+  @override
+  String get authAgreeTerms => '我同意用户协议';
+
+  @override
+  String get authAgreePrivacy => '我同意隐私政策';
+
+  @override
+  String get authSignInGoogle => '使用 Google 继续';
+
+  @override
+  String get authSignInApple => '使用 Apple 继续';
+
+  @override
+  String get authContinueGuest => '以访客身份浏览';
 }

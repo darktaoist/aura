@@ -452,4 +452,126 @@ class AppLocalizationsKo extends AppLocalizations {
   String daysAgo(int count) {
     return '$count일 전';
   }
+
+  @override
+  String get homeGreeting => '오늘의 아우라';
+
+  @override
+  String get homeDailyFallback => '오늘 하루도 당신의 결이 흐려지지 않기를.';
+
+  @override
+  String get homeFaceLabel => 'AI 관상';
+
+  @override
+  String get homeFaceTitle => '얼굴을 읽다';
+
+  @override
+  String get homeFaceDesc => '468 랜드마크';
+
+  @override
+  String get homePalmLabel => 'AI 손금';
+
+  @override
+  String get homePalmTitle => '손을 읽다';
+
+  @override
+  String get homePalmDesc => '21 랜드마크';
+
+  @override
+  String get homeResumeTitle => '이어가기';
+
+  @override
+  String get homeResumeEmpty => '아직 진행 중인 상담이 없어요.';
+
+  @override
+  String get commonSeeAll => '모두 보기';
+
+  @override
+  String get commonGuest => '게스트';
+
+  @override
+  String get commonShare => '공유';
+
+  @override
+  String get commonSave => '저장';
+
+  @override
+  String get commonCopied => '복사됨';
+
+  @override
+  String get commonLoadError => '불러오지 못했어요';
+
+  @override
+  String get historyTitle => '기록';
+
+  @override
+  String get historyAll => '전체';
+
+  @override
+  String get historyFace => '관상';
+
+  @override
+  String get historyPalm => '손금';
+
+  @override
+  String get settingsTitle => '설정';
+
+  @override
+  String get faceResultTitle => '관상 리포트';
+
+  @override
+  String faceResultAnalyzedAt(String time) {
+    return '$time 분석';
+  }
+
+  @override
+  String get faceResultStreamingTitle => '분석이 한창 진행중이에요';
+
+  @override
+  String get faceResultReadyTitle => '리포트가 준비되었어요';
+
+  @override
+  String get resultConsult => 'AI에게 상담하기';
+
+  @override
+  String get consultationsTitle => '상담';
+
+  @override
+  String get consultationAuraTitle => 'Aura';
+
+  @override
+  String get consultationSubjectYou => '당신의 분석 기반';
+
+  @override
+  String get consultationContextTitle => '분석 컨텍스트';
+
+  @override
+  String get consultationComposerHint => 'Aura에게 물어보기…';
+
+  @override
+  String get consultationEmptyTitle => '아직 상담 기록이 없어요';
+
+  @override
+  String get consultationEmptyBody => '분석 결과를 열고 궁금한 점을 물어보세요.';
+
+  @override
+  String get consultationStart => '새 상담 시작';
+
+  @override
+  String get authTagline => '얼굴과 손으로 읽는 AI 관상·손금';
+
+  @override
+  String get authAgreeTerms => '이용약관에 동의합니다';
+
+  @override
+  String get authAgreePrivacy => '개인정보 처리방침에 동의합니다';
+
+  @override
+  String get authSignInGoogle => 'Google로 계속하기';
+
+  @override
+  String get authSignInApple => 'Apple로 계속하기';
+
+  @override
+  String get authContinueGuest => '둘러보기 · 게스트로 시작';
 }

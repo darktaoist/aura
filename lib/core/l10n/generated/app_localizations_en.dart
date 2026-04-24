@@ -458,4 +458,127 @@ class AppLocalizationsEn extends AppLocalizations {
   String daysAgo(int count) {
     return '$count day ago';
   }
+
+  @override
+  String get homeGreeting => 'Today\'s aura';
+
+  @override
+  String get homeDailyFallback => 'May your presence stay clear today.';
+
+  @override
+  String get homeFaceLabel => 'AI Face';
+
+  @override
+  String get homeFaceTitle => 'Read your face';
+
+  @override
+  String get homeFaceDesc => '468 landmarks';
+
+  @override
+  String get homePalmLabel => 'AI Palm';
+
+  @override
+  String get homePalmTitle => 'Read your hand';
+
+  @override
+  String get homePalmDesc => '21 landmarks';
+
+  @override
+  String get homeResumeTitle => 'Pick up where you left off';
+
+  @override
+  String get homeResumeEmpty => 'No ongoing consultations yet.';
+
+  @override
+  String get commonSeeAll => 'See all';
+
+  @override
+  String get commonGuest => 'Guest';
+
+  @override
+  String get commonShare => 'Share';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonCopied => 'Copied';
+
+  @override
+  String get commonLoadError => 'Couldn\'t load';
+
+  @override
+  String get historyTitle => 'History';
+
+  @override
+  String get historyAll => 'All';
+
+  @override
+  String get historyFace => 'Face';
+
+  @override
+  String get historyPalm => 'Palm';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get faceResultTitle => 'Face reading';
+
+  @override
+  String faceResultAnalyzedAt(String time) {
+    return 'Analyzed $time';
+  }
+
+  @override
+  String get faceResultStreamingTitle => 'Your reading is coming through';
+
+  @override
+  String get faceResultReadyTitle => 'Your reading is ready';
+
+  @override
+  String get resultConsult => 'Ask Aura';
+
+  @override
+  String get consultationsTitle => 'Consultations';
+
+  @override
+  String get consultationAuraTitle => 'Aura';
+
+  @override
+  String get consultationSubjectYou => 'Based on your reading';
+
+  @override
+  String get consultationContextTitle => 'Reading context';
+
+  @override
+  String get consultationComposerHint => 'Ask Aura…';
+
+  @override
+  String get consultationEmptyTitle => 'No consultations yet';
+
+  @override
+  String get consultationEmptyBody =>
+      'Open a reading and ask anything you\'re curious about.';
+
+  @override
+  String get consultationStart => 'Start consultation';
+
+  @override
+  String get authTagline => 'AI face & palm reading, read from you';
+
+  @override
+  String get authAgreeTerms => 'I agree to the Terms of Service';
+
+  @override
+  String get authAgreePrivacy => 'I agree to the Privacy Policy';
+
+  @override
+  String get authSignInGoogle => 'Continue with Google';
+
+  @override
+  String get authSignInApple => 'Continue with Apple';
+
+  @override
+  String get authContinueGuest => 'Browse as guest';
 }

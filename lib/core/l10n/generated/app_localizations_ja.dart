@@ -452,4 +452,126 @@ class AppLocalizationsJa extends AppLocalizations {
   String daysAgo(int count) {
     return '$count日前';
   }
+
+  @override
+  String get homeGreeting => '今日のアウラ';
+
+  @override
+  String get homeDailyFallback => '今日もあなたの佇まいが曇りませんように。';
+
+  @override
+  String get homeFaceLabel => 'AI 人相';
+
+  @override
+  String get homeFaceTitle => '顔を読む';
+
+  @override
+  String get homeFaceDesc => '468 ランドマーク';
+
+  @override
+  String get homePalmLabel => 'AI 手相';
+
+  @override
+  String get homePalmTitle => '手を読む';
+
+  @override
+  String get homePalmDesc => '21 ランドマーク';
+
+  @override
+  String get homeResumeTitle => '続きから';
+
+  @override
+  String get homeResumeEmpty => '進行中の相談はまだありません。';
+
+  @override
+  String get commonSeeAll => 'すべて見る';
+
+  @override
+  String get commonGuest => 'ゲスト';
+
+  @override
+  String get commonShare => '共有';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get commonCopied => 'コピーしました';
+
+  @override
+  String get commonLoadError => '読み込めませんでした';
+
+  @override
+  String get historyTitle => '履歴';
+
+  @override
+  String get historyAll => 'すべて';
+
+  @override
+  String get historyFace => '人相';
+
+  @override
+  String get historyPalm => '手相';
+
+  @override
+  String get settingsTitle => '設定';
+
+  @override
+  String get faceResultTitle => '人相レポート';
+
+  @override
+  String faceResultAnalyzedAt(String time) {
+    return '$time 解析';
+  }
+
+  @override
+  String get faceResultStreamingTitle => '解析中です';
+
+  @override
+  String get faceResultReadyTitle => 'レポートが完成しました';
+
+  @override
+  String get resultConsult => 'Auraに相談する';
+
+  @override
+  String get consultationsTitle => '相談';
+
+  @override
+  String get consultationAuraTitle => 'Aura';
+
+  @override
+  String get consultationSubjectYou => 'あなたの解析に基づく';
+
+  @override
+  String get consultationContextTitle => '解析コンテキスト';
+
+  @override
+  String get consultationComposerHint => 'Auraに聞く…';
+
+  @override
+  String get consultationEmptyTitle => 'まだ相談がありません';
+
+  @override
+  String get consultationEmptyBody => 'レポートを開いて気になる点を聞いてみましょう。';
+
+  @override
+  String get consultationStart => '新しい相談を始める';
+
+  @override
+  String get authTagline => '顔と手で読む AI 人相・手相';
+
+  @override
+  String get authAgreeTerms => '利用規約に同意します';
+
+  @override
+  String get authAgreePrivacy => 'プライバシーポリシーに同意します';
+
+  @override
+  String get authSignInGoogle => 'Googleで続ける';
+
+  @override
+  String get authSignInApple => 'Appleで続ける';
+
+  @override
+  String get authContinueGuest => 'ゲストとして試す';
 }
