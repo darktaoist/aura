@@ -104,13 +104,14 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     });
 
     final hand = widget.result.isLeftHand ? l10n.leftHand : l10n.rightHand;
+    final aura = context.auraColors;
     final kSections = [
-      (key: 'lifeline',   label: l10n.sectionLifeline,   icon: Icons.favorite_outline),
-      (key: 'heartline',  label: l10n.sectionHeartline,  icon: Icons.volunteer_activism_outlined),
-      (key: 'headline',   label: l10n.sectionHeadline,   icon: Icons.psychology_outlined),
-      (key: 'fateline',   label: l10n.sectionFateline,   icon: Icons.auto_awesome_outlined),
-      (key: 'handshape',  label: l10n.sectionHandshape,  icon: Icons.back_hand_outlined),
-      (key: 'overall',    label: l10n.sectionOverall,    icon: Icons.star_outline),
+      (key: 'lifeline',  label: l10n.sectionLifeline,  icon: Icons.favorite_outline,              accent: aura.sectionAccents['forehead']!),
+      (key: 'heartline', label: l10n.sectionHeartline, icon: Icons.volunteer_activism_outlined,   accent: aura.sectionAccents['eyes']!),
+      (key: 'headline',  label: l10n.sectionHeadline,  icon: Icons.psychology_outlined,           accent: aura.sectionAccents['nose']!),
+      (key: 'fateline',  label: l10n.sectionFateline,  icon: Icons.auto_awesome_outlined,         accent: aura.sectionAccents['mouth']!),
+      (key: 'handshape', label: l10n.sectionHandshape, icon: Icons.back_hand_outlined,            accent: aura.sectionAccents['chin']!),
+      (key: 'overall',   label: l10n.sectionOverall,   icon: Icons.star_outline,                  accent: aura.sectionAccents['overall']!),
     ];
 
     return Scaffold(
@@ -203,25 +204,28 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     AppLocalizations l10n,
     String fullText,
     bool isStreaming,
-    List<({String key, String label, IconData icon})> kSections,
+    List<({String key, String label, IconData icon, Color accent})> kSections,
   ) {
     final sections = _sections(fullText);
     final hasSections = sections.values.any((v) => v.isNotEmpty);
+    final aura = context.auraColors;
 
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         if (isStreaming && !hasSections)
           ReadingSectionCard(
+            accent: aura.sectionAccents['overall']!,
             title: l10n.analyzing,
-            content: fullText,
+            body: fullText,
             icon: Icons.back_hand,
             isStreaming: true,
           )
         else if (!hasSections && fullText.isNotEmpty)
           ReadingSectionCard(
+            accent: aura.sectionAccents['overall']!,
             title: l10n.palmAnalysisResult,
-            content: fullText,
+            body: fullText,
             icon: Icons.back_hand_outlined,
             isStreaming: isStreaming,
           )
@@ -229,11 +233,15 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
           ...kSections.map((s) {
             final text = sections[s.key] ?? '';
             if (text.isEmpty) return const SizedBox.shrink();
-            return ReadingSectionCard(
-              title: s.label,
-              content: text,
-              icon: s.icon,
-              isStreaming: s.key == 'overall' && isStreaming,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: ReadingSectionCard(
+                accent: s.accent,
+                title: s.label,
+                body: text,
+                icon: s.icon,
+                isStreaming: s.key == 'overall' && isStreaming,
+              ),
             );
           }),
         const SizedBox(height: AppSpacing.xl),

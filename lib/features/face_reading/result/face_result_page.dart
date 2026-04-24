@@ -12,6 +12,7 @@ import '../../../models/consultation.dart';
 import '../../../services/consultation_service.dart';
 import '../../auth/auth_notifier.dart';
 import 'face_result_notifier.dart';
+import 'widgets/reading_hero.dart';
 import 'widgets/reading_section_card.dart';
 
 class FaceResultPage extends ConsumerStatefulWidget {
@@ -28,6 +29,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   Map<String, String> _cachedSections = {};
   bool _pendingSave = false;
   String? _savedReadingId;
+  final _analyzedAt = DateTime.now();
 
   Map<String, String> _sections(String text) {
     if (text == _lastParsedText) return _cachedSections;
@@ -44,7 +46,6 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
   Future<void> _loadLocaleAndAnalyze() async {
     final locale = ref.read(localeNotifierProvider).languageCode;
-
     List<String> ragChunks = [];
     try {
       ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
@@ -54,7 +55,6 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       debugPrint('[FaceResultPage] RAG search failed (non-fatal): $e');
     }
     if (!mounted) return;
-
     ref.read(faceResultNotifierProvider.notifier).analyze(
       result: widget.result, locale: locale, ragChunks: ragChunks,
     );
@@ -62,26 +62,31 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
   List<double> _buildQueryEmbedding() {
     final f = widget.result.features;
-    final base = [f.eyeSpan, f.faceHeight, f.noseRatio, f.mouthWidth, f.symmetry, f.foreheadHeight, f.eyebrowDistance];
+    final base = [f.eyeSpan, f.faceHeight, f.noseRatio, f.mouthWidth,
+        f.symmetry, f.foreheadHeight, f.eyebrowDistance];
     return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
   }
 
   Map<String, String> _parseSections(String text) {
-    final Map<String, String> result = {};
+    final result = <String, String>{};
     if (text.isEmpty) return result;
-
     final patterns = {
-      'forehead': RegExp(r'^##\s*(이마|Forehead|額|额头)(.*?)(?=^##|$)',  multiLine: true, dotAll: true, caseSensitive: false),
-      'eyes':     RegExp(r'^##\s*(눈|Eyes|目|眼睛)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
-      'nose':     RegExp(r'^##\s*(코|Nose|鼻|鼻子)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
-      'mouth':    RegExp(r'^##\s*(입|Mouth|口|嘴巴)(.*?)(?=^##|$)',       multiLine: true, dotAll: true, caseSensitive: false),
-      'chin':     RegExp(r'^##\s*(턱|Chin|顎|下巴)(.*?)(?=^##|$)',        multiLine: true, dotAll: true, caseSensitive: false),
-      'overall':  RegExp(r'^##\s*(종합|Overall|総合|综合)(.*?)(?=^##|$)',  multiLine: true, dotAll: true, caseSensitive: false),
+      'forehead': RegExp(r'^##\s*(이마|Forehead|額|额头)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
+      'eyes': RegExp(r'^##\s*(눈|Eyes|目|眼睛)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
+      'nose': RegExp(r'^##\s*(코|Nose|鼻|鼻子)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
+      'mouth': RegExp(r'^##\s*(입|Mouth|口|嘴巴)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
+      'chin': RegExp(r'^##\s*(턱|Chin|顎|下巴)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
+      'overall': RegExp(r'^##\s*(종합|Overall|総合|综合)(.*?)(?=^##|$)',
+          multiLine: true, dotAll: true, caseSensitive: false),
     };
-
-    for (final entry in patterns.entries) {
-      final match = entry.value.firstMatch(text);
-      if (match != null) result[entry.key] = match.group(2)?.trim() ?? '';
+    for (final e in patterns.entries) {
+      final m = e.value.firstMatch(text);
+      if (m != null) result[e.key] = m.group(2)?.trim() ?? '';
     }
     return result;
   }
@@ -89,13 +94,13 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final aura = context.auraColors;
     final notifierState = ref.watch(faceResultNotifierProvider);
     final isStreaming = notifierState.isStreaming;
     final fullText = notifierState.fullText;
     final error = notifierState.error;
     final isModelError = notifierState.isModelError;
 
-    // 비로그인 → 로그인 완료 시 subject picker 띄우고 저장
     ref.listen(authNotifierProvider, (prev, next) {
       if (_pendingSave && prev?.isLoggedIn == false && next.isLoggedIn) {
         _pendingSave = false;
@@ -104,23 +109,41 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     });
 
     final kSections = [
-      (key: 'forehead', label: l10n.sectionForehead, icon: Icons.person_outline),
-      (key: 'eyes',     label: l10n.sectionEyes,     icon: Icons.visibility_outlined),
-      (key: 'nose',     label: l10n.sectionNose,      icon: Icons.face_outlined),
-      (key: 'mouth',    label: l10n.sectionMouth,     icon: Icons.sentiment_satisfied_outlined),
-      (key: 'chin',     label: l10n.sectionChin,      icon: Icons.face_retouching_natural),
-      (key: 'overall',  label: l10n.sectionOverall,   icon: Icons.auto_awesome_outlined),
+      (key: 'forehead', label: l10n.sectionForehead,
+          icon: Icons.person_outline,
+          accent: aura.sectionAccents['forehead']!),
+      (key: 'eyes',     label: l10n.sectionEyes,
+          icon: Icons.visibility_outlined,
+          accent: aura.sectionAccents['eyes']!),
+      (key: 'nose',     label: l10n.sectionNose,
+          icon: Icons.face_outlined,
+          accent: aura.sectionAccents['nose']!),
+      (key: 'mouth',    label: l10n.sectionMouth,
+          icon: Icons.sentiment_satisfied_outlined,
+          accent: aura.sectionAccents['mouth']!),
+      (key: 'chin',     label: l10n.sectionChin,
+          icon: Icons.face_retouching_natural,
+          accent: aura.sectionAccents['chin']!),
+      (key: 'overall',  label: l10n.sectionOverall,
+          icon: Icons.auto_awesome_outlined,
+          accent: aura.sectionAccents['overall']!),
     ];
+
+    Widget body;
+    if (error != null) {
+      body = _buildError(context, l10n, error, isModelError: isModelError);
+    } else if (isStreaming && fullText.isEmpty) {
+      body = _buildLoading(context, l10n);
+    } else {
+      body = _buildContent(context, l10n, aura, fullText, isStreaming, kSections);
+    }
+
+    final showCta = !isStreaming && fullText.isNotEmpty && error == null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.faceAnalysisResult),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save_outlined),
-            onPressed: isStreaming ? null : () => _onSave(context),
-            tooltip: l10n.save,
-          ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: isStreaming ? null : _onShare,
@@ -128,11 +151,16 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
           ),
         ],
       ),
-      body: error != null
-          ? _buildError(context, l10n, error, isModelError: isModelError)
-          : isStreaming && fullText.isEmpty
-              ? _buildLoading(context, l10n)
-              : _buildContent(context, l10n, fullText, isStreaming, kSections),
+      body: Column(
+        children: [
+          Expanded(child: body),
+          if (showCta) _BottomCta(
+            l10n: l10n,
+            onSave: () => _onSave(context),
+            onConsult: () => _onStartConsultation(context),
+          ),
+        ],
+      ),
     );
   }
 
@@ -146,7 +174,8 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
             child: const Icon(Icons.auto_awesome, size: 48, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(l10n.faceAnalyzing, style: Theme.of(context).textTheme.bodyLarge),
+          Text(l10n.faceAnalyzing,
+              style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: AppSpacing.md),
           const CircularProgressIndicator(),
         ],
@@ -154,7 +183,8 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     );
   }
 
-  Widget _buildError(BuildContext context, AppLocalizations l10n, String errorMsg, {bool isModelError = false}) {
+  Widget _buildError(BuildContext context, AppLocalizations l10n,
+      String errorMsg, {bool isModelError = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -172,7 +202,9 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(errorMsg, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
+            Text(errorMsg,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             if (isModelError) ...[
               FilledButton.icon(
@@ -200,27 +232,46 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   Widget _buildContent(
     BuildContext context,
     AppLocalizations l10n,
+    AuraColors aura,
     String fullText,
     bool isStreaming,
-    List<({String key, String label, IconData icon})> kSections,
+    List<({String key, String label, IconData icon, Color accent})> kSections,
   ) {
     final sections = _sections(fullText);
     final hasSections = sections.values.any((v) => v.isNotEmpty);
 
+    final chips = hasSections
+        ? kSections
+            .where((s) => (sections[s.key] ?? '').isNotEmpty)
+            .map((s) => '#${s.label}')
+            .toList()
+        : <String>[];
+    final progress = (fullText.length / 1200).clamp(0.0, 1.0);
+
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
+        ReadingHero(
+          analyzedAt: _analyzedAt,
+          highlightChips: chips,
+          isStreaming: isStreaming,
+          progress: progress,
+        ),
+        const SizedBox(height: AppSpacing.md),
+
         if (isStreaming && !hasSections)
           ReadingSectionCard(
+            accent: aura.sectionAccents['overall']!,
             title: l10n.analyzing,
-            content: fullText,
+            body: fullText,
             icon: Icons.auto_awesome,
             isStreaming: true,
           )
         else if (!hasSections && fullText.isNotEmpty)
           ReadingSectionCard(
+            accent: aura.sectionAccents['overall']!,
             title: l10n.faceAnalysisResult,
-            content: fullText,
+            body: fullText,
             icon: Icons.auto_awesome_outlined,
             isStreaming: isStreaming,
           )
@@ -228,49 +279,18 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
           ...kSections.map((s) {
             final text = sections[s.key] ?? '';
             if (text.isEmpty) return const SizedBox.shrink();
-            return ReadingSectionCard(
-              title: s.label,
-              content: text,
-              icon: s.icon,
-              isStreaming: s.key == 'overall' && isStreaming,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: ReadingSectionCard(
+                accent: s.accent,
+                title: s.label,
+                body: text,
+                icon: s.icon,
+                isStreaming: s.key == 'overall' && isStreaming,
+              ),
             );
           }),
-        const SizedBox(height: AppSpacing.xl),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.refresh),
-                  label: Text(l10n.retry),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: isStreaming ? null : () => _onSave(context),
-                  icon: const Icon(Icons.bookmark_outline),
-                  label: Text(l10n.save),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton.tonalIcon(
-              onPressed: isStreaming ? null : () => _onStartConsultation(context),
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: Text(l10n.resultStartConsultation),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xxl),
       ],
     );
   }
@@ -278,7 +298,6 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   Future<void> _onSave(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
-
     if (!authState.isLoggedIn) {
       final goLogin = await showDialog<bool>(
         context: context,
@@ -296,7 +315,6 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       context.push('/auth');
       return;
     }
-
     final subject = await showSubjectPickerSheet(context);
     if (subject == null || !context.mounted) return;
     await _doSave(subjectName: subject);
@@ -306,9 +324,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) return;
-
     final locale = ref.read(localeNotifierProvider).languageCode;
-
     final reading = await ref.read(faceResultNotifierProvider.notifier).saveReading(
       userId: authState.user!.id,
       landmarkResult: widget.result,
@@ -316,17 +332,12 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
       locale: locale,
       subjectName: subjectName,
     );
-
     if (!mounted) return;
     final email = authState.user?.email ?? '';
     final displayName = email.contains('@') ? email.split('@').first : email;
-
     if (reading != null) setState(() => _savedReadingId = reading.id);
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed),
-      ),
+      SnackBar(content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed)),
     );
   }
 
@@ -335,21 +346,17 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.resultLoginToConsult)),
-      );
+        SnackBar(content: Text(l10n.resultLoginToConsult)));
       context.push('/auth');
       return;
     }
     if (_savedReadingId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.resultSaveBeforeConsult)),
-      );
+        SnackBar(content: Text(l10n.resultSaveBeforeConsult)));
       return;
     }
-
     final locale = ref.read(localeNotifierProvider).languageCode;
     final fullText = ref.read(faceResultNotifierProvider).fullText;
-
     try {
       final consultation = await ref.read(consultationServiceProvider).createConsultation(
         userId: authState.user!.id,
@@ -373,12 +380,60 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.consultationCreateFailed}: $e')),
-      );
+        SnackBar(content: Text('${l10n.consultationCreateFailed}: $e')));
     }
   }
 
   void _onShare() {
     // TODO Phase 7: 공유 기능
+  }
+}
+
+class _BottomCta extends StatelessWidget {
+  const _BottomCta({
+    required this.l10n,
+    required this.onSave,
+    required this.onConsult,
+  });
+
+  final AppLocalizations l10n;
+  final VoidCallback onSave;
+  final VoidCallback onConsult;
+
+  @override
+  Widget build(BuildContext context) {
+    final aura = context.auraColors;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: aura.cardBorder, width: 1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onSave,
+              icon: const Icon(Icons.bookmark_outline),
+              label: Text(l10n.save),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            flex: 2,
+            child: FilledButton.icon(
+              onPressed: onConsult,
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: Text(l10n.resultConsult),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
