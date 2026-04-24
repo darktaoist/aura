@@ -77,7 +77,7 @@ class HomeHeroCard extends StatelessWidget {
                         children: [
                           Text(
                             label,
-                            style: theme.textTheme.labelSmall?.copyWith(
+                            style: theme.textTheme.labelMedium?.copyWith(
                               color: accent,
                               letterSpacing: 1.4,
                             ),
@@ -103,7 +103,7 @@ class HomeHeroCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         title,
                         style: theme.textTheme.headlineMedium?.copyWith(
@@ -117,6 +117,7 @@ class HomeHeroCard extends StatelessWidget {
                           color: aura.onSurfaceMuted,
                         ),
                       ),
+                      const Spacer(),
                     ],
                   ),
                 ),
