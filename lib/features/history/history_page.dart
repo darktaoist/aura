@@ -127,7 +127,33 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
     final l10n = AppLocalizations.of(context)!;
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
-      return Center(child: Text('${l10n.deleteFailed}: $_error'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48,
+                color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: AppSpacing.md),
+            Text(l10n.commonLoadError,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
+            Text(_error!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5),
+                    ),
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: _load,
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.retry),
+            ),
+          ],
+        ),
+      );
     }
     if (_readings.isEmpty) {
       return Center(
