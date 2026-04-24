@@ -48,7 +48,10 @@ class FaceResultNotifier extends _$FaceResultNotifier {
   StreamSubscription<String>? _sub;
 
   @override
-  FaceResultState build() => const FaceResultState();
+  FaceResultState build() {
+    ref.onDispose(() { _sub?.cancel(); });
+    return const FaceResultState();
+  }
 
   Future<void> analyze({
     required FaceLandmarkResult result,

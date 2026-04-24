@@ -48,7 +48,10 @@ class PalmResultNotifier extends _$PalmResultNotifier {
   StreamSubscription<String>? _sub;
 
   @override
-  PalmResultState build() => const PalmResultState();
+  PalmResultState build() {
+    ref.onDispose(() { _sub?.cancel(); });
+    return const PalmResultState();
+  }
 
   Future<void> analyze({
     required PalmLandmarkResult result,

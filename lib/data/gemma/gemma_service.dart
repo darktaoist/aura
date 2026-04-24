@@ -72,7 +72,9 @@ class GemmaService {
     required String userPrompt,
   }) async* {
     if (_inferencing) {
-      throw StateError('GemmaService: 이미 추론 중입니다. 중복 호출 금지');
+      // 이전 분석이 dispose 없이 중단됐을 수 있음 — 플래그 초기화 후 진행.
+      debugPrint('[GemmaService] _inferencing stuck detected, resetting');
+      _inferencing = false;
     }
     _inferencing = true;
     try {
