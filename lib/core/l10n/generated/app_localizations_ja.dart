@@ -574,4 +574,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get authContinueGuest => 'ゲストとして試す';
+
+  @override
+  String get settingsSectionAnalysis => '解析';
+
+  @override
+  String get settingsSectionPrivacy => 'プライバシー・法的';
+
+  @override
+  String get settingsSectionAbout => 'アプリ情報';
 }

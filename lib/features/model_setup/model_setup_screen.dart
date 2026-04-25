@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/generated/app_localizations.dart';
+import '../../core/theme/app_colors.dart';
+import '../home/widgets/aura_wordmark.dart';
 import 'model_config.dart';
 import 'model_selector.dart';
 
@@ -244,35 +246,58 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.face_retouching_natural,
-                  size: 72, color: Colors.indigoAccent),
-              const SizedBox(height: 24),
-              const Text(
-                '관상 AI',
-                style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.6),
+                    radius: 1.0,
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 48),
-              _buildBody(),
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const AuraWordmark(size: 40),
+                  const SizedBox(height: 8),
+                  Text(
+                    'AI 관상·손금',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        color: aura.onSurfaceMuted),
+                  ),
+                  const SizedBox(height: 48),
+                  _buildBody(context),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
+    final cs = theme.colorScheme;
+
     switch (_phase) {
       case _Phase.scanning:
         return _StatusTile(
@@ -292,67 +317,64 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
 
       case _Phase.downloading:
         final sizeGb = _model.sizeGb;
-        final downloaded = (_downloadProgress / 100 * sizeGb).toStringAsFixed(1);
-        return Column(
-          children: [
-            _StatusTile(
-              icon: Icons.download_rounded,
-              title: l10n.modelDownloadingWith(_model.name),
-              subtitle: l10n.modelDownloadDescWithSize(sizeGb.toString()),
-              showSpinner: false,
-            ),
-            const SizedBox(height: 28),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _downloadProgress / 100,
-                minHeight: 10,
-                backgroundColor: Colors.white12,
-                valueColor:
-                    const AlwaysStoppedAnimation(Colors.indigoAccent),
+        final downloaded =
+            (_downloadProgress / 100 * sizeGb).toStringAsFixed(1);
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: aura.surfaceContainer,
+            border: Border.all(color: aura.cardBorder, width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _StatusTile(
+                icon: Icons.download_rounded,
+                title: l10n.modelDownloadingWith(_model.name),
+                subtitle: l10n.modelDownloadDescWithSize(sizeGb.toString()),
+                showSpinner: false,
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$downloaded GB / $sizeGb GB',
-                  style:
-                      const TextStyle(color: Colors.white54, fontSize: 13),
+              const SizedBox(height: AppSpacing.lg),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.full),
+                child: LinearProgressIndicator(
+                  value: _downloadProgress / 100,
+                  minHeight: 6,
+                  backgroundColor: aura.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                 ),
-                Text(
-                  '$_downloadProgress%',
-                  style: const TextStyle(
-                      color: Colors.indigoAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15),
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('$downloaded GB / $sizeGb GB',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: aura.onSurfaceMuted)),
+                  Text('$_downloadProgress%',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                          color: cs.primary, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
         );
 
       case _Phase.error:
         return Column(
           children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              l10n.downloadFailed,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMsg ?? '',
-              style: const TextStyle(color: Colors.white54, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
+            Icon(Icons.error_outline, color: AppColors.danger, size: 48),
+            const SizedBox(height: AppSpacing.md),
+            Text(l10n.downloadFailed,
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
+            Text(_errorMsg ?? '',
+                style: theme.textTheme.bodySmall?.copyWith(
+                    color: aura.onSurfaceMuted),
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
               onPressed: () {
                 setState(() {
                   _phase = _Phase.scanning;
@@ -363,10 +385,6 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
               },
               icon: const Icon(Icons.refresh),
               label: Text(l10n.retry),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigoAccent,
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         );
@@ -391,32 +409,40 @@ class _StatusTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (showSpinner)
-          const SizedBox(
-            width: 20,
-            height: 20,
+          SizedBox(
+            width: 22, height: 22,
             child: CircularProgressIndicator(
-                strokeWidth: 2, color: Colors.indigoAccent),
+                strokeWidth: 2.5,
+                color: theme.colorScheme.primary),
           )
         else
-          Icon(icon, color: Colors.indigoAccent, size: 20),
-        const SizedBox(width: 14),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
-            const SizedBox(height: 4),
-            Text(subtitle,
-                style:
-                    const TextStyle(color: Colors.white54, fontSize: 12)),
-          ],
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.seed.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Icon(icon, color: AppColors.seed, size: 20),
+          ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: theme.textTheme.titleSmall),
+              const SizedBox(height: 2),
+              Text(subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      color: aura.onSurfaceMuted),
+                  overflow: TextOverflow.ellipsis),
+            ],
+          ),
         ),
       ],
     );

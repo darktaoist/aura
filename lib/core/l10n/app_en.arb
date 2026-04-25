@@ -220,5 +220,9 @@
   "authAgreePrivacy": "I agree to the Privacy Policy",
   "authSignInGoogle": "Continue with Google",
   "authSignInApple": "Continue with Apple",
-  "authContinueGuest": "Browse as guest"
+  "authContinueGuest": "Browse as guest",
+
+  "settingsSectionAnalysis": "Analysis",
+  "settingsSectionPrivacy": "Privacy & Legal",
+  "settingsSectionAbout": "About"
 }

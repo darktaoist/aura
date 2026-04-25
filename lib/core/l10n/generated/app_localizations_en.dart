@@ -581,4 +581,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authContinueGuest => 'Browse as guest';
+
+  @override
+  String get settingsSectionAnalysis => 'Analysis';
+
+  @override
+  String get settingsSectionPrivacy => 'Privacy & Legal';
+
+  @override
+  String get settingsSectionAbout => 'About';
 }

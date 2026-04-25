@@ -573,4 +573,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authContinueGuest => '以访客身份浏览';
+
+  @override
+  String get settingsSectionAnalysis => '分析';
+
+  @override
+  String get settingsSectionPrivacy => '隐私与法律';
+
+  @override
+  String get settingsSectionAbout => '关于应用';
 }

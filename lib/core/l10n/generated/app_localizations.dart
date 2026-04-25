@@ -1193,6 +1193,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'둘러보기 · 게스트로 시작'**
   String get authContinueGuest;
+
+  /// No description provided for @settingsSectionAnalysis.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석'**
+  String get settingsSectionAnalysis;
+
+  /// No description provided for @settingsSectionPrivacy.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인정보 · 법적'**
+  String get settingsSectionPrivacy;
+
+  /// No description provided for @settingsSectionAbout.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱 정보'**
+  String get settingsSectionAbout;
 }
 
 class _AppLocalizationsDelegate

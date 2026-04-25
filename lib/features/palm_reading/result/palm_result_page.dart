@@ -12,6 +12,7 @@ import '../../../domain/entities/palm_result.dart';
 import '../../../models/consultation.dart';
 import '../../../services/consultation_service.dart';
 import '../../auth/auth_notifier.dart';
+import '../../face_reading/result/widgets/reading_hero.dart';
 import '../../face_reading/result/widgets/reading_section_card.dart';
 import 'palm_result_notifier.dart';
 
@@ -29,6 +30,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   Map<String, String> _cachedSections = {};
   bool _pendingSave = false;
   String? _savedReadingId;
+  final _analyzedAt = DateTime.now();
 
   Map<String, String> _sections(String text) {
     if (text == _lastParsedText) return _cachedSections;
@@ -115,15 +117,12 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
       (key: 'overall',   label: l10n.sectionOverall,   icon: Icons.star_outline,                  accent: aura.sectionAccents['overall']!),
     ];
 
+    final showCta = !isStreaming && fullText.isNotEmpty && error == null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.palmResultTitle(hand)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save_outlined),
-            onPressed: isStreaming ? null : () => _onSave(context),
-            tooltip: l10n.save,
-          ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: isStreaming ? null : _onShare,
@@ -131,11 +130,23 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
           ),
         ],
       ),
-      body: error != null
-          ? _buildError(context, l10n, error, isModelError: isModelError)
-          : isStreaming && fullText.isEmpty
-              ? _buildLoading(context, l10n)
-              : _buildContent(context, l10n, fullText, isStreaming, kSections),
+      body: Column(
+        children: [
+          Expanded(
+            child: error != null
+                ? _buildError(context, l10n, error, isModelError: isModelError)
+                : isStreaming && fullText.isEmpty
+                    ? _buildLoading(context, l10n)
+                    : _buildContent(context, l10n, fullText, isStreaming, kSections),
+          ),
+          if (showCta)
+            _PalmBottomCta(
+              l10n: l10n,
+              onSave: () => _onSave(context),
+              onConsult: () => _onStartConsultation(context),
+            ),
+        ],
+      ),
     );
   }
 
@@ -211,9 +222,24 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     final hasSections = sections.values.any((v) => v.isNotEmpty);
     final aura = context.auraColors;
 
+    final chips = hasSections
+        ? kSections
+            .where((s) => (sections[s.key] ?? '').isNotEmpty)
+            .map((s) => '#${s.label}')
+            .toList()
+        : <String>[];
+    final progress = (fullText.length / 1200).clamp(0.0, 1.0);
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
+        ReadingHero(
+          analyzedAt: _analyzedAt,
+          highlightChips: chips,
+          isStreaming: isStreaming,
+          progress: progress,
+        ),
+        const SizedBox(height: AppSpacing.md),
         if (isStreaming && !hasSections)
           ReadingSectionCard(
             accent: aura.sectionAccents['overall']!,
@@ -397,5 +423,52 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     final hand = widget.result.isLeftHand ? l10n.leftHand : l10n.rightHand;
     final shareText = '${l10n.palmResultTitle(hand)}\n\n$fullText\n\n— Aura';
     SharePlus.instance.share(ShareParams(text: shareText));
+  }
+}
+
+class _PalmBottomCta extends StatelessWidget {
+  const _PalmBottomCta({
+    required this.l10n,
+    required this.onSave,
+    required this.onConsult,
+  });
+
+  final AppLocalizations l10n;
+  final VoidCallback onSave;
+  final VoidCallback onConsult;
+
+  @override
+  Widget build(BuildContext context) {
+    final aura = context.auraColors;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg, AppSpacing.md, AppSpacing.lg,
+        AppSpacing.md + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: aura.cardBorder, width: 1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onSave,
+              icon: const Icon(Icons.bookmark_outline),
+              label: Text(l10n.save),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            flex: 2,
+            child: FilledButton.icon(
+              onPressed: onConsult,
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: Text(l10n.resultConsult),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

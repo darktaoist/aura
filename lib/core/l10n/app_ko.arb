@@ -221,5 +221,9 @@
   "authAgreePrivacy": "개인정보 처리방침에 동의합니다",
   "authSignInGoogle": "Google로 계속하기",
   "authSignInApple": "Apple로 계속하기",
-  "authContinueGuest": "둘러보기 · 게스트로 시작"
+  "authContinueGuest": "둘러보기 · 게스트로 시작",
+
+  "settingsSectionAnalysis": "분석",
+  "settingsSectionPrivacy": "개인정보 · 법적",
+  "settingsSectionAbout": "앱 정보"
 }

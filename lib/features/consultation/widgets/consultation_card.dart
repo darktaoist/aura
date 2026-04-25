@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/generated/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/consultation.dart';
+import 'aura_avatar.dart';
 
 class ConsultationCard extends StatelessWidget {
   const ConsultationCard({
@@ -18,34 +19,34 @@ class ConsultationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
     final l10n = AppLocalizations.of(context)!;
     final isface = consultation.analysisType == AnalysisType.face;
 
-    return Card(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: onTap,
         onLongPress: onDelete,
-        child: Padding(
+        child: Ink(
+          decoration: BoxDecoration(
+            color: aura.surfaceContainer,
+            border: Border.all(color: aura.cardBorder, width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                color: aura.cardShadow,
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: AppColors.brandGradient,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(
-                  isface
-                      ? Icons.face_retouching_natural
-                      : Icons.back_hand_outlined,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
+              const AuraAvatar(size: 40),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -54,7 +55,7 @@ class ConsultationCard extends StatelessWidget {
                     Text(
                       consultation.title ??
                           (isface ? l10n.faceConsultation : l10n.palmConsultation),
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: theme.textTheme.titleSmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -62,24 +63,23 @@ class ConsultationCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          _relativeTime(context, consultation.lastMessageAt),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: cs.onSurface.withValues(alpha: 0.5),
-                              ),
+                          _relativeTime(context, consultation.lastMessageAt, l10n),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: aura.onSurfaceMuted),
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           '· ${l10n.consultationMessageCount(consultation.messageCount)}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: cs.onSurface.withValues(alpha: 0.4),
-                              ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: aura.onSurfaceSubtle),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: cs.primary),
+              Icon(Icons.chevron_right,
+                  color: aura.onSurfaceSubtle, size: 20),
             ],
           ),
         ),
@@ -87,8 +87,8 @@ class ConsultationCard extends StatelessWidget {
     );
   }
 
-  String _relativeTime(BuildContext context, DateTime dt) {
-    final l10n = AppLocalizations.of(context)!;
+  String _relativeTime(
+      BuildContext context, DateTime dt, AppLocalizations l10n) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1) return l10n.justNow;
     if (diff.inHours < 1) return l10n.minutesAgo(diff.inMinutes);

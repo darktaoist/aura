@@ -574,4 +574,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get authContinueGuest => '둘러보기 · 게스트로 시작';
+
+  @override
+  String get settingsSectionAnalysis => '분석';
+
+  @override
+  String get settingsSectionPrivacy => '개인정보 · 법적';
+
+  @override
+  String get settingsSectionAbout => '앱 정보';
 }

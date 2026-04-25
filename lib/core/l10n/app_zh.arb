@@ -220,5 +220,9 @@
   "authAgreePrivacy": "我同意隐私政策",
   "authSignInGoogle": "使用 Google 继续",
   "authSignInApple": "使用 Apple 继续",
-  "authContinueGuest": "以访客身份浏览"
+  "authContinueGuest": "以访客身份浏览",
+
+  "settingsSectionAnalysis": "分析",
+  "settingsSectionPrivacy": "隐私与法律",
+  "settingsSectionAbout": "关于应用"
 }

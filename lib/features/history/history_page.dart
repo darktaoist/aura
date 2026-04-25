@@ -9,6 +9,8 @@ import '../../domain/entities/reading.dart';
 import '../auth/auth_notifier.dart';
 import 'history_detail_page.dart';
 
+enum _Filter { all, face, palm }
+
 class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
@@ -38,22 +40,20 @@ class _LoginPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final aura = context.auraColors;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history_outlined, size: 64,
-              color: Theme.of(context).colorScheme.outlineVariant),
+          Icon(Icons.history_outlined, size: 64, color: aura.onSurfaceSubtle),
           const SizedBox(height: AppSpacing.md),
           Text(l10n.historyLoginPrompt,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                  )),
+                  color: aura.onSurfaceMuted)),
           const SizedBox(height: AppSpacing.lg),
           FilledButton(
-            onPressed: () => context.push('/auth'),
-            child: Text(l10n.login),
-          ),
+              onPressed: () => context.push('/auth'),
+              child: Text(l10n.login)),
         ],
       ),
     );
@@ -62,7 +62,6 @@ class _LoginPrompt extends StatelessWidget {
 
 class _HistoryList extends ConsumerStatefulWidget {
   const _HistoryList({required this.userId, required this.displayName});
-
   final String userId;
   final String displayName;
 
@@ -74,6 +73,7 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
   List<Reading> _readings = [];
   bool _loading = true;
   String? _error;
+  _Filter _filter = _Filter.all;
 
   @override
   void initState() {
@@ -84,7 +84,8 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final list = await ref.read(readingRepositoryProvider).getHistory(widget.userId);
+      final list = await ref.read(readingRepositoryProvider)
+          .getHistory(widget.userId);
       if (mounted) setState(() { _readings = list; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
@@ -99,7 +100,8 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
         title: Text(l10n.deleteRecord),
         content: Text(l10n.deleteRecordContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
@@ -109,129 +111,171 @@ class _HistoryListState extends ConsumerState<_HistoryList> {
       ),
     );
     if (confirmed != true || !mounted) return;
-
     try {
       await ref.read(readingRepositoryProvider).deleteReading(reading.id);
       setState(() => _readings.removeWhere((r) => r.id == reading.id));
     } catch (e) {
       if (!mounted) return;
-      final l10n2 = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n2.deleteFailed}: $e')),
+        SnackBar(content: Text(
+            '${AppLocalizations.of(context)!.deleteFailed}: $e')),
       );
     }
   }
 
+  List<Reading> get _filtered => _readings.where((r) {
+    if (_filter == _Filter.face) return r.type == ReadingType.face;
+    if (_filter == _Filter.palm) return r.type == ReadingType.palm;
+    return true;
+  }).toList();
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final aura = context.auraColors;
+    final theme = Theme.of(context);
+
     if (_loading) return const Center(child: CircularProgressIndicator());
+
     if (_error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 48,
-                color: Theme.of(context).colorScheme.error),
+                color: theme.colorScheme.error),
             const SizedBox(height: AppSpacing.md),
-            Text(l10n.commonLoadError,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.commonLoadError, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),
             Text(_error!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5),
-                    ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                    color: aura.onSurfaceMuted),
                 textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
-              onPressed: _load,
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.retry),
+                onPressed: _load,
+                icon: const Icon(Icons.refresh),
+                label: Text(l10n.retry)),
+          ],
+        ),
+      );
+    }
+
+    final filtered = _filtered;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 필터 탭
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+          child: SegmentedButton<_Filter>(
+            segments: [
+              ButtonSegment(
+                  value: _Filter.all,
+                  label: Text(l10n.historyAll)),
+              ButtonSegment(
+                  value: _Filter.face,
+                  label: Text(l10n.historyFace),
+                  icon: const Icon(Icons.face_retouching_natural, size: 16)),
+              ButtonSegment(
+                  value: _Filter.palm,
+                  label: Text(l10n.historyPalm),
+                  icon: const Icon(Icons.back_hand_outlined, size: 16)),
+            ],
+            selected: {_filter},
+            onSelectionChanged: (s) =>
+                setState(() => _filter = s.first),
+            style: ButtonStyle(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
             ),
-          ],
+          ),
         ),
-      );
-    }
-    if (_readings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.auto_awesome_outlined, size: 64,
-                color: Theme.of(context).colorScheme.outlineVariant),
-            const SizedBox(height: AppSpacing.md),
-            Text(l10n.historyEmpty,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                    )),
-          ],
-        ),
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: _readings.length + 1,
-      separatorBuilder: (_, i) => i == 0
-          ? const SizedBox(height: AppSpacing.md)
-          : const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, i) {
-        if (i == 0) {
-          return Text(
-            '${widget.displayName}님의 ${l10n.history}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        const SizedBox(height: AppSpacing.md),
+
+        // 목록
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.auto_awesome_outlined, size: 56,
+                          color: aura.onSurfaceSubtle),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(l10n.historyEmpty,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                              color: aura.onSurfaceMuted)),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (_, i) => _ReadingCard(
+                    reading: filtered[i],
+                    onDelete: () => _delete(filtered[i]),
+                  ),
                 ),
-          );
-        }
-        return _ReadingCard(
-          reading: _readings[i - 1],
-          onDelete: () => _delete(_readings[i - 1]),
-        );
-      },
+        ),
+      ],
     );
   }
 }
 
-
 class _ReadingCard extends StatelessWidget {
-  const _ReadingCard({
-    required this.reading,
-    required this.onDelete,
-  });
-
+  const _ReadingCard({required this.reading, required this.onDelete});
   final Reading reading;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final aura = context.auraColors;
     final l10n = AppLocalizations.of(context)!;
-    final isface = reading.type == ReadingType.face;
+    final isFace = reading.type == ReadingType.face;
+    final accent = aura.sectionAccents[isFace ? 'overall' : 'eyes']!;
 
-    return Card(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => HistoryDetailPage(reading: reading)),
+          MaterialPageRoute(
+              builder: (_) => HistoryDetailPage(reading: reading)),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.sm, AppSpacing.md),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: aura.surfaceContainer,
+            border: Border.all(color: aura.cardBorder, width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                  color: aura.cardShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2)),
+            ],
+          ),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
               Container(
                 width: 48, height: 48,
                 decoration: BoxDecoration(
-                  gradient: AppColors.brandGradient,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(
-                  isface ? Icons.face_retouching_natural : Icons.back_hand_outlined,
-                  color: Colors.white, size: 24,
+                  isFace
+                      ? Icons.face_retouching_natural_outlined
+                      : Icons.back_hand_outlined,
+                  color: accent, size: 24,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -242,22 +286,23 @@ class _ReadingCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          isface ? l10n.faceAnalysis : l10n.palmAnalysis,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          isFace ? l10n.faceAnalysis : l10n.palmAnalysis,
+                          style: theme.textTheme.titleSmall,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: AppSpacing.xs),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: cs.secondaryContainer,
-                            borderRadius: BorderRadius.circular(10),
+                            color: accent.withValues(alpha: 0.10),
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.full),
                           ),
                           child: Text(
                             reading.subjectName,
                             style: TextStyle(
                               fontSize: 11,
-                              color: cs.onSecondaryContainer,
+                              color: accent,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -267,18 +312,21 @@ class _ReadingCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       _formatDateTime(reading.createdAt),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.onSurface.withValues(alpha: 0.5)),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: aura.onSurfaceMuted),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.delete_outline, color: cs.error),
+                icon: Icon(Icons.delete_outline,
+                    color: AppColors.danger, size: 20),
                 tooltip: l10n.delete,
                 onPressed: onDelete,
+                visualDensity: VisualDensity.compact,
               ),
-              Icon(Icons.chevron_right, color: cs.primary),
+              Icon(Icons.chevron_right,
+                  color: aura.onSurfaceSubtle, size: 20),
             ],
           ),
         ),
@@ -288,10 +336,7 @@ class _ReadingCard extends StatelessWidget {
 
   String _formatDateTime(DateTime dt) {
     final local = dt.toLocal();
-    final date =
-        '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')}';
-    final time =
+    return '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')} '
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-    return '$date $time';
   }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
+import 'widgets/aura_avatar.dart';
 import '../../models/consultation.dart';
 import '../../services/consultation_service.dart';
 import 'providers/consultation_list_provider.dart';
@@ -30,10 +31,9 @@ class ConsultationListScreen extends ConsumerWidget {
                 onDelete: (c) => _confirmDelete(context, ref, c, l10n),
               ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _GradientFab(
+        label: l10n.consultationListNew,
         onPressed: () => context.push('/consultation/picker'),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.consultationListNew),
       ),
     );
   }
@@ -112,6 +112,46 @@ class _List extends StatelessWidget {
         consultation: consultations[i],
         onTap: () => onTap(consultations[i]),
         onDelete: () => onDelete(consultations[i]),
+      ),
+    );
+  }
+}
+
+class _GradientFab extends StatelessWidget {
+  const _GradientFab({required this.label, required this.onPressed});
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        decoration: BoxDecoration(
+          gradient: AppColors.brandGradient,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.seed.withValues(alpha: 0.35),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AuraAvatar(size: 22),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     );
   }
