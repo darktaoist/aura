@@ -63,6 +63,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get stabilityDone => '특이점 추출 완료';
 
   @override
+  String get cameraGuideAlign => '화면 안에 얼굴을 맞춰주세요';
+
+  @override
+  String get cameraGuideAlignHand => '손바닥을 화면 안에 맞춰주세요';
+
+  @override
+  String get cameraGuideScanning => '인식 중입니다. 잠시만 기다려 주세요';
+
+  @override
+  String get cameraGuideDone => '인식 완료! 아래 버튼을 눌러주세요';
+
+  @override
   String get retry => '다시 보기';
 
   @override

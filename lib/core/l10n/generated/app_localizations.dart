@@ -210,6 +210,30 @@ abstract class AppLocalizations {
   /// **'특이점 추출 완료'**
   String get stabilityDone;
 
+  /// No description provided for @cameraGuideAlign.
+  ///
+  /// In ko, this message translates to:
+  /// **'화면 안에 얼굴을 맞춰주세요'**
+  String get cameraGuideAlign;
+
+  /// No description provided for @cameraGuideAlignHand.
+  ///
+  /// In ko, this message translates to:
+  /// **'손바닥을 화면 안에 맞춰주세요'**
+  String get cameraGuideAlignHand;
+
+  /// No description provided for @cameraGuideScanning.
+  ///
+  /// In ko, this message translates to:
+  /// **'인식 중입니다. 잠시만 기다려 주세요'**
+  String get cameraGuideScanning;
+
+  /// No description provided for @cameraGuideDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'인식 완료! 아래 버튼을 눌러주세요'**
+  String get cameraGuideDone;
+
   /// No description provided for @retry.
   ///
   /// In ko, this message translates to:

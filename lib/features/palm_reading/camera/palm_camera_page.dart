@@ -9,11 +9,11 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/camera_stability_card.dart';
 import '../../../data/mlkit/hand_landmark_service.dart';
 import '../../../domain/entities/palm_result.dart';
 import '../../../domain/physiognomy/hand_connections.dart';
 import 'widgets/hand_overlay_painter.dart';
-import 'widgets/hand_stability_indicator.dart';
 
 class PalmCameraPage extends ConsumerStatefulWidget {
   const PalmCameraPage({super.key});
@@ -298,14 +298,13 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
                   },
                 ),
                 Positioned(
-                  top: 12, left: 0, right: 0,
-                  child: Center(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: _stableFramesNotifier,
-                      builder: (_, stableFrames, __) => HandStabilityIndicator(
-                        progress: stableFrames / AppConst.stabilityFrames,
-                        isStable: stableFrames >= AppConst.stabilityFrames,
-                      ),
+                  bottom: 116, left: 0, right: 0,
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: _stableFramesNotifier,
+                    builder: (_, stableFrames, __) => CameraStabilityCard(
+                      progress: stableFrames / AppConst.stabilityFrames,
+                      isStable: stableFrames >= AppConst.stabilityFrames,
+                      isFace: false,
                     ),
                   ),
                 ),

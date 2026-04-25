@@ -63,6 +63,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get stabilityDone => '特征点提取完成';
 
   @override
+  String get cameraGuideAlign => '请将脸部对准画面';
+
+  @override
+  String get cameraGuideAlignHand => '请将手掌放入画面内';
+
+  @override
+  String get cameraGuideScanning => '识别中，请稍候';
+
+  @override
+  String get cameraGuideDone => '完成！请点击下方按钮';
+
+  @override
   String get retry => '重新分析';
 
   @override

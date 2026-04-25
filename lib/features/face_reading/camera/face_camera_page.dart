@@ -9,11 +9,11 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/camera_stability_card.dart';
 import '../../../data/mlkit/face_mesh_service.dart';
 import '../../../domain/entities/landmark_result.dart';
 import '../../../domain/physiognomy/landmark_index.dart';
 import 'widgets/landmark_overlay_painter.dart';
-import 'widgets/stability_indicator.dart';
 
 class FaceCameraPage extends ConsumerStatefulWidget {
   const FaceCameraPage({super.key});
@@ -185,14 +185,13 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
                   ),
                 ),
                 Positioned(
-                  top: 12, left: 0, right: 0,
-                  child: Center(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: _stableFramesNotifier,
-                      builder: (_, stableFrames, __) => StabilityIndicator(
-                        progress: stableFrames / AppConst.stabilityFrames,
-                        isStable: stableFrames >= AppConst.stabilityFrames,
-                      ),
+                  bottom: 116, left: 0, right: 0,
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: _stableFramesNotifier,
+                    builder: (_, stableFrames, __) => CameraStabilityCard(
+                      progress: stableFrames / AppConst.stabilityFrames,
+                      isStable: stableFrames >= AppConst.stabilityFrames,
+                      isFace: true,
                     ),
                   ),
                 ),

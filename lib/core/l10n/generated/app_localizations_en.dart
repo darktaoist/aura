@@ -63,6 +63,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stabilityDone => 'Landmarks captured';
 
   @override
+  String get cameraGuideAlign => 'Position your face in the frame';
+
+  @override
+  String get cameraGuideAlignHand => 'Place your palm inside the frame';
+
+  @override
+  String get cameraGuideScanning => 'Scanning… please hold still';
+
+  @override
+  String get cameraGuideDone => 'Done! Tap the button below';
+
+  @override
   String get retry => 'Retry';
 
   @override

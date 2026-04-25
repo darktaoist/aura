@@ -63,6 +63,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get stabilityDone => '特徴点の抽出完了';
 
   @override
+  String get cameraGuideAlign => '顔を画面内に合わせてください';
+
+  @override
+  String get cameraGuideAlignHand => '手のひらを画面内に入れてください';
+
+  @override
+  String get cameraGuideScanning => 'スキャン中です。しばらくお待ちください';
+
+  @override
+  String get cameraGuideDone => '完了！下のボタンを押してください';
+
+  @override
   String get retry => 'もう一度';
 
   @override
