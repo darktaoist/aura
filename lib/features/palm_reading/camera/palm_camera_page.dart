@@ -299,12 +299,14 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
                 ),
                 Positioned(
                   bottom: 116, left: 0, right: 0,
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _stableFramesNotifier,
-                    builder: (_, stableFrames, __) => CameraStabilityCard(
-                      progress: stableFrames / AppConst.stabilityFrames,
-                      isStable: stableFrames >= AppConst.stabilityFrames,
-                      isFace: false,
+                  child: RepaintBoundary(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _stableFramesNotifier,
+                      builder: (_, stableFrames, __) => CameraStabilityCard(
+                        progress: stableFrames / AppConst.stabilityFrames,
+                        isStable: stableFrames >= AppConst.stabilityFrames,
+                        isFace: false,
+                      ),
                     ),
                   ),
                 ),

@@ -99,20 +99,11 @@ class CameraStabilityCard extends StatelessWidget {
             const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.full),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: progress),
-                duration: const Duration(milliseconds: 200),
-                builder: (_, value, __) => ShaderMask(
-                  shaderCallback: (rect) =>
-                      AppColors.brandGradient.createShader(rect),
-                  child: LinearProgressIndicator(
-                    value: value,
-                    minHeight: 8,
-                    backgroundColor: Colors.white.withValues(alpha: 0.15),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: Colors.white.withValues(alpha: 0.15),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.seedDark),
               ),
             ),
           ],
@@ -120,12 +111,11 @@ class CameraStabilityCard extends StatelessWidget {
             const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.full),
-              child: LinearProgressIndicator(
+              child: const LinearProgressIndicator(
                 value: 1.0,
                 minHeight: 8,
-                backgroundColor: Colors.white.withValues(alpha: 0.15),
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppColors.success),
+                backgroundColor: Color(0x26FFFFFF),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
               ),
             ),
           ],
