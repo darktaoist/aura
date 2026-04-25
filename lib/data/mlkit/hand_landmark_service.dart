@@ -21,12 +21,24 @@ class HandLandmarkService {
   bool _coordsLogged = false;
 
   static Future<HandLandmarkService> create() async {
-    // 인스턴스만 반환 — GPU 플러그인은 첫 process() 시점에 lazy init
-    return HandLandmarkService._();
+    final svc = HandLandmarkService._();
+    // face_mesh_service 와 동일하게 eager 초기화.
+    // GPU 셰이더 컴파일 비용을 카메라 초기화 병렬 구간에 숨김.
+    final t0 = DateTime.now();
+    svc._plugin = HandLandmarkerPlugin.create(
+      numHands: 1,
+      minHandDetectionConfidence: 0.6,
+      delegate: HandLandmarkerDelegate.gpu,
+    );
+    svc._pluginInitialized = true;
+    debugPrint('[HandLandmarkService] plugin init: '
+        '${DateTime.now().difference(t0).inMilliseconds}ms');
+    return svc;
   }
 
   HandLandmarkerPlugin _getPlugin() {
     if (!_pluginInitialized) {
+      // fallback: create()가 실패한 경우를 위한 안전망
       _plugin = HandLandmarkerPlugin.create(
         numHands: 1,
         minHandDetectionConfidence: 0.6,
