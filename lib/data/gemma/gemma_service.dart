@@ -22,7 +22,6 @@ class GemmaService {
   GemmaService._(this._model);
 
   final InferenceModel _model;
-  InferenceChat? _activeChat;   // 현재 활성 채팅 세션 추적
   bool get isReady => true;
 
   static Future<GemmaService> load() async {
@@ -71,14 +70,9 @@ class GemmaService {
     required String systemInstruction,
     required String userPrompt,
   }) async* {
-    // 이전 채팅이 열려 있으면 먼저 닫아 모델 컨텍스트를 초기화.
-    // 플래그만 리셋하면 이전 InferenceChat의 KV-캐시가 남아
-    // 새 분석 결과에 이전 내용이 섞이는 문제가 발생.
-    if (_activeChat != null) {
-      debugPrint('[GemmaService] closing previous chat before new inference');
-      try { await _activeChat!.close(); } catch (_) {}
-      _activeChat = null;
-    }
+    // createChat()은 매번 새 systemInstruction으로 독립 컨텍스트를 생성.
+    // 이전 chat.close() 호출은 InferenceModel 내부 공유 상태를 훼손해
+    // 새 채팅이 조기 종료되는 부작용이 있어 제거.
     try {
       final chat = await _model.createChat(
         modelType: ModelType.gemmaIt,
@@ -86,7 +80,6 @@ class GemmaService {
         temperature: AppConst.gemmaTemp,
         topK: AppConst.gemmaTopK,
       );
-      _activeChat = chat;
       await chat.addQueryChunk(Message(text: userPrompt, isUser: true));
 
       await for (final response in chat.generateChatResponseAsync()) {
@@ -97,8 +90,6 @@ class GemmaService {
     } catch (e) {
       debugPrint('[GemmaService] inference error: $e');
       rethrow;
-    } finally {
-      _activeChat = null;
     }
   }
 
