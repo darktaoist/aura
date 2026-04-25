@@ -16,7 +16,7 @@ class AppConst {
   static const int logEveryNFrames   = 30;
 
   // 분석
-  static const int stabilityFrames   = 45;       // 3초 × 15fps
+  static const int stabilityFrames   = 20;       // ~1.3초 × 15fps
   static const double stabilityScore = 0.7;      // 최소 score 임계값
   static const int gemmaIntervalSec  = 5;        // 실시간 오버레이 분석 간격
 

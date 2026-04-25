@@ -117,7 +117,7 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
             (_stableFramesNotifier.value + 1).clamp(0, AppConst.stabilityFrames + 1);
       } else if (_stableFramesNotifier.value < AppConst.stabilityFrames) {
         _stableFramesNotifier.value =
-            (_stableFramesNotifier.value - 5).clamp(0, AppConst.stabilityFrames + 1);
+            (_stableFramesNotifier.value - 2).clamp(0, AppConst.stabilityFrames + 1);
       }
 
       _frameCount++;
