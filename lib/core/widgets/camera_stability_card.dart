@@ -107,18 +107,6 @@ class CameraStabilityCard extends StatelessWidget {
               ),
             ),
           ],
-          if (state == _ScanState.done) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.full),
-              child: const LinearProgressIndicator(
-                value: 1.0,
-                minHeight: 8,
-                backgroundColor: Color(0x26FFFFFF),
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
-              ),
-            ),
-          ],
         ],
       ),
     );
