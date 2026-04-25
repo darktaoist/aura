@@ -33,7 +33,7 @@ class HandLandmarkService {
       _plugin = HandLandmarkerPlugin.create(
         numHands: 1,
         minHandDetectionConfidence: 0.6,
-        delegate: HandLandmarkerDelegate.cpu,
+        delegate: HandLandmarkerDelegate.gpu,
       );
       _pluginInitialized = true;
       debugPrint('[HandLandmarkService] plugin init: '
