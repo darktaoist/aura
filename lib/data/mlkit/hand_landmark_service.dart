@@ -21,30 +21,23 @@ class HandLandmarkService {
   bool _coordsLogged = false;
 
   static Future<HandLandmarkService> create() async {
-    final svc = HandLandmarkService._();
-    // face_mesh_service 와 동일하게 eager 초기화.
-    // GPU 셰이더 컴파일 비용을 카메라 초기화 병렬 구간에 숨김.
-    final t0 = DateTime.now();
-    svc._plugin = HandLandmarkerPlugin.create(
-      numHands: 1,
-      minHandDetectionConfidence: 0.6,
-      delegate: HandLandmarkerDelegate.gpu,
-    );
-    svc._pluginInitialized = true;
-    debugPrint('[HandLandmarkService] plugin init: '
-        '${DateTime.now().difference(t0).inMilliseconds}ms');
-    return svc;
+    // create()는 즉시 반환 — GPU 플러그인은 첫 process() 호출 시 lazy init.
+    // HandLandmarkerPlugin.create()는 동기 플랫폼 채널 호출이라 여기서 실행하면
+    // Dart 메인 이솔레이트를 블록해 화면 전환 자체가 멈춰 보임.
+    return HandLandmarkService._();
   }
 
   HandLandmarkerPlugin _getPlugin() {
     if (!_pluginInitialized) {
-      // fallback: create()가 실패한 경우를 위한 안전망
+      final t0 = DateTime.now();
       _plugin = HandLandmarkerPlugin.create(
         numHands: 1,
         minHandDetectionConfidence: 0.6,
         delegate: HandLandmarkerDelegate.gpu,
       );
       _pluginInitialized = true;
+      debugPrint('[HandLandmarkService] plugin init: '
+          '${DateTime.now().difference(t0).inMilliseconds}ms');
     }
     return _plugin!;
   }

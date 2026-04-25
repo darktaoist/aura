@@ -219,61 +219,83 @@ class _PalmCameraPageState extends ConsumerState<PalmCameraPage> {
                     },
                   ),
                 ),
-                Positioned.fill(
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: _modelInitializingNotifier,
-                    builder: (_, initializing, __) {
-                      return ValueListenableBuilder<PalmLandmarkResult?>(
-                        valueListenable: _landmarkNotifier,
-                        builder: (_, result, __) {
-                          if (result != null) return const SizedBox.shrink();
-                          return Center(
-                            child: Container(
-                              width: 240, height: 320,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: initializing ? Colors.white54 : Colors.white30,
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(AppRadius.lg),
+                // 엔진 초기화 중 전체화면 오버레이
+                ValueListenableBuilder<bool>(
+                  valueListenable: _modelInitializingNotifier,
+                  builder: (_, initializing, __) {
+                    if (!initializing) return const SizedBox.shrink();
+                    return Positioned.fill(
+                      child: ColoredBox(
+                        color: Colors.black.withValues(alpha: 0.72),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 48, height: 48,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
                               ),
-                              child: initializing
-                                  ? Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(
-                                          width: 36, height: 36,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white54,
-                                            strokeWidth: 2.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: AppSpacing.md),
-                                        Text(
-                                          l10n.aiEngineInitializing,
-                                          style: const TextStyle(color: Colors.white54, fontSize: 13),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    )
-                                  : Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.back_hand_outlined, color: Colors.white30, size: 48),
-                                        const SizedBox(height: AppSpacing.sm),
-                                        Text(
-                                          l10n.palmGuide,
-                                          style: const TextStyle(color: Colors.white38, fontSize: 13),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Text(
+                              l10n.aiEngineInitializing,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              l10n.palmGuide,
+                              style: const TextStyle(
+                                color: Colors.white60,
+                                fontSize: 13,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // 손 감지 전 가이드 박스 (엔진 준비 후)
+                ValueListenableBuilder<bool>(
+                  valueListenable: _modelInitializingNotifier,
+                  builder: (_, initializing, __) {
+                    if (initializing) return const SizedBox.shrink();
+                    return ValueListenableBuilder<PalmLandmarkResult?>(
+                      valueListenable: _landmarkNotifier,
+                      builder: (_, result, __) {
+                        if (result != null) return const SizedBox.shrink();
+                        return Center(
+                          child: Container(
+                            width: 240, height: 320,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.white30, width: 2),
+                              borderRadius: BorderRadius.circular(AppRadius.lg),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.back_hand_outlined,
+                                    color: Colors.white30, size: 48),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  l10n.palmGuide,
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 13),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
                 Positioned(
                   top: 12, left: 0, right: 0,
