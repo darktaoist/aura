@@ -22,7 +22,7 @@ class GemmaService {
   GemmaService._(this._model);
 
   final InferenceModel _model;
-  bool _inferencing = false;
+  InferenceChat? _activeChat;   // 현재 활성 채팅 세션 추적
   bool get isReady => true;
 
   static Future<GemmaService> load() async {
@@ -71,12 +71,14 @@ class GemmaService {
     required String systemInstruction,
     required String userPrompt,
   }) async* {
-    if (_inferencing) {
-      // 이전 분석이 dispose 없이 중단됐을 수 있음 — 플래그 초기화 후 진행.
-      debugPrint('[GemmaService] _inferencing stuck detected, resetting');
-      _inferencing = false;
+    // 이전 채팅이 열려 있으면 먼저 닫아 모델 컨텍스트를 초기화.
+    // 플래그만 리셋하면 이전 InferenceChat의 KV-캐시가 남아
+    // 새 분석 결과에 이전 내용이 섞이는 문제가 발생.
+    if (_activeChat != null) {
+      debugPrint('[GemmaService] closing previous chat before new inference');
+      try { await _activeChat!.close(); } catch (_) {}
+      _activeChat = null;
     }
-    _inferencing = true;
     try {
       final chat = await _model.createChat(
         modelType: ModelType.gemmaIt,
@@ -84,6 +86,7 @@ class GemmaService {
         temperature: AppConst.gemmaTemp,
         topK: AppConst.gemmaTopK,
       );
+      _activeChat = chat;
       await chat.addQueryChunk(Message(text: userPrompt, isUser: true));
 
       await for (final response in chat.generateChatResponseAsync()) {
@@ -93,9 +96,9 @@ class GemmaService {
       }
     } catch (e) {
       debugPrint('[GemmaService] inference error: $e');
-      rethrow; // 에러를 inline yield 하지 않고 호출부로 전달
+      rethrow;
     } finally {
-      _inferencing = false;
+      _activeChat = null;
     }
   }
 
