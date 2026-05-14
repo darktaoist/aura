@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
+import 'package:image/image.dart' as img_pkg;
 
 import '../../domain/entities/landmark_result.dart';
 import '../../domain/physiognomy/landmark_index.dart';
@@ -108,6 +111,69 @@ class FaceMeshService {
       );
     } catch (e, st) {
       debugPrint('[FaceMeshService] process error: $e\n$st');
+      return null;
+    }
+  }
+
+  // ── 정적 이미지(갤러리) 처리 ──────────────────────────────────────────────
+
+  /// 갤러리 사진 파일 경로 → FaceLandmarkResult?
+  ///
+  /// ML Kit fromFilePath: 파일을 직접 읽고 EXIF 방향을 내부에서 처리.
+  /// 반환 좌표는 display(EXIF 보정) 공간의 절대 픽셀 좌표.
+  /// image 패키지로 동일한 display 크기를 구해 정규화.
+  Future<FaceLandmarkResult?> processFile(String imagePath) async {
+    final detector = _detector;
+    if (detector == null) return null;
+
+    try {
+      // display 크기 확보 (EXIF 보정 적용 — ML Kit 반환 좌표계와 동일)
+      final bytes = await File(imagePath).readAsBytes();
+      final raw = img_pkg.decodeImage(bytes);
+      if (raw == null) return null;
+      final oriented = img_pkg.bakeOrientation(raw);
+      final w = oriented.width;
+      final h = oriented.height;
+
+      // ML Kit이 파일을 직접 디코딩 + EXIF 처리
+      final inputImage = InputImage.fromFilePath(imagePath);
+      final List<FaceMesh> meshes = await detector.processImage(inputImage);
+      if (meshes.isEmpty) {
+        debugPrint('[FaceMeshService] processFile: no face detected (${w}x$h)');
+        return null;
+      }
+
+      final mesh = meshes.first;
+      final rawPoints = mesh.points;
+      if (rawPoints.isEmpty) return null;
+
+      debugPrint('[FaceMeshService] processFile: ${rawPoints.length} points, '
+          'img=${w}x$h  p0=(${rawPoints.first.x.toStringAsFixed(1)},'
+          '${rawPoints.first.y.toStringAsFixed(1)})');
+
+      final ordered = List<LandmarkPoint>.generate(
+        468,
+        (_) => const LandmarkPoint(x: 0.5, y: 0.5, z: 0.0),
+      );
+      for (final p in rawPoints) {
+        final idx = p.index;
+        if (idx < 0 || idx >= 468) continue;
+        ordered[idx] = LandmarkPoint(
+          x: (p.x / w).clamp(0.0, 1.0),
+          y: (p.y / h).clamp(0.0, 1.0),
+          z: p.z,
+        );
+      }
+
+      return FaceLandmarkResult(
+        landmarks: ordered,
+        score: 1.0,
+        features: _extractFeatures(ordered),
+        frameWidth: w,
+        frameHeight: h,
+      );
+    } catch (e, st) {
+      debugPrint('[FaceMeshService] processFile error: $e\n$st');
       return null;
     }
   }

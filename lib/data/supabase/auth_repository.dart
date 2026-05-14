@@ -34,14 +34,21 @@ class AuthRepository {
   Future<void> signInWithKakao() async {
     try {
       // 1. Kakao 로그인 → access token 획득
+      // KakaoTalk 로그인 실패 시 카카오계정(웹) 로그인으로 자동 폴백
       kakao.OAuthToken token;
       if (await kakao.isKakaoTalkInstalled()) {
-        token = await kakao.UserApi.instance.loginWithKakaoTalk();
+        try {
+          token = await kakao.UserApi.instance.loginWithKakaoTalk();
+        } catch (e) {
+          debugPrint('[AuthRepository] KakaoTalk login failed, fallback to web: $e');
+          token = await kakao.UserApi.instance.loginWithKakaoAccount();
+        }
       } else {
         token = await kakao.UserApi.instance.loginWithKakaoAccount();
       }
 
       // 2. Edge Function 호출: kakao-auth
+      // supabase_flutter FunctionsClient가 자동으로 anon key Authorization 헤더를 설정함
       final response = await _client.functions.invoke(
         'kakao-auth',
         body: {'access_token': token.accessToken},
@@ -53,18 +60,21 @@ class AuthRepository {
 
       final data = response.data as Map<String, dynamic>;
 
-      // 3. Supabase 세션 설정 (refresh token 기반)
-      //    Edge Function은 {access_token, refresh_token} 반환
-      final accessToken = data['access_token'] as String?;
-      final refreshToken = data['refresh_token'] as String?;
+      // 3. Supabase 세션 설정: generateLink의 email_otp로 verifyOTP
+      final email = data['email'] as String?;
+      final otpToken = data['token'] as String?;
 
-      if (accessToken == null || refreshToken == null) {
+      if (email == null || otpToken == null) {
         throw Exception('kakao-auth: missing token fields');
       }
 
-      await _client.auth.setSession(refreshToken);
-    } catch (e) {
-      debugPrint('[AuthRepository] Kakao sign-in error: $e');
+      await _client.auth.verifyOTP(
+        email: email,
+        token: otpToken,
+        type: OtpType.magiclink,
+      );
+    } catch (e, st) {
+      debugPrint('[AuthRepository] Kakao sign-in error: $e\n$st');
       rethrow;
     }
   }

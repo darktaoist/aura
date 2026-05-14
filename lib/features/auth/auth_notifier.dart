@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,18 +37,42 @@ class AuthNotifier extends _$AuthNotifier {
     final repo = ref.watch(authRepositoryProvider);
 
     // authStateChanges 구독 — ref.onDispose로 반드시 해제
-    final sub = repo.authStateChanges.listen((event) {
-      // tokenRefreshed 이벤트는 user 변경 없으므로 무시
-      if (event.event == AuthChangeEvent.tokenRefreshed) return;
+    final sub = repo.authStateChanges.listen(
+      (event) {
+        // tokenRefreshed 이벤트는 user 변경 없으므로 무시
+        if (event.event == AuthChangeEvent.tokenRefreshed) return;
 
-      state = state.copyWith(
-        user: event.session?.user,
-        clearUser: event.session == null,
-        clearError: true,
-        isLoading: false, // 어떤 auth 이벤트든 로딩 종료
-      );
-    });
+        state = state.copyWith(
+          user: event.session?.user,
+          clearUser: event.session == null,
+          clearError: true,
+          isLoading: false, // 어떤 auth 이벤트든 로딩 종료
+        );
+      },
+      onError: (Object e, StackTrace st) {
+        // Supabase SDK가 notifyException으로 스트림에 에러를 추가할 때 처리
+        // onError 없으면 Unhandled Exception으로 앱 크래시 발생
+        debugPrint('[AuthNotifier] authStateChanges error: $e');
+        state = state.copyWith(isLoading: false, error: e.toString());
+      },
+    );
     ref.onDispose(sub.cancel);
+
+    // OAuth 브라우저에서 돌아왔을 때 isLoading stuck 방지:
+    // 외부 브라우저(Google OAuth)를 닫고 앱으로 복귀하면 resumed 이벤트가 발생한다.
+    // supabase_flutter가 딥링크를 자동 처리하면 authStateChanges 가 발생하고 isLoading 해제됨.
+    // 딥링크 없이 복귀(사용자 취소)한 경우엔 2초 대기 후 isLoading 강제 해제.
+    final observer = _ResumeObserver(() {
+      if (!state.isLoading) return;
+      Future<void>.delayed(const Duration(seconds: 2), () {
+        if (state.isLoading && state.user == null) {
+          debugPrint('[AuthNotifier] resumed without session — clearing isLoading');
+          state = state.copyWith(isLoading: false);
+        }
+      });
+    });
+    WidgetsBinding.instance.addObserver(observer);
+    ref.onDispose(() => WidgetsBinding.instance.removeObserver(observer));
 
     return AuthUiState(user: repo.currentUser);
   }
@@ -85,5 +110,15 @@ class AuthNotifier extends _$AuthNotifier {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+}
+
+class _ResumeObserver extends WidgetsBindingObserver {
+  _ResumeObserver(this.onResumed);
+  final VoidCallback onResumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) onResumed();
   }
 }

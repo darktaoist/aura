@@ -112,6 +112,9 @@
   "goBack": "戻る",
   "palmGuide": "手のひらを画面に\n向けて広げてください",
   "aiEngineInitializing": "AIエンジンを初期化中...",
+  "aiEngineInitializingDesc": "初回起動時は数秒かかる場合があります",
+  "aiEngineInitError": "AIエンジンの初期化に失敗しました",
+  "aiEngineRetry": "再試行",
 
   "faceAnalyzing": "観相分析中...",
   "palmAnalyzing": "手相分析中...",
@@ -151,6 +154,10 @@
   "modelScanning": "デバイスを確認中...",
   "modelScanningDesc": "インストールされたAIモデルを探しています",
   "modelFound": "モデルを発見！",
+  "modelVerifying": "ファイルの整合性を検証中...",
+  "modelVerifyingDesc": "ダウンロードしたファイルを確認しています（しばらくかかります）",
+  "modelInstalling": "モデルをインストール中...",
+  "modelInstallingDesc": "AIモデルをアプリに登録しています",
   "modelDownloadingWith": "AIモデル準備中 ({name})",
   "@modelDownloadingWith": {
     "placeholders": { "name": { "type": "String" } }
@@ -189,10 +196,10 @@
   "homeDailyFallback": "今日もあなたの佇まいが曇りませんように。",
   "homeFaceLabel": "AI 人相",
   "homeFaceTitle": "顔を読む",
-  "homeFaceDesc": "468 ランドマーク",
+  "homeFaceDesc": "468の顔の特徴点をAIが解析し、額・目・鼻・口・顎の人相を読み解きます",
   "homePalmLabel": "AI 手相",
   "homePalmTitle": "手を読む",
-  "homePalmDesc": "21 ランドマーク",
+  "homePalmDesc": "21の手の特徴点から生命線・感情線・頭脳線・運命線をAIが読み解きます",
   "homeResumeTitle": "続きから",
   "homeResumeEmpty": "進行中の相談はまだありません。",
   "commonSeeAll": "すべて見る",
@@ -228,5 +235,27 @@
 
   "settingsSectionAnalysis": "解析",
   "settingsSectionPrivacy": "プライバシー・法的",
-  "settingsSectionAbout": "アプリ情報"
+  "settingsSectionAbout": "アプリ情報",
+
+  "streamingBackTitle": "解析中です",
+  "streamingBackBody": "AI解析がまだ完了していません。\n今戻ると、次の解析の開始が遅れる場合があります。",
+  "streamingBackLeave": "退出する",
+
+  "selectFromGallery": "ギャラリーから選択",
+  "noFaceDetected": "顔を検出できませんでした。別の写真を選んでください。",
+  "noPalmDetected": "手を検出できませんでした。別の写真を選んでください。",
+  "galleryPermissionRequired": "写真へのアクセス権限が必要です。",
+
+  "streakDays": "日連続",
+  "todayBadge": "今日",
+  "minRead": "3 MIN",
+  "aiName": "타오운세",
+  "homeConsultLabel": "AI相談",
+  "homeConsultSub": "鑑定結果をもとに深い対話を",
+  "selectLanguageTitle": "言語を選択してください",
+  "selectLanguageSub": "SELECT YOUR LANGUAGE",
+  "enterApp": "始める →",
+  "confidence": "信頼度",
+  "authSignInSubtitle": "ログインすると鑑定結果を保存し、AI相談を続けることができます",
+  "authTermsNotice": "ログインすることで、利用規約およびプライバシーポリシーに同意したことになります。"
 }

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -32,6 +34,9 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
   bool _processing = false;
   bool _disposed = false;
   bool _navigating = false;
+  bool _isGalleryLoading = false;
+  XFile? _galleryFile;
+  FaceLandmarkResult? _galleryResult;
   FaceLandmarkResult? _lastDetectedResult;
   DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastLogTime = DateTime.now();
@@ -125,6 +130,51 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
     }
   }
 
+  Future<void> _pickFromGallery() async {
+    if (_faceMesh == null || _isGalleryLoading) return;
+
+    try { await _camera?.stopImageStream(); } catch (_) {}
+    setState(() => _isGalleryLoading = true);
+
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (!mounted) return;
+
+      if (file == null) {
+        // 선택 취소 → 카메라 재개
+        if (!_disposed) try { await _camera?.startImageStream(_onFrame); } catch (_) {}
+        return;
+      }
+
+      final result = await _faceMesh!.processFile(file.path);
+
+      if (!mounted) return;
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.noFaceDetected)),
+        );
+        if (!_disposed) try { await _camera?.startImageStream(_onFrame); } catch (_) {}
+        return;
+      }
+
+      // 감지 성공 → 갤러리 프리뷰 모드로 전환 (카메라 스트림은 정지 유지)
+      setState(() {
+        _galleryFile = file;
+        _galleryResult = result;
+      });
+    } finally {
+      if (mounted) setState(() => _isGalleryLoading = false);
+    }
+  }
+
+  void _clearGallery() {
+    setState(() {
+      _galleryFile = null;
+      _galleryResult = null;
+    });
+    if (!_disposed) try { _camera?.startImageStream(_onFrame); } catch (_) {}
+  }
+
   Future<void> _goToResult(dynamic result) async {
     _navigating = true;
     try { await _camera?.stopImageStream(); } catch (_) {}
@@ -133,6 +183,8 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
     await context.push('/face/result', extra: result);
     if (!mounted || _disposed) return;
     _navigating = false;
+    // 결과 페이지에서 돌아오면 갤러리 모드 초기화 → 카메라로 복귀
+    setState(() { _galleryFile = null; _galleryResult = null; });
     try { await _camera?.startImageStream(_onFrame); } catch (_) {}
   }
 
@@ -156,6 +208,8 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
     final locale = Localizations.localeOf(context).languageCode;
     final labels = keyLandmarkLabels(locale);
 
+    final inGalleryMode = _galleryFile != null && _galleryResult != null;
+
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -169,64 +223,213 @@ class _FaceCameraPageState extends ConsumerState<FaceCameraPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
+        actions: inGalleryMode
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                  tooltip: 'Camera',
+                  onPressed: _clearGallery,
+                ),
+              ]
+            : null,
       ),
-      body: isReady
-          ? Stack(
+      body: inGalleryMode
+          ? _buildGalleryPreview(context, l10n, labels)
+          : (isReady
+              ? _buildCoverPreview(context, ctrl, l10n, labels)
+              : const Center(child: CircularProgressIndicator(color: Colors.white))),
+    );
+  }
+
+  Widget _buildGalleryPreview(
+    BuildContext context,
+    AppLocalizations l10n,
+    Map<int, String> labels,
+  ) {
+    final file = _galleryFile!;
+    final result = _galleryResult!;
+    final imgAspect = result.frameWidth / result.frameHeight;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 선택된 사진 + 랜드마크 오버레이 (이미지 비율 유지, 화면 중앙 배치)
+        Center(
+          child: AspectRatio(
+            aspectRatio: imgAspect,
+            child: Stack(
               fit: StackFit.expand,
               children: [
-                CameraPreview(ctrl),
+                Image.file(File(file.path), fit: BoxFit.fill),
                 RepaintBoundary(
-                  child: ValueListenableBuilder<FaceLandmarkResult?>(
-                    valueListenable: _landmarkNotifier,
-                    builder: (_, result, __) {
-                      if (result == null) return const SizedBox.shrink();
-                      return CustomPaint(painter: LandmarkOverlayPainter(result: result, labels: labels));
-                    },
-                  ),
-                ),
-                Positioned(
-                  bottom: 116, left: 0, right: 0,
-                  child: RepaintBoundary(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: _stableFramesNotifier,
-                      builder: (_, stableFrames, __) => CameraStabilityCard(
-                        progress: stableFrames / AppConst.stabilityFrames,
-                        isStable: stableFrames >= AppConst.stabilityFrames,
-                        isFace: true,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 40,
-                  left: AppSpacing.xl,
-                  right: AppSpacing.xl,
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _stableFramesNotifier,
-                    builder: (_, stableFrames, __) {
-                      final isStable = stableFrames >= AppConst.stabilityFrames;
-                      final captured = _lastDetectedResult;
-                      return AnimatedOpacity(
-                        opacity: isStable ? 1.0 : 0.3,
-                        duration: AppDuration.overlayFade,
-                        child: FilledButton.icon(
-                          onPressed: isStable && captured != null
-                              ? () => _goToResult(captured)
-                              : null,
-                          icon: const Icon(Icons.auto_awesome),
-                          label: Text(l10n.viewResults),
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 52),
-                            textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 16),
-                          ),
-                        ),
-                      );
-                    },
+                  child: CustomPaint(
+                    painter: LandmarkOverlayPainter(result: result, labels: labels),
                   ),
                 ),
               ],
-            )
-          : const Center(child: CircularProgressIndicator(color: Colors.white)),
+            ),
+          ),
+        ),
+        // 결과 보기 버튼
+        Positioned(
+          bottom: 88,
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          child: FilledButton.icon(
+            onPressed: () => _goToResult(result),
+            icon: const Icon(Icons.auto_awesome),
+            label: Text(l10n.viewResults),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 52),
+              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 16),
+            ),
+          ),
+        ),
+        // 다른 사진 선택
+        Positioned(
+          bottom: 36,
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          child: _isGalleryLoading
+              ? const Center(
+                  child: SizedBox(
+                    width: 24, height: 24,
+                    child: CircularProgressIndicator(color: Colors.white60, strokeWidth: 2.5),
+                  ),
+                )
+              : TextButton.icon(
+                  onPressed: _pickFromGallery,
+                  icon: const Icon(Icons.photo_library_outlined,
+                      color: Colors.white60, size: 18),
+                  label: Text(
+                    l10n.selectFromGallery,
+                    style: const TextStyle(color: Colors.white60, fontSize: 14),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCoverPreview(
+    BuildContext context,
+    CameraController ctrl,
+    AppLocalizations l10n,
+    Map<int, String> labels,
+  ) {
+    final mq = MediaQuery.of(context);
+    final size = mq.size;
+    // CameraPreview internally uses 1/aspectRatio for portrait (sensor is landscape)
+    final isPortrait = mq.orientation == Orientation.portrait;
+    final cameraAspect = isPortrait ? (1.0 / ctrl.value.aspectRatio) : ctrl.value.aspectRatio;
+    final screenAspect = size.width / size.height;
+    final double coverW, coverH;
+    if (cameraAspect > screenAspect) {
+      coverH = size.height;
+      coverW = size.height * cameraAspect;
+    } else {
+      coverW = size.width;
+      coverH = size.width / cameraAspect;
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Camera + overlay at correct aspect ratio, cropped to fill screen
+        ClipRect(
+          child: OverflowBox(
+            alignment: Alignment.center,
+            minWidth: 0,
+            minHeight: 0,
+            maxWidth: coverW,
+            maxHeight: coverH,
+            child: SizedBox(
+              width: coverW,
+              height: coverH,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CameraPreview(ctrl),
+                  RepaintBoundary(
+                    child: ValueListenableBuilder<FaceLandmarkResult?>(
+                      valueListenable: _landmarkNotifier,
+                      builder: (_, result, __) {
+                        if (result == null) return const SizedBox.shrink();
+                        return CustomPaint(
+                          painter: LandmarkOverlayPainter(result: result, labels: labels),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 164, left: 0, right: 0,
+          child: RepaintBoundary(
+            child: ValueListenableBuilder<int>(
+              valueListenable: _stableFramesNotifier,
+              builder: (_, stableFrames, __) => CameraStabilityCard(
+                progress: stableFrames / AppConst.stabilityFrames,
+                isStable: stableFrames >= AppConst.stabilityFrames,
+                isFace: true,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 88,
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          child: ValueListenableBuilder<int>(
+            valueListenable: _stableFramesNotifier,
+            builder: (_, stableFrames, __) {
+              final isStable = stableFrames >= AppConst.stabilityFrames;
+              final captured = _lastDetectedResult;
+              return AnimatedOpacity(
+                opacity: isStable ? 1.0 : 0.3,
+                duration: AppDuration.overlayFade,
+                child: FilledButton.icon(
+                  onPressed: isStable && captured != null
+                      ? () => _goToResult(captured)
+                      : null,
+                  icon: const Icon(Icons.auto_awesome),
+                  label: Text(l10n.viewResults),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 16),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        Positioned(
+          bottom: 36,
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          child: _isGalleryLoading
+              ? const Center(
+                  child: SizedBox(
+                    width: 24, height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white60, strokeWidth: 2.5,
+                    ),
+                  ),
+                )
+              : TextButton.icon(
+                  onPressed: _faceMesh != null ? _pickFromGallery : null,
+                  icon: const Icon(Icons.photo_library_outlined,
+                      color: Colors.white60, size: 18),
+                  label: Text(
+                    l10n.selectFromGallery,
+                    style: const TextStyle(color: Colors.white60, fontSize: 14),
+                  ),
+                ),
+        ),
+      ],
     );
   }
 

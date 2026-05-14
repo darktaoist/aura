@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/gemma/gemma_service.dart';
@@ -46,10 +47,19 @@ class FaceResultState {
 @riverpod
 class FaceResultNotifier extends _$FaceResultNotifier {
   StreamSubscription<String>? _sub;
+  GemmaService? _svc;
+  bool _disposed = false;
 
   @override
   FaceResultState build() {
-    ref.onDispose(() { _sub?.cancel(); });
+    ref.onDispose(() {
+      _disposed = true;
+      _sub?.cancel();
+      _sub = null;
+      _svc?.cancelCurrentGeneration();
+      _svc?.disposeSession();
+      _svc = null;
+    });
     return const FaceResultState();
   }
 
@@ -58,14 +68,19 @@ class FaceResultNotifier extends _$FaceResultNotifier {
     required String locale,
     List<String> ragChunks = const [],
   }) async {
-    // 진행 중인 분석 취소 후 재시작 (locale 변경 시 등)
-    await _sub?.cancel();
+    debugPrint('[FaceResultNotifier] analyze 호출 locale=$locale ragChunks=${ragChunks.length}');
+    // 진행 중인 분석 취소 후 재시작
+    _sub?.cancel();
     _sub = null;
+    _svc?.cancelCurrentGeneration();
 
     state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
     try {
       final svc = await ref.read(gemmaServiceProvider.future);
+      if (_disposed) return;
+      _svc = svc;
+      debugPrint('[FaceResultNotifier] GemmaService 획득 완료, 스트림 시작');
       final stream = svc.analyzeLongForm(
         result: result,
         locale: locale,
@@ -75,13 +90,19 @@ class FaceResultNotifier extends _$FaceResultNotifier {
       var buffer = '';
       _sub = stream.listen(
         (token) {
+          if (_disposed) return;
           buffer += token;
+          if (buffer.length == token.length) {
+            debugPrint('[FaceResultNotifier] 첫 토큰 수신: "${token.substring(0, token.length.clamp(0, 20))}"');
+          }
           if (buffer.length >= 20) {
             state = state.copyWith(fullText: state.fullText + buffer);
             buffer = '';
           }
         },
         onDone: () {
+          if (_disposed) return;
+          debugPrint('[FaceResultNotifier] onDone, buffer=${buffer.length}, fullText=${state.fullText.length}');
           if (buffer.isNotEmpty) {
             state = state.copyWith(fullText: state.fullText + buffer);
           }
@@ -89,6 +110,8 @@ class FaceResultNotifier extends _$FaceResultNotifier {
           _sub = null;
         },
         onError: (e) {
+          if (_disposed) return;
+          debugPrint('[FaceResultNotifier] onError: $e');
           final msg = e.toString();
           final isModelErr = msg.contains('model') ||
               msg.contains('Model') ||
@@ -103,7 +126,9 @@ class FaceResultNotifier extends _$FaceResultNotifier {
         },
         cancelOnError: true,
       );
+      debugPrint('[FaceResultNotifier] 구독 등록 완료');
     } catch (e) {
+      debugPrint('[FaceResultNotifier] catch: $e');
       final msg = e.toString();
       final isModelErr = msg.contains('model') ||
           msg.contains('Model') ||
@@ -139,8 +164,9 @@ class FaceResultNotifier extends _$FaceResultNotifier {
       state = state.copyWith(isSaving: false);
       return reading;
     } catch (e) {
+      debugPrint('[FaceResultNotifier] saveReading error: $e');
       state = state.copyWith(isSaving: false);
-      return null;
+      rethrow;
     }
   }
 }

@@ -112,6 +112,9 @@
   "goBack": "返回",
   "palmGuide": "请将手掌朝向\n屏幕展开",
   "aiEngineInitializing": "AI引擎初始化中...",
+  "aiEngineInitializingDesc": "首次运行可能需要几秒钟",
+  "aiEngineInitError": "AI引擎初始化失败",
+  "aiEngineRetry": "重试",
 
   "faceAnalyzing": "面相分析中...",
   "palmAnalyzing": "手相分析中...",
@@ -151,6 +154,10 @@
   "modelScanning": "扫描设备中...",
   "modelScanningDesc": "正在搜索已安装的AI模型",
   "modelFound": "发现模型！",
+  "modelVerifying": "正在验证文件完整性...",
+  "modelVerifyingDesc": "正在检查下载的文件（可能需要一些时间）",
+  "modelInstalling": "正在安装模型...",
+  "modelInstallingDesc": "正在将AI模型注册到应用程序",
   "modelDownloadingWith": "AI模型准备中 ({name})",
   "@modelDownloadingWith": {
     "placeholders": { "name": { "type": "String" } }
@@ -189,10 +196,10 @@
   "homeDailyFallback": "愿你今日气息清晰、心神安稳。",
   "homeFaceLabel": "AI 面相",
   "homeFaceTitle": "读面",
-  "homeFaceDesc": "468 关键点",
+  "homeFaceDesc": "AI解析468个面部特征点，从额头到下巴全面解读您的面相",
   "homePalmLabel": "AI 手相",
   "homePalmTitle": "读手",
-  "homePalmDesc": "21 关键点",
+  "homePalmDesc": "AI通过21个手部特征点解读生命线、感情线、头脑线与命运线",
   "homeResumeTitle": "继续未完",
   "homeResumeEmpty": "暂无进行中的咨询。",
   "commonSeeAll": "查看全部",
@@ -228,5 +235,27 @@
 
   "settingsSectionAnalysis": "分析",
   "settingsSectionPrivacy": "隐私与法律",
-  "settingsSectionAbout": "关于应用"
+  "settingsSectionAbout": "关于应用",
+
+  "streamingBackTitle": "正在分析中",
+  "streamingBackBody": "AI分析尚未完成。\n现在退出可能会导致下次分析延迟启动。",
+  "streamingBackLeave": "退出",
+
+  "selectFromGallery": "从相册选择",
+  "noFaceDetected": "未检测到人脸，请选择其他照片。",
+  "noPalmDetected": "未检测到手部，请选择其他照片。",
+  "galleryPermissionRequired": "需要相册访问权限。",
+
+  "streakDays": "天连续",
+  "todayBadge": "今日",
+  "minRead": "3 MIN",
+  "aiName": "타오운세",
+  "homeConsultLabel": "AI咨询",
+  "homeConsultSub": "基于分析结果进行深度对话",
+  "selectLanguageTitle": "请选择语言",
+  "selectLanguageSub": "SELECT YOUR LANGUAGE",
+  "enterApp": "进入 →",
+  "confidence": "可信度",
+  "authSignInSubtitle": "登录后可保存分析结果并继续AI咨询",
+  "authTermsNotice": "登录即表示您同意我们的服务条款和隐私政策。"
 }

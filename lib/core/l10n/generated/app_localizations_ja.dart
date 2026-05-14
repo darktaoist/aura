@@ -304,6 +304,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiEngineInitializing => 'AIエンジンを初期化中...';
 
   @override
+  String get aiEngineInitializingDesc => '初回起動時は数秒かかる場合があります';
+
+  @override
+  String get aiEngineInitError => 'AIエンジンの初期化に失敗しました';
+
+  @override
+  String get aiEngineRetry => '再試行';
+
+  @override
   String get faceAnalyzing => '観相分析中...';
 
   @override
@@ -393,6 +402,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get modelFound => 'モデルを発見！';
 
   @override
+  String get modelVerifying => 'ファイルの整合性を検証中...';
+
+  @override
+  String get modelVerifyingDesc => 'ダウンロードしたファイルを確認しています（しばらくかかります）';
+
+  @override
+  String get modelInstalling => 'モデルをインストール中...';
+
+  @override
+  String get modelInstallingDesc => 'AIモデルをアプリに登録しています';
+
+  @override
   String modelDownloadingWith(String name) {
     return 'AIモデル準備中 ($name)';
   }
@@ -478,7 +499,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeFaceTitle => '顔を読む';
 
   @override
-  String get homeFaceDesc => '468 ランドマーク';
+  String get homeFaceDesc => '468の顔の特徴点をAIが解析し、額・目・鼻・口・顎の人相を読み解きます';
 
   @override
   String get homePalmLabel => 'AI 手相';
@@ -487,7 +508,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homePalmTitle => '手を読む';
 
   @override
-  String get homePalmDesc => '21 ランドマーク';
+  String get homePalmDesc => '21の手の特徴点から生命線・感情線・頭脳線・運命線をAIが読み解きます';
 
   @override
   String get homeResumeTitle => '続きから';
@@ -595,4 +616,61 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSectionAbout => 'アプリ情報';
+
+  @override
+  String get streamingBackTitle => '解析中です';
+
+  @override
+  String get streamingBackBody => 'AI解析がまだ完了していません。\n今戻ると、次の解析の開始が遅れる場合があります。';
+
+  @override
+  String get streamingBackLeave => '退出する';
+
+  @override
+  String get selectFromGallery => 'ギャラリーから選択';
+
+  @override
+  String get noFaceDetected => '顔を検出できませんでした。別の写真を選んでください。';
+
+  @override
+  String get noPalmDetected => '手を検出できませんでした。別の写真を選んでください。';
+
+  @override
+  String get galleryPermissionRequired => '写真へのアクセス権限が必要です。';
+
+  @override
+  String get streakDays => '日連続';
+
+  @override
+  String get todayBadge => '今日';
+
+  @override
+  String get minRead => '3 MIN';
+
+  @override
+  String get aiName => '타오운세';
+
+  @override
+  String get homeConsultLabel => 'AI相談';
+
+  @override
+  String get homeConsultSub => '鑑定結果をもとに深い対話を';
+
+  @override
+  String get selectLanguageTitle => '言語を選択してください';
+
+  @override
+  String get selectLanguageSub => 'SELECT YOUR LANGUAGE';
+
+  @override
+  String get enterApp => '始める →';
+
+  @override
+  String get confidence => '信頼度';
+
+  @override
+  String get authSignInSubtitle => 'ログインすると鑑定結果を保存し、AI相談を続けることができます';
+
+  @override
+  String get authTermsNotice => 'ログインすることで、利用規約およびプライバシーポリシーに同意したことになります。';
 }

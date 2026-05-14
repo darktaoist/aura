@@ -309,6 +309,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiEngineInitializing => 'Initializing AI engine...';
 
   @override
+  String get aiEngineInitializingDesc => 'May take a few seconds on first run';
+
+  @override
+  String get aiEngineInitError => 'AI engine initialization failed';
+
+  @override
+  String get aiEngineRetry => 'Try Again';
+
+  @override
   String get faceAnalyzing => 'Reading face...';
 
   @override
@@ -399,6 +408,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelFound => 'Model Found!';
 
   @override
+  String get modelVerifying => 'Verifying file integrity...';
+
+  @override
+  String get modelVerifyingDesc =>
+      'Checking the downloaded file (may take a moment)';
+
+  @override
+  String get modelInstalling => 'Installing model...';
+
+  @override
+  String get modelInstallingDesc => 'Registering AI model with the app';
+
+  @override
   String modelDownloadingWith(String name) {
     return 'Preparing AI Model ($name)';
   }
@@ -484,7 +506,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFaceTitle => 'Read your face';
 
   @override
-  String get homeFaceDesc => '468 landmarks';
+  String get homeFaceDesc =>
+      'AI maps 468 facial points — forehead, eyes, nose, mouth & chin — to reveal your face reading';
 
   @override
   String get homePalmLabel => 'AI Palm';
@@ -493,7 +516,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePalmTitle => 'Read your hand';
 
   @override
-  String get homePalmDesc => '21 landmarks';
+  String get homePalmDesc =>
+      'AI traces 21 hand points to decode your life, heart, head & fate lines';
 
   @override
   String get homeResumeTitle => 'Pick up where you left off';
@@ -602,4 +626,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSectionAbout => 'About';
+
+  @override
+  String get streamingBackTitle => 'Analysis in Progress';
+
+  @override
+  String get streamingBackBody =>
+      'AI analysis is not yet complete.\nLeaving now may delay the start of the next analysis.';
+
+  @override
+  String get streamingBackLeave => 'Leave';
+
+  @override
+  String get selectFromGallery => 'Select from Gallery';
+
+  @override
+  String get noFaceDetected => 'No face detected. Please select another photo.';
+
+  @override
+  String get noPalmDetected => 'No hand detected. Please select another photo.';
+
+  @override
+  String get galleryPermissionRequired => 'Photo library access is required.';
+
+  @override
+  String get streakDays => 'day streak';
+
+  @override
+  String get todayBadge => 'TODAY';
+
+  @override
+  String get minRead => '3 MIN';
+
+  @override
+  String get aiName => '타오운세';
+
+  @override
+  String get homeConsultLabel => 'AI Chat';
+
+  @override
+  String get homeConsultSub => 'Deep conversation based on your reading';
+
+  @override
+  String get selectLanguageTitle => 'Select your language';
+
+  @override
+  String get selectLanguageSub => 'SELECT YOUR LANGUAGE';
+
+  @override
+  String get enterApp => 'Enter →';
+
+  @override
+  String get confidence => 'CONF';
+
+  @override
+  String get authSignInSubtitle =>
+      'Sign in to save your readings and continue AI consultations';
+
+  @override
+  String get authTermsNotice =>
+      'By signing in, you agree to our Terms of Service and Privacy Policy.';
 }

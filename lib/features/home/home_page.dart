@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../auth/auth_notifier.dart';
-import '../consultation/providers/consultation_list_provider.dart';
+import '../../core/constants/daily_quotes.dart';
 import '../model_setup/model_config.dart';
 import '../model_setup/model_setup_notifier.dart';
 import 'widgets/aura_wordmark.dart';
 import 'widgets/home_hero_card.dart';
-import 'widgets/home_resume_tile.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -21,173 +21,241 @@ class HomePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authNotifierProvider);
     final isGuest = !authState.isLoggedIn;
-    final theme = Theme.of(context);
-    final aura = context.auraColors;
+
 
     return Scaffold(
+      backgroundColor: AppColors.bg0,
       body: Column(
         children: [
           Expanded(
-            child: SafeArea(
-              bottom: false,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // ── App bar ─────────────────────────────────────────────
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.md,
-                        AppSpacing.sm, AppSpacing.sm,
+            child: Stack(
+              children: [
+                // ── Vertical poetry strip (left edge) ──────────────────────
+                Positioned(
+                  left: 0, top: 80, bottom: 80, width: 22,
+                  child: Center(
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: Text(
+                        '結이 흐르는 자리, 읽어드립니다',
+                        style: GoogleFonts.notoSerifKr(
+                          fontSize: 10,
+                          color: AppColors.goldLight.withValues(alpha: 0.5),
+                          letterSpacing: 5,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          const AuraWordmark(size: 22),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.history_outlined),
-                            tooltip: l10n.history,
-                            onPressed: () => context.push('/history'),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined),
-                            tooltip: l10n.settings,
-                            onPressed: () => context.push('/settings'),
-                          ),
-                          PopupMenuButton<String>(
-                            onSelected: (val) {
-                              switch (val) {
-                                case 'login':
-                                  context.push('/auth');
-                                case 'logout':
-                                  ref.read(authNotifierProvider.notifier).signOut();
-                                case 'terms':
-                                  context.push('/terms');
-                                case 'privacy':
-                                  context.push('/privacy');
-                              }
-                            },
-                            itemBuilder: (_) => [
-                              if (!authState.isLoggedIn)
-                                PopupMenuItem(value: 'login', child: Text(l10n.login))
-                              else
-                                PopupMenuItem(value: 'logout', child: Text(l10n.logout)),
-                              PopupMenuItem(value: 'terms', child: Text(l10n.termsOfService)),
-                              PopupMenuItem(value: 'privacy', child: Text(l10n.privacyPolicy)),
+                    ),
+                  ),
+                ),
+
+                // ── Main scroll ─────────────────────────────────────────────
+                SafeArea(
+                  bottom: false,
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      // Top bar
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 12, 12, 6),
+                          child: Row(
+                            children: [
+                              const AuraWordmark(size: 20),
+                              const Spacer(),
+                              // history icon
+                              _TopBarIconBtn(
+                                icon: Icons.history_outlined,
+                                tooltip: l10n.history,
+                                onTap: () => context.push('/history'),
+                              ),
+                              const SizedBox(width: 2),
+                              // settings icon
+                              _TopBarIconBtn(
+                                icon: Icons.tune_outlined,
+                                tooltip: l10n.settings,
+                                onTap: () => context.push('/settings'),
+                              ),
+                              const SizedBox(width: 2),
+                              // profile / menu (login·logout·약관만)
+                              PopupMenuButton<String>(
+                                icon: Container(
+                                  width: 34, height: 34,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppColors.hair, width: 1),
+                                  ),
+                                  child: Icon(
+                                    Icons.person_outline,
+                                    size: 16,
+                                    color: AppColors.ivoryMid,
+                                  ),
+                                ),
+                                color: AppColors.bg3,
+                                onSelected: (val) {
+                                  switch (val) {
+                                    case 'login': context.push('/auth');
+                                    case 'logout': ref.read(authNotifierProvider.notifier).signOut();
+                                    case 'terms': context.push('/terms');
+                                    case 'privacy': context.push('/privacy');
+                                  }
+                                },
+                                itemBuilder: (_) => [
+                                  if (!authState.isLoggedIn)
+                                    PopupMenuItem(value: 'login', child: Text(l10n.login))
+                                  else
+                                    PopupMenuItem(value: 'logout', child: Text(l10n.logout)),
+                                  const PopupMenuDivider(),
+                                  PopupMenuItem(value: 'terms', child: Text(l10n.termsOfService)),
+                                  PopupMenuItem(value: 'privacy', child: Text(l10n.privacyPolicy)),
+                                ],
+                              ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  // ── Hero ────────────────────────────────────────────────
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.md,
-                        AppSpacing.lg, AppSpacing.xl,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.homeGreeting,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: aura.onSurfaceSubtle,
-                              letterSpacing: 1.6,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            l10n.homeDailyFallback,
-                            style: theme.textTheme.displaySmall?.copyWith(height: 1.3),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── 관상/손금 2×1 그리드 ────────────────────────────────
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    sliver: SliverToBoxAdapter(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          const gap = AppSpacing.md;
-                          final cardW = (constraints.maxWidth - gap) / 2;
-                          return Row(
+                      // Daily header
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 10, 24, 16),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                width: cardW,
-                                child: HomeHeroCard(
-                                  label: l10n.homeFaceLabel,
-                                  title: l10n.homeFaceTitle,
-                                  description: l10n.homeFaceDesc,
-                                  icon: Icons.face_retouching_natural_outlined,
-                                  accent: aura.sectionAccents['overall']!,
-                                  showGuestBadge: isGuest,
-                                  onTap: () => context.push('/face/camera'),
+                              Text(
+                                l10n.homeGreeting.toUpperCase(),
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 9, letterSpacing: 3,
+                                  color: AppColors.goldLight,
                                 ),
                               ),
-                              const SizedBox(width: gap),
-                              SizedBox(
-                                width: cardW,
-                                child: HomeHeroCard(
-                                  label: l10n.homePalmLabel,
-                                  title: l10n.homePalmTitle,
-                                  description: l10n.homePalmDesc,
-                                  icon: Icons.back_hand_outlined,
-                                  accent: aura.sectionAccents['eyes']!,
-                                  showGuestBadge: isGuest,
-                                  onTap: () => context.push('/palm/camera'),
+                              const SizedBox(height: 7),
+                              Text(
+                                '「${getDailyQuote(Localizations.localeOf(context).languageCode)}」',
+                                style: GoogleFonts.notoSerifKr(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w300,
+                                  color: AppColors.ivory,
+                                  height: 1.55,
                                 ),
                               ),
                             ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
-
-                  // ── 이어가기 섹션 헤더 ──────────────────────────────────
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                      child: Row(
-                        children: [
-                          Text(l10n.homeResumeTitle,
-                              style: theme.textTheme.titleLarge),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () => context.push('/consultation'),
-                            child: Text(l10n.commonSeeAll),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
+                      // Hairline rule
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 0, 24, 16),
+                          child: Divider(
+                            color: AppColors.hair,
+                            height: 1, thickness: 1,
+                          ),
+                        ),
+                      ),
 
-                  // ── 최근 상담 1건 or 빈 상태 ────────────────────────────
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: _ResumeSection(l10n: l10n),
-                    ),
+                      // Hero cards
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(28, 0, 20, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              HomeHeroCard(
+                                label: l10n.homeFaceLabel,
+                                title: l10n.homeFaceTitle,
+                                description: l10n.homeFaceDesc,
+                                icon: Icons.face_retouching_natural_outlined,
+                                accent: AppColors.face,
+                                sealChar: '相',
+                                tall: true,
+                                metaLabel: l10n.minRead,
+                                silhouette: const FaceSilhouette(),
+                                showGuestBadge: isGuest,
+                                onTap: () => context.push('/face/camera'),
+                              ),
+                              const SizedBox(height: 12),
+                              HomeHeroCard(
+                                label: l10n.homePalmLabel,
+                                title: l10n.homePalmTitle,
+                                description: l10n.homePalmDesc,
+                                icon: Icons.back_hand_outlined,
+                                accent: AppColors.palm,
+                                sealChar: '掌',
+                                tall: true,
+                                metaLabel: l10n.minRead,
+                                silhouette: const PalmSilhouette(),
+                                showGuestBadge: isGuest,
+                                onTap: () => context.push('/palm/camera'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // AI Consultation row
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 16, 20, 36),
+                          child: GestureDetector(
+                            onTap: () => context.push('/consultation'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 13,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(AppRadius.xs),
+                                border: Border.all(color: AppColors.hair, width: 1),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.chat.withValues(alpha: 0.15),
+                                    AppColors.bg1.withValues(alpha: 0.6),
+                                  ],
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  _AvatarBubble(),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${l10n.aiName} · ${l10n.homeConsultLabel}',
+                                          style: GoogleFonts.notoSerifKr(
+                                            fontSize: 14,
+                                            color: AppColors.ivory,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                        Text(
+                                          l10n.homeConsultSub,
+                                          style: GoogleFonts.notoSansKr(
+                                            fontSize: 11,
+                                            color: AppColors.ivoryDim,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    color: AppColors.goldLight, size: 18,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // ── 모델 다운로드 배너 ──────────────────────────────────────────
+          // Model download banner
           if (setupState.isDownloading)
             _ModelDownloadBanner(
               progress: setupState.progress,
@@ -200,80 +268,76 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-// ── 이어가기 섹션 (로그인/비로그인/로딩 분기) ─────────────────────────────────
-class _ResumeSection extends ConsumerWidget {
-  const _ResumeSection({required this.l10n});
-  final AppLocalizations l10n;
+class _TopBarIconBtn extends StatelessWidget {
+  const _TopBarIconBtn({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final aura = context.auraColors;
-    final theme = Theme.of(context);
-    final authState = ref.watch(authNotifierProvider);
-
-    if (!authState.isLoggedIn) {
-      return _emptyResume(context, aura, theme, l10n);
-    }
-
-    final asyncList = ref.watch(consultationListProvider);
-    return asyncList.when(
-      loading: () => _shimmer(aura),
-      error: (_, __) => _emptyResume(context, aura, theme, l10n),
-      data: (list) {
-        if (list.isEmpty) return _emptyResume(context, aura, theme, l10n);
-        final latest = list.first;
-        return HomeResumeTile(
-          consultation: latest,
-          onTap: () => context.push('/consultation/${latest.id}'),
-        );
-      },
-    );
-  }
-
-  Widget _shimmer(AuraColors aura) {
-    return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: aura.surfaceContainer,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: aura.cardBorder, width: 1),
-      ),
-    );
-  }
-
-  Widget _emptyResume(
-    BuildContext context, AuraColors aura, ThemeData theme, AppLocalizations l10n,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: aura.surfaceContainer,
-        border: Border.all(color: aura.cardBorder, width: 1),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: aura.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-            child: Icon(Icons.chat_bubble_outline,
-                size: 20, color: aura.onSurfaceMuted),
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 34, height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.hair, width: 1),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(l10n.homeResumeEmpty,
-                style: theme.textTheme.bodyMedium),
-          ),
-        ],
+          child: Icon(icon, size: 16, color: AppColors.ivoryMid),
+        ),
       ),
     );
   }
 }
 
-// ── 모델 다운로드 배너 ─────────────────────────────────────────────────────────
+class _AvatarBubble extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.chat.withValues(alpha: 0.25),
+            border: Border.all(
+              color: AppColors.chat.withValues(alpha: 0.6), width: 0.6,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              '解',
+              style: GoogleFonts.notoSerifKr(
+                fontSize: 14, color: AppColors.goldLight,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 1, right: 1,
+          child: Container(
+            width: 7, height: 7,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.ok,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Model download banner ────────────────────────────────────────────────────
+
 class _ModelDownloadBanner extends StatelessWidget {
   const _ModelDownloadBanner({
     required this.progress,
@@ -287,14 +351,12 @@ class _ModelDownloadBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final downloaded = (progress / 100 * modelSizeGb).toStringAsFixed(1);
-
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        border: Border(top: BorderSide(color: cs.outlineVariant)),
+        color: AppColors.bg3,
+        border: const Border(top: BorderSide(color: AppColors.hair, width: 1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -304,10 +366,12 @@ class _ModelDownloadBanner extends StatelessWidget {
             children: [
               Text('${l10n.modelDownloading}…',
                   style: Theme.of(context).textTheme.bodyMedium),
-              Text('$progress%',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: cs.primary, fontWeight: FontWeight.bold,
-                      )),
+              Text(
+                '$progress%',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.gold, fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -315,8 +379,7 @@ class _ModelDownloadBanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress / 100,
-              minHeight: 6,
-              backgroundColor: cs.outlineVariant,
+              minHeight: 4,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -325,8 +388,8 @@ class _ModelDownloadBanner extends StatelessWidget {
             child: Text(
               '$downloaded GB / ${modelSizeGb.toStringAsFixed(1)} GB',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: cs.onSurface.withValues(alpha: 0.5),
-                  ),
+                color: AppColors.ivoryDim,
+              ),
             ),
           ),
         ],

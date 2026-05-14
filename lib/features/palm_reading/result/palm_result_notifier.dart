@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/gemma/gemma_service.dart';
@@ -46,10 +47,19 @@ class PalmResultState {
 @riverpod
 class PalmResultNotifier extends _$PalmResultNotifier {
   StreamSubscription<String>? _sub;
+  GemmaService? _svc;
+  bool _disposed = false;
 
   @override
   PalmResultState build() {
-    ref.onDispose(() { _sub?.cancel(); });
+    ref.onDispose(() {
+      _disposed = true;
+      _sub?.cancel();
+      _sub = null;
+      _svc?.cancelCurrentGeneration();
+      _svc?.disposeSession();
+      _svc = null;
+    });
     return const PalmResultState();
   }
 
@@ -58,14 +68,17 @@ class PalmResultNotifier extends _$PalmResultNotifier {
     required String locale,
     List<String> ragChunks = const [],
   }) async {
-    // 진행 중인 분석 취소 후 재시작 (locale 변경 시 등)
-    await _sub?.cancel();
+    // 진행 중인 분석 취소 후 재시작
+    _sub?.cancel();
     _sub = null;
+    _svc?.cancelCurrentGeneration();
 
     state = state.copyWith(isStreaming: true, fullText: '', clearError: true);
 
     try {
       final svc = await ref.read(gemmaServiceProvider.future);
+      if (_disposed) return;
+      _svc = svc;
       final stream = svc.analyzePalmLongForm(
         result: result,
         locale: locale,
@@ -75,6 +88,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
       var buffer = '';
       _sub = stream.listen(
         (token) {
+          if (_disposed) return;
           buffer += token;
           if (buffer.length >= 20) {
             state = state.copyWith(fullText: state.fullText + buffer);
@@ -82,6 +96,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
           }
         },
         onDone: () {
+          if (_disposed) return;
           if (buffer.isNotEmpty) {
             state = state.copyWith(fullText: state.fullText + buffer);
           }
@@ -89,6 +104,7 @@ class PalmResultNotifier extends _$PalmResultNotifier {
           _sub = null;
         },
         onError: (e) {
+          if (_disposed) return;
           final msg = e.toString();
           final isModelErr = msg.contains('model') ||
               msg.contains('Model') ||
@@ -138,8 +154,9 @@ class PalmResultNotifier extends _$PalmResultNotifier {
       state = state.copyWith(isSaving: false);
       return reading;
     } catch (e) {
+      debugPrint('[PalmResultNotifier] saveReading error: $e');
       state = state.copyWith(isSaving: false);
-      return null;
+      rethrow;
     }
   }
 }

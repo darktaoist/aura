@@ -1,0 +1,4 @@
+project_id = "vpjfwwijijjevjmudjol"
+
+[functions.kakao-auth]
+verify_jwt = false

@@ -1,15 +1,10 @@
 // lib/core/theme/app_theme.dart
 //
-// Aura ThemeData — Light / Dark
-// ─────────────────────────────────────────────────────────────────────────────
-// • google_fonts Noto Sans KR 기반 타이포그래피 (Pretendard fallback)
-// • ColorScheme.fromSeed 를 Aura surface 토큰으로 오버라이드
-// • CardTheme: elevation 0, 1px border + subtle shadow (elevation 대체)
-// • FilledButton/OutlinedButton/IconButton/Chip/Input/BottomSheet/SnackBar 정리
-// • AuraColors ThemeExtension 주입 → `context.auraColors` 로 접근
+// Aura ThemeData — Obsidian + Gold (always dark)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
@@ -17,43 +12,44 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData light() => _buildTheme(Brightness.light);
+  // App은 항상 dark. light()는 호환용으로 dark()와 동일 반환.
+  static ThemeData light() => _buildTheme(Brightness.dark);
   static ThemeData dark()  => _buildTheme(Brightness.dark);
 }
 
 ThemeData _buildTheme(Brightness brightness) {
-  final isDark = brightness == Brightness.dark;
+  const isDark = true;
 
   // ── ColorScheme ───────────────────────────────────────────────────────────
   final base = ColorScheme.fromSeed(
-    seedColor: isDark ? AppColors.seedDark : AppColors.seed,
-    brightness: brightness,
+    seedColor: AppColors.gold,
+    brightness: Brightness.dark,
   );
 
   final colorScheme = base.copyWith(
-    primary:   isDark ? AppColors.seedDark : AppColors.seed,
-    onPrimary: Colors.white,
-    surface:   isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-    onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
-    surfaceContainer:
-        isDark ? AppColors.surfaceContainerDark : AppColors.surfaceContainerLight,
-    surfaceContainerHighest: isDark
-        ? AppColors.surfaceContainerHighestDark
-        : AppColors.surfaceContainerHighestLight,
-    outline:        isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
-    outlineVariant: isDark ? const Color(0x14FFFFFF) : const Color(0x0A000000),
+    primary:   AppColors.gold,
+    onPrimary: AppColors.bg0,
+    secondary: AppColors.goldLight,
+    onSecondary: AppColors.bg0,
+    surface:   AppColors.bg1,
+    onSurface: AppColors.ivory,
+    surfaceContainer:         AppColors.bg2,
+    surfaceContainerHighest:  AppColors.bg3,
+    outline:        AppColors.hair,
+    outlineVariant: AppColors.hair2,
     error:          AppColors.danger,
-    scrim:          isDark ? AppColors.scrimDark : AppColors.scrimLight,
+    scrim:          const Color(0x99000000),
+    brightness: Brightness.dark,
   );
 
-  // ── Typography (Noto Sans KR + Pretendard fallback) ───────────────────────
+  // ── Typography (Noto Sans KR) ─────────────────────────────────────────────
   final baseText = GoogleFonts.notoSansKrTextTheme(
-    ThemeData(brightness: brightness).textTheme,
+    ThemeData(brightness: Brightness.dark).textTheme,
   );
 
-  final onSurface = colorScheme.onSurface;
-  final onMuted   = isDark ? AppColors.onSurfaceMutedDark : AppColors.onSurfaceMutedLight;
-  final onSubtle  = isDark ? AppColors.onSurfaceSubtleDark : AppColors.onSurfaceSubtleLight;
+  const onSurface = AppColors.ivory;
+  const onMuted   = AppColors.ivoryMid;
+  const onSubtle  = AppColors.ivoryDim;
 
   final textTheme = baseText.copyWith(
     // Display — 히어로
@@ -133,56 +129,64 @@ ThemeData _buildTheme(Brightness brightness) {
   // ── ThemeData ─────────────────────────────────────────────────────────────
   return ThemeData(
     useMaterial3: true,
-    brightness: brightness,
+    brightness: Brightness.dark,
     colorScheme: colorScheme,
-    scaffoldBackgroundColor: colorScheme.surface,
-    canvasColor: colorScheme.surface,
-    splashFactory: InkSparkle.splashFactory,
+    scaffoldBackgroundColor: AppColors.bg1,
+    canvasColor: AppColors.bg1,
+    splashFactory: InkRipple.splashFactory,
     textTheme: textTheme,
     primaryTextTheme: textTheme,
 
-    cardTheme: CardThemeData(
-      color: isDark ? AppColors.surfaceContainerDark : AppColors.surfaceContainerLight,
+    cardTheme: const CardThemeData(
+      color: AppColors.bg2,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.xs)),
+        side: BorderSide(color: AppColors.hair, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
     ),
 
     appBarTheme: AppBarTheme(
-      backgroundColor: colorScheme.surface,
-      foregroundColor: colorScheme.onSurface,
+      backgroundColor: AppColors.bg1,
+      foregroundColor: AppColors.ivory,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      scrolledUnderElevation: 0.5,
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       centerTitle: false,
-      titleTextStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-      iconTheme: IconThemeData(color: colorScheme.onSurface, size: 22),
-      actionsIconTheme: IconThemeData(color: colorScheme.onSurface, size: 22),
+      titleTextStyle: textTheme.titleLarge?.copyWith(
+        color: AppColors.ivory, fontWeight: FontWeight.w500, letterSpacing: 0.5,
+      ),
+      iconTheme: const IconThemeData(color: AppColors.ivory, size: 22),
+      actionsIconTheme: const IconThemeData(color: AppColors.ivoryMid, size: 22),
     ),
 
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        disabledBackgroundColor: colorScheme.primary.withValues(alpha: 0.35),
-        disabledForegroundColor: colorScheme.onPrimary.withValues(alpha: 0.8),
-        minimumSize: const Size(0, 52),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md,
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppColors.goldDeep.withValues(alpha: 0.4);
+          }
+          return AppColors.gold;
+        }),
+        foregroundColor: WidgetStateProperty.all(AppColors.bg0),
+        overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.1)),
+        minimumSize: WidgetStateProperty.all(const Size(0, 52)),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+        shape: WidgetStateProperty.all(
+          const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(AppRadius.xs)),
+          ),
         ),
-        textStyle: textTheme.labelLarge?.copyWith(
-          fontSize: 15, fontWeight: FontWeight.w600,
+        textStyle: WidgetStateProperty.all(
+          textTheme.labelLarge?.copyWith(
+            fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5,
+          ),
         ),
       ),
     ),
@@ -192,7 +196,7 @@ ThemeData _buildTheme(Brightness brightness) {
         foregroundColor: colorScheme.onSurface,
         minimumSize: const Size(0, 52),
         side: BorderSide(
-          color: isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
+          color: AppColors.hair,
           width: 1,
         ),
         shape: RoundedRectangleBorder(
@@ -227,22 +231,15 @@ ThemeData _buildTheme(Brightness brightness) {
     ),
 
     chipTheme: ChipThemeData(
-      backgroundColor: isDark
-          ? AppColors.surfaceContainerHighestDark
-          : AppColors.surfaceContainerHighestLight,
-      selectedColor: colorScheme.primary.withValues(alpha: 0.12),
-      disabledColor: colorScheme.onSurface.withValues(alpha: 0.06),
+      backgroundColor: AppColors.bg3,
+      selectedColor: AppColors.gold.withValues(alpha: 0.2),
+      disabledColor: AppColors.bg2,
       labelStyle: textTheme.labelMedium!,
-      secondaryLabelStyle: textTheme.labelMedium!.copyWith(color: colorScheme.primary),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        side: BorderSide(
-          color: isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
-          width: 1,
-        ),
+      secondaryLabelStyle: textTheme.labelMedium!.copyWith(color: AppColors.gold),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
+        side: BorderSide(color: AppColors.hair, width: 1),
       ),
       side: BorderSide.none,
       showCheckmark: false,
@@ -250,71 +247,54 @@ ThemeData _buildTheme(Brightness brightness) {
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: isDark
-          ? AppColors.surfaceContainerHighestDark
-          : AppColors.surfaceContainerHighestLight,
+      fillColor: AppColors.bg2,
       hintStyle: textTheme.bodyMedium?.copyWith(color: onSubtle),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md, vertical: AppSpacing.md,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
         borderSide: BorderSide.none,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
-          width: 1,
-        ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
+        borderSide: BorderSide(color: AppColors.hair, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
         borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
         borderSide: BorderSide(color: colorScheme.error, width: 1),
       ),
     ),
 
-    dividerTheme: DividerThemeData(
-      color: isDark ? AppColors.cardBorderDark : AppColors.cardBorderLight,
-      space: 1, thickness: 1,
-    ),
+    dividerTheme: const DividerThemeData(color: AppColors.hair, space: 1, thickness: 1),
 
-    bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: colorScheme.surface,
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.bg3,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
     ),
 
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: isDark
-          ? AppColors.surfaceContainerHighestDark
-          : AppColors.onSurfaceLight,
-      contentTextStyle: textTheme.bodyMedium?.copyWith(
-        color: isDark ? AppColors.onSurfaceDark : Colors.white,
-      ),
+      backgroundColor: AppColors.bg3,
+      contentTextStyle: textTheme.bodyMedium?.copyWith(color: AppColors.ivory),
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
       ),
     ),
 
     progressIndicatorTheme: ProgressIndicatorThemeData(
-      color: colorScheme.primary,
-      linearTrackColor: colorScheme.primary.withValues(alpha: 0.16),
-      circularTrackColor: colorScheme.primary.withValues(alpha: 0.16),
+      color: AppColors.gold,
+      linearTrackColor: AppColors.gold.withValues(alpha: 0.16),
+      circularTrackColor: AppColors.gold.withValues(alpha: 0.16),
     ),
 
-    // ── Aura 고유 토큰 주입 ────────────────────────────────────────────────
-    extensions: <ThemeExtension<dynamic>>[
-      isDark ? AuraColors.dark : AuraColors.light,
-    ],
+    extensions: const <ThemeExtension<dynamic>>[AuraColors.dark],
   );
 }

@@ -112,6 +112,9 @@
   "goBack": "Go Back",
   "palmGuide": "Show your palm\nfacing the screen",
   "aiEngineInitializing": "Initializing AI engine...",
+  "aiEngineInitializingDesc": "May take a few seconds on first run",
+  "aiEngineInitError": "AI engine initialization failed",
+  "aiEngineRetry": "Try Again",
 
   "faceAnalyzing": "Reading face...",
   "palmAnalyzing": "Reading palm...",
@@ -151,6 +154,10 @@
   "modelScanning": "Scanning device...",
   "modelScanningDesc": "Searching for installed AI model",
   "modelFound": "Model Found!",
+  "modelVerifying": "Verifying file integrity...",
+  "modelVerifyingDesc": "Checking the downloaded file (may take a moment)",
+  "modelInstalling": "Installing model...",
+  "modelInstallingDesc": "Registering AI model with the app",
   "modelDownloadingWith": "Preparing AI Model ({name})",
   "@modelDownloadingWith": {
     "placeholders": { "name": { "type": "String" } }
@@ -189,10 +196,10 @@
   "homeDailyFallback": "May your presence stay clear today.",
   "homeFaceLabel": "AI Face",
   "homeFaceTitle": "Read your face",
-  "homeFaceDesc": "468 landmarks",
+  "homeFaceDesc": "AI maps 468 facial points — forehead, eyes, nose, mouth & chin — to reveal your face reading",
   "homePalmLabel": "AI Palm",
   "homePalmTitle": "Read your hand",
-  "homePalmDesc": "21 landmarks",
+  "homePalmDesc": "AI traces 21 hand points to decode your life, heart, head & fate lines",
   "homeResumeTitle": "Pick up where you left off",
   "homeResumeEmpty": "No ongoing consultations yet.",
   "commonSeeAll": "See all",
@@ -228,5 +235,27 @@
 
   "settingsSectionAnalysis": "Analysis",
   "settingsSectionPrivacy": "Privacy & Legal",
-  "settingsSectionAbout": "About"
+  "settingsSectionAbout": "About",
+
+  "streamingBackTitle": "Analysis in Progress",
+  "streamingBackBody": "AI analysis is not yet complete.\nLeaving now may delay the start of the next analysis.",
+  "streamingBackLeave": "Leave",
+
+  "selectFromGallery": "Select from Gallery",
+  "noFaceDetected": "No face detected. Please select another photo.",
+  "noPalmDetected": "No hand detected. Please select another photo.",
+  "galleryPermissionRequired": "Photo library access is required.",
+
+  "streakDays": "day streak",
+  "todayBadge": "TODAY",
+  "minRead": "3 MIN",
+  "aiName": "타오운세",
+  "homeConsultLabel": "AI Chat",
+  "homeConsultSub": "Deep conversation based on your reading",
+  "selectLanguageTitle": "Select your language",
+  "selectLanguageSub": "SELECT YOUR LANGUAGE",
+  "enterApp": "Enter →",
+  "confidence": "CONF",
+  "authSignInSubtitle": "Sign in to save your readings and continue AI consultations",
+  "authTermsNotice": "By signing in, you agree to our Terms of Service and Privacy Policy."
 }

@@ -303,6 +303,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiEngineInitializing => 'AI引擎初始化中...';
 
   @override
+  String get aiEngineInitializingDesc => '首次运行可能需要几秒钟';
+
+  @override
+  String get aiEngineInitError => 'AI引擎初始化失败';
+
+  @override
+  String get aiEngineRetry => '重试';
+
+  @override
   String get faceAnalyzing => '面相分析中...';
 
   @override
@@ -392,6 +401,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelFound => '发现模型！';
 
   @override
+  String get modelVerifying => '正在验证文件完整性...';
+
+  @override
+  String get modelVerifyingDesc => '正在检查下载的文件（可能需要一些时间）';
+
+  @override
+  String get modelInstalling => '正在安装模型...';
+
+  @override
+  String get modelInstallingDesc => '正在将AI模型注册到应用程序';
+
+  @override
   String modelDownloadingWith(String name) {
     return 'AI模型准备中 ($name)';
   }
@@ -477,7 +498,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeFaceTitle => '读面';
 
   @override
-  String get homeFaceDesc => '468 关键点';
+  String get homeFaceDesc => 'AI解析468个面部特征点，从额头到下巴全面解读您的面相';
 
   @override
   String get homePalmLabel => 'AI 手相';
@@ -486,7 +507,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homePalmTitle => '读手';
 
   @override
-  String get homePalmDesc => '21 关键点';
+  String get homePalmDesc => 'AI通过21个手部特征点解读生命线、感情线、头脑线与命运线';
 
   @override
   String get homeResumeTitle => '继续未完';
@@ -594,4 +615,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsSectionAbout => '关于应用';
+
+  @override
+  String get streamingBackTitle => '正在分析中';
+
+  @override
+  String get streamingBackBody => 'AI分析尚未完成。\n现在退出可能会导致下次分析延迟启动。';
+
+  @override
+  String get streamingBackLeave => '退出';
+
+  @override
+  String get selectFromGallery => '从相册选择';
+
+  @override
+  String get noFaceDetected => '未检测到人脸，请选择其他照片。';
+
+  @override
+  String get noPalmDetected => '未检测到手部，请选择其他照片。';
+
+  @override
+  String get galleryPermissionRequired => '需要相册访问权限。';
+
+  @override
+  String get streakDays => '天连续';
+
+  @override
+  String get todayBadge => '今日';
+
+  @override
+  String get minRead => '3 MIN';
+
+  @override
+  String get aiName => '타오운세';
+
+  @override
+  String get homeConsultLabel => 'AI咨询';
+
+  @override
+  String get homeConsultSub => '基于分析结果进行深度对话';
+
+  @override
+  String get selectLanguageTitle => '请选择语言';
+
+  @override
+  String get selectLanguageSub => 'SELECT YOUR LANGUAGE';
+
+  @override
+  String get enterApp => '进入 →';
+
+  @override
+  String get confidence => '可信度';
+
+  @override
+  String get authSignInSubtitle => '登录后可保存分析结果并继续AI咨询';
+
+  @override
+  String get authTermsNotice => '登录即表示您同意我们的服务条款和隐私政策。';
 }

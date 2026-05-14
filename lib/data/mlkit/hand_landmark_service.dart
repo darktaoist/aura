@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hand_landmarker/hand_landmarker.dart';
+import 'package:hand_landmarker/hand_landmarker_bindings.dart';
+import 'package:image/image.dart' as img_pkg;
+import 'package:jni/jni.dart';
 
 import '../../domain/entities/landmark_result.dart';
 import '../../domain/entities/palm_result.dart';
@@ -18,13 +23,22 @@ class HandLandmarkService {
   bool _pluginInitialized = false;
   bool get isReady => _pluginInitialized;
 
+  // 갤러리 파일 전용 — CPU delegate, 첫 호출 시 lazy init
+  MyHandLandmarker? _fileDetector;
+
   bool _coordsLogged = false;
 
   static Future<HandLandmarkService> create() async {
-    // create()는 즉시 반환 — GPU 플러그인은 첫 process() 호출 시 lazy init.
+    // create()는 즉시 반환 — GPU 플러그인은 warmUp() 또는 첫 process() 호출 시 lazy init.
     // HandLandmarkerPlugin.create()는 동기 플랫폼 채널 호출이라 여기서 실행하면
     // Dart 메인 이솔레이트를 블록해 화면 전환 자체가 멈춰 보임.
     return HandLandmarkService._();
+  }
+
+  /// 카메라 프리뷰가 렌더된 직후 호출해 플러그인을 명시적으로 초기화한다.
+  /// 이미지 스트림 콜백 내에서 lazy init이 일어나는 것을 방지한다.
+  void warmUp() {
+    if (!_pluginInitialized) _getPlugin();
   }
 
   HandLandmarkerPlugin _getPlugin() {
@@ -43,10 +57,10 @@ class HandLandmarkService {
   }
 
   /// CameraImage → PalmLandmarkResult?  (async 래퍼)
+  /// isLeftHand는 display 좌표 기반으로 자동 감지된다 (thumb tip x > wrist x → 왼손).
   Future<PalmLandmarkResult?> process(
     CameraImage image,
     CameraDescription camera,
-    bool isLeftHand,
   ) async {
     final plugin = _getPlugin();
 
@@ -106,18 +120,135 @@ class HandLandmarkService {
             '  dispW=$dispWidth dispH=$dispHeight');
       }
 
+      // display 좌표에서 thumb tip(4)이 wrist(0)보다 오른쪽이면 왼손
+      // (전면 카메라 mirror + 회전 변환 후 기준)
+      final detectedIsLeft = points[4].x > points[0].x;
+
       return PalmLandmarkResult(
         landmarks: points,
         score: 1.0,
         features: _extractFeatures(points),
         frameWidth: dispWidth,
         frameHeight: dispHeight,
-        isLeftHand: isLeftHand,
+        isLeftHand: detectedIsLeft,
       );
     } catch (e, st) {
       debugPrint('[HandLandmarkService] process error: $e\n$st');
       return null;
     }
+  }
+
+  // ── 정적 이미지(갤러리) 처리 ──────────────────────────────────────────────
+
+  /// 갤러리 사진 파일 경로 → PalmLandmarkResult?
+  /// EXIF 보정 후 I420 변환 → JNI detectFromYuv 호출 (CPU delegate).
+  /// isLeftHand는 자동 감지된다 (thumb tip x > wrist x 기준).
+  Future<PalmLandmarkResult?> processFile(String imagePath) async {
+    try {
+      final bytes = await File(imagePath).readAsBytes();
+      final raw = img_pkg.decodeImage(bytes);
+      if (raw == null) return null;
+
+      final oriented = img_pkg.bakeOrientation(raw);
+      final sized = _resizeForDetection(oriented);
+      final w = sized.width;
+      final h = sized.height;
+
+      final (yPlane, uPlane, vPlane) = _imageToI420(sized);
+      final uvW = w ~/ 2;
+
+      _fileDetector ??= MyHandLandmarker(Jni.androidApplicationContext)
+        ..initialize(1, 0.6, false); // CPU delegate: GPU 충돌 방지
+
+      final yBuf = JByteBuffer.fromList(yPlane);
+      final uBuf = JByteBuffer.fromList(uPlane);
+      final vBuf = JByteBuffer.fromList(vPlane);
+
+      final resultJStr = _fileDetector!.detectFromYuv(
+        yBuf, uBuf, vBuf,
+        w, h,
+        w,    // yBytesPerRow
+        uvW,  // uBytesPerRow
+        1,    // uBytesPerPixel (planar)
+        0,    // sensorOrientation: EXIF 이미 보정됨
+      );
+
+      yBuf.release(); uBuf.release(); vBuf.release();
+      final str = resultJStr.toDartString();
+      resultJStr.release();
+
+      if (str.isEmpty || str == '[]') return null;
+
+      final parsed = jsonDecode(str) as List<dynamic>;
+      if (parsed.isEmpty) return null;
+
+      final landmarks = (parsed.first as List<dynamic>).map((d) {
+        final m = d as Map<String, dynamic>;
+        return LandmarkPoint(
+          x: (m['x'] as num).toDouble().clamp(0.0, 1.0),
+          y: (m['y'] as num).toDouble().clamp(0.0, 1.0),
+          z: (m['z'] as num).toDouble(),
+        );
+      }).toList();
+
+      if (landmarks.length < 21) return null;
+
+      final detectedIsLeft = landmarks[4].x > landmarks[0].x;
+
+      return PalmLandmarkResult(
+        landmarks: landmarks,
+        score: 1.0,
+        features: _extractFeatures(landmarks),
+        frameWidth: w,
+        frameHeight: h,
+        isLeftHand: detectedIsLeft,
+      );
+    } catch (e, st) {
+      debugPrint('[HandLandmarkService] processFile error: $e\n$st');
+      return null;
+    }
+  }
+
+  img_pkg.Image _resizeForDetection(img_pkg.Image image) {
+    const maxDim = 1280;
+    if (image.width <= maxDim && image.height <= maxDim) return image;
+    return image.width > image.height
+        ? img_pkg.copyResize(image, width: maxDim)
+        : img_pkg.copyResize(image, height: maxDim);
+  }
+
+  /// RGB → I420 planar (Y, U, V 분리 배열)
+  (Uint8List, Uint8List, Uint8List) _imageToI420(img_pkg.Image image) {
+    final w = image.width;
+    final h = image.height;
+    final uvW = w ~/ 2;
+    final uvH = h ~/ 2;
+
+    final y = Uint8List(w * h);
+    final u = Uint8List(uvW * uvH);
+    final v = Uint8List(uvW * uvH);
+
+    int yPos = 0, uvPos = 0;
+    int col = 0, row = 0;
+
+    for (final px in image) {
+      final r = px.r.toInt();
+      final g = px.g.toInt();
+      final b = px.b.toInt();
+
+      y[yPos++] = (((66 * r + 129 * g + 25 * b + 128) >> 8) + 16).clamp(16, 235);
+
+      if (row.isEven && col.isEven) {
+        u[uvPos] = (((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128).clamp(16, 240);
+        v[uvPos] = (((112 * r - 94 * g - 18 * b + 128) >> 8) + 128).clamp(16, 240);
+        uvPos++;
+      }
+
+      col++;
+      if (col >= w) { col = 0; row++; }
+    }
+
+    return (y, u, v);
   }
 
   // ── 파생 지표 계산 ────────────────────────────────────────────────────────
@@ -161,5 +292,7 @@ class HandLandmarkService {
     _plugin?.dispose();
     _plugin = null;
     _pluginInitialized = false;
+    _fileDetector?.release();
+    _fileDetector = null;
   }
 }

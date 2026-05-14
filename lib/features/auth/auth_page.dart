@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
-import '../home/widgets/aura_wordmark.dart';
 import 'auth_notifier.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
@@ -21,35 +21,60 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   bool get _canSignIn => _agreeTerms && _agreePrivacy;
 
+  void _showConsentHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.authTermsNotice,
+          style: GoogleFonts.notoSansKr(fontSize: 12),
+        ),
+        backgroundColor: AppColors.bg3,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final aura = context.auraColors;
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
 
-    ref.listen(authNotifierProvider, (_, next) {
-      if (next.isLoggedIn && context.mounted) context.pop();
+    ref.listen(authNotifierProvider, (prev, next) {
+      if (next.isLoggedIn && context.mounted) {
+        context.pop();
+      } else if (next.error != null &&
+          prev?.error != next.error &&
+          context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!,
+                style: GoogleFonts.notoSansKr(fontSize: 12)),
+            backgroundColor: Colors.red.shade800,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     });
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: AppColors.bg0,
       body: SafeArea(
         child: Stack(
           children: [
-            // 배경 radial 워시
+            // Radial glow
             Positioned.fill(
               child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      center: const Alignment(0, -0.7),
-                      radius: 1.0,
+                      center: const Alignment(0, -0.5),
+                      radius: 0.85,
                       colors: [
-                        theme.colorScheme.primary.withValues(
-                          alpha: theme.brightness == Brightness.dark ? 0.09 : 0.06,
-                        ),
+                        AppColors.gold.withValues(alpha: 0.07),
                         Colors.transparent,
                       ],
                     ),
@@ -58,21 +83,54 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               ),
             ),
 
+            // Close button (top right)
+            Positioned(
+              top: 8, right: 8,
+              child: IconButton(
+                icon: Icon(Icons.close, size: 18, color: AppColors.ivoryDim),
+                onPressed: isLoading ? null : () => context.pop(),
+              ),
+            ),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: AppSpacing.xxl * 1.5),
+                  const SizedBox(height: 60),
 
-                  // 브랜드 블록
-                  const Center(child: AuraWordmark(size: 48)),
-                  const SizedBox(height: AppSpacing.md),
+                  // Logo ring
+                  Center(
+                    child: SizedBox(
+                      width: 88, height: 88,
+                      child: CustomPaint(painter: _AuthRingPainter()),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // Title
                   Text(
                     l10n.authTagline,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: aura.onSurfaceMuted,
+                    style: GoogleFonts.notoSerifKr(
+                      fontSize: 17, fontWeight: FontWeight.w300,
+                      color: AppColors.ivory, height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.authSignInSubtitle,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.notoSansKr(
+                      fontSize: 12, color: AppColors.ivoryDim, height: 1.6,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                  Center(
+                    child: SizedBox(
+                      width: 60,
+                      child: CustomPaint(painter: _SmallOrnamentPainter()),
                     ),
                   ),
 
@@ -82,9 +140,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: aura.surfaceContainer,
-                      border: Border.all(color: aura.cardBorder, width: 1),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                      color: AppColors.bg2,
+                      border: Border.all(color: AppColors.hair, width: 1),
+                      borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: Column(
                       children: [
@@ -113,6 +171,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                     iconBuilder: (_) => const _GoogleGlyph(size: 18),
                     onTap: () =>
                         ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+                    onDisabledTap: () => _showConsentHint(context),
                   ),
                   const SizedBox(height: AppSpacing.sm),
 
@@ -120,29 +179,41 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   _OAuthButton(
                     enabled: _canSignIn && !isLoading,
                     label: l10n.loginWithKakao,
-                    iconBuilder: (_) => const Icon(
-                      Icons.chat_bubble_rounded,
-                      size: 18,
-                      color: Color(0xFF3A1D1D),
-                    ),
+                    iconBuilder: (_) => const _KakaoMark(),
                     backgroundColor: const Color(0xFFFEE500),
-                    labelColor: const Color(0xFF3A1D1D),
+                    labelColor: const Color(0xFF1A0E0E),
+                    isKakao: true,
                     onTap: () =>
                         ref.read(authNotifierProvider.notifier).signInWithKakao(),
+                    onDisabledTap: () => _showConsentHint(context),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
 
-                  // 게스트 진입
-                  TextButton(
-                    onPressed: isLoading ? null : () => context.pop(),
-                    child: Text(
-                      l10n.authContinueGuest,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: aura.onSurfaceMuted,
+                  // 나중에 하기
+                  Center(
+                    child: TextButton(
+                      onPressed: isLoading ? null : () => context.pop(),
+                      child: Text(
+                        l10n.authContinueGuest,
+                        style: GoogleFonts.notoSansKr(
+                          fontSize: 12, color: AppColors.ivoryDim,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.hair,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: 28),
+
+                  // Terms notice
+                  Text(
+                    l10n.authTermsNotice,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.notoSansKr(
+                      fontSize: 10, color: AppColors.ivoryFaint, height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                 ],
               ),
             ),
@@ -151,7 +222,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
             if (isLoading)
               const Positioned.fill(
                 child: ColoredBox(
-                  color: Color(0x33000000),
+                  color: Color(0x55000000),
                   child: Center(child: CircularProgressIndicator()),
                 ),
               ),
@@ -221,46 +292,59 @@ class _OAuthButton extends StatelessWidget {
     required this.label,
     required this.iconBuilder,
     required this.onTap,
+    this.onDisabledTap,
     this.backgroundColor,
     this.labelColor,
+    this.isKakao = false,
   });
 
   final bool enabled;
   final String label;
   final Widget Function(BuildContext) iconBuilder;
   final VoidCallback onTap;
+  final VoidCallback? onDisabledTap;
   final Color? backgroundColor;
   final Color? labelColor;
+  final bool isKakao;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final aura = context.auraColors;
-    final bgColor = backgroundColor ?? aura.surfaceContainer;
-    final fgColor = labelColor ??
-        (enabled ? theme.colorScheme.onSurface : aura.onSurfaceSubtle);
+    final bgColor = backgroundColor ?? Colors.transparent;
+    final fgColor = labelColor ?? AppColors.ivory;
+    final borderColor = isKakao ? Colors.transparent : AppColors.ivoryMid;
 
     return SizedBox(
-      height: 52,
-      child: OutlinedButton(
-        onPressed: enabled ? onTap : null,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: enabled ? bgColor : bgColor.withValues(alpha: 0.5),
-          side: BorderSide(color: aura.cardBorder, width: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            iconBuilder(context),
-            const SizedBox(width: AppSpacing.sm + 2),
-            Text(
-              label,
-              style: theme.textTheme.labelLarge?.copyWith(color: fgColor),
+      height: 50,
+      child: AnimatedOpacity(
+        opacity: enabled ? 1.0 : 0.45,
+        duration: const Duration(milliseconds: 200),
+        child: Material(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(AppRadius.xs),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+            onTap: enabled ? onTap : onDisabledTap,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: borderColor, width: 1),
+                borderRadius: BorderRadius.circular(AppRadius.xs),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  iconBuilder(context),
+                  const SizedBox(width: AppSpacing.sm + 2),
+                  Text(
+                    label,
+                    style: GoogleFonts.notoSansKr(
+                      fontSize: 13, fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5, color: fgColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -309,4 +393,138 @@ class _GooglePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter _) => false;
+}
+
+// ── Auth ring logo ────────────────────────────────────────────────────────────
+
+class _AuthRingPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final outer = cx - 2;
+    final inner = cx - 9;
+
+    final gPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    // gradient ring via shader
+    gPaint.shader = const SweepGradient(
+      colors: [AppColors.gold, AppColors.goldLight, AppColors.gold],
+    ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: outer));
+    canvas.drawCircle(Offset(cx, cy), outer, gPaint);
+
+    gPaint.shader = null;
+    gPaint.color = AppColors.hair;
+    gPaint.strokeWidth = 0.5;
+    canvas.drawCircle(Offset(cx, cy), inner, gPaint);
+
+    // "A" text
+    final tp = TextPainter(
+      text: TextSpan(
+        text: 'A',
+        style: TextStyle(
+          fontFamily: 'NotoSerifKR',
+          fontSize: size.width * 0.35,
+          color: AppColors.ivory,
+          fontWeight: FontWeight.w300,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(cx - tp.width / 2, cy - tp.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(_AuthRingPainter _) => false;
+}
+
+class _SmallOrnamentPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cy = size.height / 2;
+    final p = Paint()
+      ..color = AppColors.gold.withValues(alpha: 0.4)
+      ..strokeWidth = 0.6
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(0, cy), Offset(20, cy), p);
+    canvas.drawLine(Offset(40, cy), Offset(size.width, cy), p);
+
+    final dp = Paint()
+      ..color = AppColors.gold.withValues(alpha: 0.6)
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(30, 0)
+      ..lineTo(35, cy)
+      ..lineTo(30, size.height)
+      ..lineTo(25, cy)
+      ..close();
+    canvas.drawPath(path, dp);
+  }
+
+  @override
+  bool shouldRepaint(_SmallOrnamentPainter _) => false;
+}
+
+class _KakaoMark extends StatelessWidget {
+  const _KakaoMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 18, height: 18,
+      child: CustomPaint(painter: _KakaoPainter()),
+    );
+  }
+}
+
+class _KakaoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = const Color(0xFF1A0E0E)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final cx = size.width / 2;
+    final cy = size.height * 0.44;
+    final rx = size.width * 0.46;
+    final ry = size.height * 0.38;
+
+    path.addOval(Rect.fromCenter(
+      center: Offset(cx, cy), width: rx * 2, height: ry * 2,
+    ));
+
+    // tail
+    final tail = Path()
+      ..moveTo(cx - rx * 0.2, cy + ry * 0.7)
+      ..quadraticBezierTo(cx - rx * 0.4, cy + ry * 1.4,
+          cx - rx * 0.5, cy + ry * 1.7)
+      ..quadraticBezierTo(cx + rx * 0.1, cy + ry * 1.2,
+          cx + rx * 0.2, cy + ry * 0.8);
+    tail.close();
+    canvas.drawPath(path, p);
+    canvas.drawPath(tail, p..color = const Color(0xFFFEE500));
+
+    // speech bubble effect
+    final bg = Paint()
+      ..color = const Color(0xFFFEE500)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, bg);
+    canvas.drawPath(tail, bg);
+
+    // icon marks (simplified)
+    final ip = Paint()
+      ..color = const Color(0xFF1A0E0E)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(cx - 3, cy - 2), Offset(cx - 3, cy + 3), ip);
+    canvas.drawLine(Offset(cx + 1, cy - 3), Offset(cx - 1, cy + 1), ip);
+    canvas.drawLine(Offset(cx + 3, cy - 2), Offset(cx + 3, cy + 3), ip);
+  }
+
+  @override
+  bool shouldRepaint(_KakaoPainter _) => false;
 }

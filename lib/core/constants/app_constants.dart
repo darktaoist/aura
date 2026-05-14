@@ -1,9 +1,11 @@
 /// 환경변수 키 (--dart-define 으로 주입)
 class Env {
   static const String supabaseUrl =
-      String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+      String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://vpjfwwijijjevjmudjol.supabase.co');
   static const String supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+      String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwamZ3d2lqaWpqZXZqbXVkam9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5NjA1MjEsImV4cCI6MjA5MTUzNjUyMX0.W0xd9p85e2oAxhZwKcsWXxEXKfWYRZZsNz-3WNILFOE');
+  static const String kakaoNativeKey =
+      String.fromEnvironment('KAKAO_NATIVE_KEY', defaultValue: '2ea8e92a5d7e09db968309ad326b8579');
 
   Env._();
 }
@@ -21,9 +23,9 @@ class AppConst {
   static const int gemmaIntervalSec  = 5;        // 실시간 오버레이 분석 간격
 
   // Gemma
-  static const int gemmaMaxTokens    = 4096;
+  static const int gemmaMaxTokens    = 1536;
   static const double gemmaTemp      = 0.7;
-  static const int gemmaTopK         = 40;
+  static const int gemmaTopK         = 20;
 
   // RAG
   static const int ragTopK           = 5;

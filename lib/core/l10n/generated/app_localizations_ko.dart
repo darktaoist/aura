@@ -304,6 +304,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiEngineInitializing => 'AI 엔진 초기화 중...';
 
   @override
+  String get aiEngineInitializingDesc => '최초 실행 시 수 초 소요됩니다';
+
+  @override
+  String get aiEngineInitError => 'AI 엔진 초기화에 실패했습니다';
+
+  @override
+  String get aiEngineRetry => '다시 시도';
+
+  @override
   String get faceAnalyzing => '관상 분석 중...';
 
   @override
@@ -393,6 +402,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get modelFound => '모델 발견!';
 
   @override
+  String get modelVerifying => '파일 무결성 검증 중...';
+
+  @override
+  String get modelVerifyingDesc => '다운로드된 파일을 확인하고 있습니다 (수십 초 소요)';
+
+  @override
+  String get modelInstalling => '모델 등록 중...';
+
+  @override
+  String get modelInstallingDesc => 'AI 모델을 앱에 설치하고 있습니다';
+
+  @override
   String modelDownloadingWith(String name) {
     return 'AI 모델 준비 중 ($name)';
   }
@@ -478,7 +499,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeFaceTitle => '얼굴을 읽다';
 
   @override
-  String get homeFaceDesc => '468 랜드마크';
+  String get homeFaceDesc => '468개 얼굴 특징점을 AI가 분석해 이마·눈·코·입·턱의 관상을 풀어드립니다';
 
   @override
   String get homePalmLabel => 'AI 손금';
@@ -487,7 +508,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homePalmTitle => '손을 읽다';
 
   @override
-  String get homePalmDesc => '21 랜드마크';
+  String get homePalmDesc => '21개 손 특징점으로 생명선·감정선·두뇌선·운명선을 AI가 해석합니다';
 
   @override
   String get homeResumeTitle => '이어가기';
@@ -595,4 +616,62 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSectionAbout => '앱 정보';
+
+  @override
+  String get streamingBackTitle => '분석이 진행 중입니다';
+
+  @override
+  String get streamingBackBody =>
+      'AI 분석이 아직 끝나지 않았습니다.\n지금 나가면 다음 분석 시작이 지연될 수 있습니다.';
+
+  @override
+  String get streamingBackLeave => '나가기';
+
+  @override
+  String get selectFromGallery => '갤러리에서 선택';
+
+  @override
+  String get noFaceDetected => '얼굴을 감지하지 못했습니다. 다른 사진을 선택해 주세요.';
+
+  @override
+  String get noPalmDetected => '손을 감지하지 못했습니다. 다른 사진을 선택해 주세요.';
+
+  @override
+  String get galleryPermissionRequired => '사진 접근 권한이 필요합니다.';
+
+  @override
+  String get streakDays => '일 연속';
+
+  @override
+  String get todayBadge => '오늘 추천';
+
+  @override
+  String get minRead => '3 MIN';
+
+  @override
+  String get aiName => '타오운세';
+
+  @override
+  String get homeConsultLabel => 'AI 상담';
+
+  @override
+  String get homeConsultSub => '분석 결과를 바탕으로 깊이 있는 대화';
+
+  @override
+  String get selectLanguageTitle => '언어를 선택하세요';
+
+  @override
+  String get selectLanguageSub => 'SELECT YOUR LANGUAGE';
+
+  @override
+  String get enterApp => '입장하기 →';
+
+  @override
+  String get confidence => '신뢰도';
+
+  @override
+  String get authSignInSubtitle => '로그인하면 분석 결과를 저장하고 AI 상담을 이어갈 수 있습니다';
+
+  @override
+  String get authTermsNotice => '로그인 시 이용약관 및 개인정보 처리방침에 동의한 것으로 간주됩니다.';
 }

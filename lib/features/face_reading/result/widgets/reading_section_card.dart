@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 
@@ -57,12 +58,19 @@ class _ReadingSectionCardState extends State<ReadingSectionCard>
 
         return Container(
           decoration: BoxDecoration(
-            color: aura.surfaceContainer,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.bg2.withValues(alpha: 0.9),
+                AppColors.bg1.withValues(alpha: 0.7),
+              ],
+            ),
             border: Border.all(
               color: widget.isStreaming ? aura.cardBorderAccent : aura.cardBorder,
               width: 1,
             ),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderRadius: BorderRadius.circular(AppRadius.xs),
             boxShadow: [
               BoxShadow(
                 color: aura.cardShadow,
@@ -106,11 +114,22 @@ class _ReadingSectionCardState extends State<ReadingSectionCard>
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              Text(
-                widget.body,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  height: 1.7,
-                  letterSpacing: 0.05,
+              MarkdownBody(
+                data: widget.body,
+                styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                  p: theme.textTheme.bodyLarge?.copyWith(
+                    height: 1.7,
+                    letterSpacing: 0.05,
+                  ),
+                  h3: theme.textTheme.titleSmall?.copyWith(
+                    color: widget.accent,
+                    fontWeight: FontWeight.w600,
+                    height: 2.0,
+                  ),
+                  strong: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ivory,
+                  ),
                 ),
               ),
             ],

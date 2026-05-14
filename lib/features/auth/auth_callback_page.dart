@@ -43,7 +43,15 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
     if (_handled) return;
     debugPrint('[AuthCallback] fallback: calling getSessionFromUrl manually');
     try {
-      await Supabase.instance.client.auth.getSessionFromUrl(widget.callbackUri);
+      // state.uri는 go_router 내부 경로(/login-callback?code=...)이므로
+      // code를 추출해 원본 딥링크 URL을 재구성한다.
+      final code = widget.callbackUri.queryParameters['code'];
+      final uri = code != null
+          ? Uri.parse(
+              'io.supabase.gwansang://login-callback/?code=${Uri.encodeComponent(code)}',
+            )
+          : widget.callbackUri;
+      await Supabase.instance.client.auth.getSessionFromUrl(uri);
       debugPrint('[AuthCallback] manual exchange succeeded');
     } catch (e) {
       debugPrint('[AuthCallback] manual exchange FAILED: $e');

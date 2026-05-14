@@ -117,9 +117,12 @@ class GemmaChatSessionNotifier {
 
     await _closeChat();
 
-    final model = await FlutterGemma.getActiveModel(
-      maxTokens: AppConst.gemmaMaxTokens,
-    );
+    final model = await _loadModelWithFallback();
+
+    // GemmaService(관상/손금)와 같은 네이티브 모델을 공유하므로,
+    // 이전 분석이 남긴 세션 캐시(_createCompleter)를 닫아 리셋해야
+    // createChat()이 올바른 system instruction으로 새 네이티브 세션을 생성한다.
+    await model.session?.close();
 
     _chat = await model.createChat(
       modelType: ModelType.gemmaIt,
@@ -170,12 +173,25 @@ class GemmaChatSessionNotifier {
     return all.sublist(all.length - maxTurns);
   }
 
-  Future<void> _closeChat() async {
-    try {
-      await _chat?.close();
-    } catch (e) {
-      debugPrint('[GemmaChatSession] chat.close() error (ignored): $e');
+  static Future<InferenceModel> _loadModelWithFallback() async {
+    for (final backend in [PreferredBackend.gpu, PreferredBackend.cpu]) {
+      try {
+        final model = await FlutterGemma.getActiveModel(
+          maxTokens: AppConst.gemmaMaxTokens,
+          preferredBackend: backend,
+        );
+        debugPrint('[GemmaChatSession] 모델 로드 backend=$backend');
+        return model;
+      } catch (e) {
+        debugPrint('[GemmaChatSession] $backend 백엔드 실패: $e');
+      }
     }
+    throw StateError('[GemmaChatSession] 모든 백엔드에서 모델 로드 실패');
+  }
+
+  Future<void> _closeChat() async {
+    // chat.close()를 호출하면 FlutterGemma 모델 상태가 오염되어 다음 세션에서
+    // 첫 토큰만 생성하고 멈추는 버그 발생 (GemmaService와 동일한 패턴).
     _chat = null;
     _activeConsultationId = null;
   }

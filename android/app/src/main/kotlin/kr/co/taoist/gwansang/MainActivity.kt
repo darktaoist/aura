@@ -1,4 +1,4 @@
-package kr.co.taoist.gwansang.gwansang
+package kr.co.taoist.gwansang
 
 import io.flutter.embedding.android.FlutterActivity
 

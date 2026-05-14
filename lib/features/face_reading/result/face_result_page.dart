@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/l10n/locale_notifier.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/subject_picker_sheet.dart';
-import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/landmark_result.dart';
 import '../../../models/consultation.dart';
 import '../../../services/consultation_service.dart';
@@ -31,6 +31,7 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   bool _pendingSave = false;
   String? _savedReadingId;
   final _analyzedAt = DateTime.now();
+  int _activeSection = 0;
 
   Map<String, String> _sections(String text) {
     if (text == _lastParsedText) return _cachedSections;
@@ -47,25 +48,13 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
   Future<void> _loadLocaleAndAnalyze() async {
     final locale = ref.read(localeNotifierProvider).languageCode;
-    List<String> ragChunks = [];
-    try {
-      ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
-        type: 'face', queryEmbedding: _buildQueryEmbedding(),
+    debugPrint('[FaceResultPage] _loadLocaleAndAnalyze 시작, locale=$locale');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(faceResultNotifierProvider.notifier).analyze(
+        result: widget.result, locale: locale,
       );
-    } catch (e) {
-      debugPrint('[FaceResultPage] RAG search failed (non-fatal): $e');
-    }
-    if (!mounted) return;
-    ref.read(faceResultNotifierProvider.notifier).analyze(
-      result: widget.result, locale: locale, ragChunks: ragChunks,
-    );
-  }
-
-  List<double> _buildQueryEmbedding() {
-    final f = widget.result.features;
-    final base = [f.eyeSpan, f.faceHeight, f.noseRatio, f.mouthWidth,
-        f.symmetry, f.foreheadHeight, f.eyebrowDistance];
-    return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
+    });
   }
 
   Map<String, String> _parseSections(String text) {
@@ -141,28 +130,119 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
 
     final showCta = !isStreaming && fullText.isNotEmpty && error == null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.faceAnalysisResult),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: isStreaming ? null : _onShare,
-            tooltip: l10n.share,
+    return PopScope(
+      canPop: !isStreaming,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final leave = await _confirmLeave(context, l10n);
+        if (leave && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bg0,
+        appBar: AppBar(
+          backgroundColor: AppColors.bg0.withValues(alpha: 0.9),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, size: 18),
+            onPressed: isStreaming
+                ? () async {
+                    final leave = await _confirmLeave(context, l10n);
+                    if (leave && context.mounted) context.pop();
+                  }
+                : () => context.pop(),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(child: body),
-          if (showCta) _BottomCta(
-            l10n: l10n,
-            onSave: () => _onSave(context),
-            onConsult: () => _onStartConsultation(context),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.faceAnalysisResult,
+                style: GoogleFonts.notoSerifKr(
+                  fontSize: 15, color: AppColors.ivory, letterSpacing: 1,
+                ),
+              ),
+              Text(
+                '甲辰年 · ${DateTime.now().month}.${DateTime.now().day}',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 9, color: AppColors.ivoryFaint, letterSpacing: 2,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+          actions: [
+            // Confidence badge — 스트리밍 완료 후에만 표시
+            if (!isStreaming && fullText.isNotEmpty && error == null)
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.5), width: 1,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.gold.withValues(alpha: 0.2),
+                      AppColors.bg1.withValues(alpha: 0.6),
+                    ],
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.confidence,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 8, letterSpacing: 1.5,
+                        color: AppColors.goldLight,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${(widget.result.score * 100).round()}',
+                      style: GoogleFonts.notoSerifKr(
+                        fontSize: 16, color: AppColors.ivory,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(child: body),
+            if (showCta) _BottomCta(
+              l10n: l10n,
+              onSave: () => _onSave(context),
+              onConsult: () => _onStartConsultation(context),
+              onShare: _onShare,
+            ),
+          ],
+        ),
+      ),   // PopScope
     );
+  }
+
+  Future<bool> _confirmLeave(BuildContext context, AppLocalizations l10n) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.streamingBackTitle),
+        content: Text(l10n.streamingBackBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.streamingBackLeave),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   Widget _buildLoading(BuildContext context, AppLocalizations l10n) {
@@ -240,58 +320,194 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
   ) {
     final sections = _sections(fullText);
     final hasSections = sections.values.any((v) => v.isNotEmpty);
+    final availSections = kSections
+        .where((s) => (sections[s.key] ?? '').isNotEmpty)
+        .toList();
 
     final chips = hasSections
-        ? kSections
-            .where((s) => (sections[s.key] ?? '').isNotEmpty)
-            .map((s) => '#${s.label}')
-            .toList()
+        ? availSections.map((s) => '#${s.label}').toList()
         : <String>[];
     final progress = (fullText.length / 1200).clamp(0.0, 1.0);
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: [
-        ReadingHero(
-          analyzedAt: _analyzedAt,
-          highlightChips: chips,
-          isStreaming: isStreaming,
-          progress: progress,
-        ),
-        const SizedBox(height: AppSpacing.md),
+    // Han characters for section tabs
+    const hanMap = {
+      'overall':  '總',
+      'forehead': '額',
+      'eyes':     '眼',
+      'nose':     '鼻',
+      'mouth':    '口',
+      'chin':     '頤',
+    };
 
-        if (isStreaming && !hasSections)
-          ReadingSectionCard(
-            accent: aura.sectionAccents['overall']!,
-            title: l10n.analyzing,
-            body: fullText,
-            icon: Icons.auto_awesome,
-            isStreaming: true,
-          )
-        else if (!hasSections && fullText.isNotEmpty)
-          ReadingSectionCard(
-            accent: aura.sectionAccents['overall']!,
-            title: l10n.faceAnalysisResult,
-            body: fullText,
-            icon: Icons.auto_awesome_outlined,
-            isStreaming: isStreaming,
-          )
-        else
-          ...kSections.map((s) {
-            final text = sections[s.key] ?? '';
-            if (text.isEmpty) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: ReadingSectionCard(
-                accent: s.accent,
-                title: s.label,
-                body: text,
-                icon: s.icon,
-                isStreaming: s.key == 'overall' && isStreaming,
+    return Column(
+      children: [
+        // Section tab bar
+        if (hasSections && availSections.length > 1) ...[
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              scrollDirection: Axis.horizontal,
+              itemCount: availSections.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 4),
+              itemBuilder: (ctx, i) {
+                final s = availSections[i];
+                final active = i == _activeSection.clamp(0, availSections.length - 1);
+                return GestureDetector(
+                  onTap: () => setState(() => _activeSection = i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppRadius.xs),
+                      border: Border.all(
+                        color: active
+                            ? AppColors.gold.withValues(alpha: 0.7)
+                            : AppColors.hair,
+                        width: 1,
+                      ),
+                      gradient: active ? LinearGradient(colors: [
+                        AppColors.gold.withValues(alpha: 0.2),
+                        AppColors.bg1.withValues(alpha: 0.6),
+                      ]) : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          hanMap[s.key] ?? '•',
+                          style: GoogleFonts.notoSerifKr(
+                            fontSize: 14,
+                            color: active ? AppColors.goldLight : AppColors.ivoryDim,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          s.label,
+                          style: GoogleFonts.notoSansKr(
+                            fontSize: 12, letterSpacing: 0.3,
+                            color: active ? AppColors.goldLight : AppColors.ivoryDim,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Divider(color: AppColors.hair, height: 1),
+        ],
+
+        // Content
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              ReadingHero(
+                analyzedAt: _analyzedAt,
+                highlightChips: chips,
+                isStreaming: isStreaming,
+                progress: progress,
               ),
-            );
-          }),
-        const SizedBox(height: AppSpacing.xxl),
+              const SizedBox(height: AppSpacing.md),
+
+              if (isStreaming && !hasSections)
+                ReadingSectionCard(
+                  accent: aura.sectionAccents['overall']!,
+                  title: l10n.analyzing,
+                  body: fullText,
+                  icon: Icons.auto_awesome,
+                  isStreaming: true,
+                )
+              else if (!hasSections && fullText.isNotEmpty)
+                ReadingSectionCard(
+                  accent: aura.sectionAccents['overall']!,
+                  title: l10n.faceAnalysisResult,
+                  body: fullText,
+                  icon: Icons.auto_awesome_outlined,
+                  isStreaming: isStreaming,
+                )
+              else if (hasSections) ...[
+                // Show active section (or all if only one)
+                () {
+                  final idx = _activeSection.clamp(0, availSections.length - 1);
+                  final s = availSections[idx];
+                  final text = sections[s.key] ?? '';
+                  if (text.isEmpty) return const SizedBox.shrink();
+                  return ReadingSectionCard(
+                    accent: s.accent,
+                    title: s.label,
+                    body: text,
+                    icon: s.icon,
+                    isStreaming: s.key == 'overall' && isStreaming,
+                  );
+                }(),
+
+                // Prev / Next navigation
+                if (availSections.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.md),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: _activeSection > 0
+                              ? () => setState(() => _activeSection--)
+                              : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.arrow_back, size: 12),
+                              const SizedBox(width: 4),
+                              Text(
+                                _activeSection > 0
+                                    ? availSections[_activeSection - 1].label
+                                    : '',
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 10, letterSpacing: 1.5,
+                                  color: AppColors.goldLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${(_activeSection + 1).toString().padLeft(2, '0')} / ${availSections.length.toString().padLeft(2, '0')}',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 10, letterSpacing: 1.5,
+                            color: AppColors.ivoryFaint,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _activeSection < availSections.length - 1
+                              ? () => setState(() => _activeSection++)
+                              : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _activeSection < availSections.length - 1
+                                    ? availSections[_activeSection + 1].label
+                                    : '',
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 10, letterSpacing: 1.5,
+                                  color: AppColors.goldLight,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_forward, size: 12),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+              const SizedBox(height: AppSpacing.xxl),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -326,20 +542,27 @@ class _FaceResultPageState extends ConsumerState<FaceResultPage> {
     final authState = ref.read(authNotifierProvider);
     if (!authState.isLoggedIn) return;
     final locale = ref.read(localeNotifierProvider).languageCode;
-    final reading = await ref.read(faceResultNotifierProvider.notifier).saveReading(
-      userId: authState.user!.id,
-      landmarkResult: widget.result,
-      modelUsed: 'E2B',
-      locale: locale,
-      subjectName: subjectName,
-    );
-    if (!mounted) return;
-    final email = authState.user?.email ?? '';
-    final displayName = email.contains('@') ? email.split('@').first : email;
-    if (reading != null) setState(() => _savedReadingId = reading.id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed)),
-    );
+    try {
+      final reading = await ref.read(faceResultNotifierProvider.notifier).saveReading(
+        userId: authState.user!.id,
+        landmarkResult: widget.result,
+        modelUsed: 'E2B',
+        locale: locale,
+        subjectName: subjectName,
+      );
+      if (!mounted) return;
+      final email = authState.user?.email ?? '';
+      final displayName = email.contains('@') ? email.split('@').first : email;
+      if (reading != null) setState(() => _savedReadingId = reading.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.saveSuccess(displayName))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.saveFailed}: $e')),
+      );
+    }
   }
 
   Future<void> _onStartConsultation(BuildContext context) async {
@@ -400,45 +623,116 @@ class _BottomCta extends StatelessWidget {
     required this.l10n,
     required this.onSave,
     required this.onConsult,
+    required this.onShare,
   });
 
   final AppLocalizations l10n;
   final VoidCallback onSave;
   final VoidCallback onConsult;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
-    final aura = context.auraColors;
     return Container(
       padding: EdgeInsets.fromLTRB(
-        AppSpacing.lg,
+        AppSpacing.md, AppSpacing.sm,
         AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.md + MediaQuery.of(context).padding.bottom,
+        AppSpacing.sm + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: aura.cardBorder, width: 1)),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.hair2, width: 1)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x00000000), Color(0xFF0D0B14)],
+        ),
       ),
       child: Row(
         children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onSave,
-              icon: const Icon(Icons.bookmark_outline),
-              label: Text(l10n.save),
-            ),
+          _GhostBtn(
+            icon: Icons.bookmark_outline,
+            label: l10n.save,
+            onTap: onSave,
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: 8),
+          _GhostBtn(
+            icon: Icons.share_outlined,
+            label: l10n.share,
+            onTap: onShare,
+          ),
+          const SizedBox(width: 8),
           Expanded(
-            flex: 2,
-            child: FilledButton.icon(
-              onPressed: onConsult,
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: Text(l10n.resultConsult),
+            child: GestureDetector(
+              onTap: onConsult,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE6C877), Color(0xFFC9A449)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.resultConsult,
+                      style: GoogleFonts.notoSansKr(
+                        fontSize: 13, letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF1a1407),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text('→',
+                        style: TextStyle(color: Color(0xFF1a1407), fontSize: 13)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GhostBtn extends StatelessWidget {
+  const _GhostBtn({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xs),
+          border: Border.all(color: AppColors.hair, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppColors.goldLight),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.notoSansKr(
+                fontSize: 11, letterSpacing: 0.8,
+                color: AppColors.ivoryMid,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

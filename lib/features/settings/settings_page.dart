@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/l10n/locale_notifier.dart';
 import '../../core/theme/app_colors.dart';
+import 'package:flutter_gemma/flutter_gemma.dart' show PreferredBackend;
+
+import '../../data/gemma/gemma_service.dart';
 import '../auth/auth_notifier.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -18,13 +21,21 @@ class SettingsPage extends ConsumerWidget {
     'ko': '한국어', 'en': 'English', 'ja': '日本語', 'zh': '中文',
   };
 
-  @override
+@override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final locale = ref.watch(localeNotifierProvider).languageCode;
     final authState = ref.watch(authNotifierProvider);
+    final gemmaState = ref.watch(gemmaServiceProvider);
     final aura = context.auraColors;
     final theme = Theme.of(context);
+
+    final modelLabel = gemmaState.when(
+      loading: () => 'E2B · ...',
+      error: (_, __) => 'E2B',
+      data: (svc) =>
+          'E2B · ${svc.backend == PreferredBackend.gpu ? 'GPU ✓' : 'CPU'}',
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
@@ -52,15 +63,10 @@ class SettingsPage extends ConsumerWidget {
               onTap: () => _showLocaleDialog(context, ref, locale, l10n),
             ),
             _SettingRow(
-              icon: Icons.dark_mode_outlined,
-              title: l10n.theme,
-              value: l10n.themeSystem,
-              onTap: () {},
-            ),
-            _SettingRow(
               icon: Icons.memory_outlined,
               title: l10n.model,
-              value: 'Gemma 4 E2B',
+              value: modelLabel,
+              showChevron: false,
               onTap: () {},
             ),
           ]),
@@ -147,7 +153,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _clearCache(BuildContext context, AppLocalizations l10n) async {
+Future<void> _clearCache(BuildContext context, AppLocalizations l10n) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

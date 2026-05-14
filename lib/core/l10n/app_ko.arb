@@ -112,6 +112,9 @@
   "goBack": "돌아가기",
   "palmGuide": "손바닥을 화면 쪽으로\n펼쳐서 보여주세요",
   "aiEngineInitializing": "AI 엔진 초기화 중...",
+  "aiEngineInitializingDesc": "최초 실행 시 수 초 소요됩니다",
+  "aiEngineInitError": "AI 엔진 초기화에 실패했습니다",
+  "aiEngineRetry": "다시 시도",
 
   "faceAnalyzing": "관상 분석 중...",
   "palmAnalyzing": "손금 분석 중...",
@@ -151,6 +154,10 @@
   "modelScanning": "기기 확인 중...",
   "modelScanningDesc": "설치된 AI 모델을 찾고 있습니다",
   "modelFound": "모델 발견!",
+  "modelVerifying": "파일 무결성 검증 중...",
+  "modelVerifyingDesc": "다운로드된 파일을 확인하고 있습니다 (수십 초 소요)",
+  "modelInstalling": "모델 등록 중...",
+  "modelInstallingDesc": "AI 모델을 앱에 설치하고 있습니다",
   "modelDownloadingWith": "AI 모델 준비 중 ({name})",
   "@modelDownloadingWith": {
     "placeholders": { "name": { "type": "String" } }
@@ -189,10 +196,10 @@
   "homeDailyFallback": "오늘 하루도 당신의 결이 흐려지지 않기를.",
   "homeFaceLabel": "AI 관상",
   "homeFaceTitle": "얼굴을 읽다",
-  "homeFaceDesc": "468 랜드마크",
+  "homeFaceDesc": "468개 얼굴 특징점을 AI가 분석해 이마·눈·코·입·턱의 관상을 풀어드립니다",
   "homePalmLabel": "AI 손금",
   "homePalmTitle": "손을 읽다",
-  "homePalmDesc": "21 랜드마크",
+  "homePalmDesc": "21개 손 특징점으로 생명선·감정선·두뇌선·운명선을 AI가 해석합니다",
   "homeResumeTitle": "이어가기",
   "homeResumeEmpty": "아직 진행 중인 상담이 없어요.",
   "commonSeeAll": "모두 보기",
@@ -229,5 +236,27 @@
 
   "settingsSectionAnalysis": "분석",
   "settingsSectionPrivacy": "개인정보 · 법적",
-  "settingsSectionAbout": "앱 정보"
+  "settingsSectionAbout": "앱 정보",
+
+  "streamingBackTitle": "분석이 진행 중입니다",
+  "streamingBackBody": "AI 분석이 아직 끝나지 않았습니다.\n지금 나가면 다음 분석 시작이 지연될 수 있습니다.",
+  "streamingBackLeave": "나가기",
+
+  "selectFromGallery": "갤러리에서 선택",
+  "noFaceDetected": "얼굴을 감지하지 못했습니다. 다른 사진을 선택해 주세요.",
+  "noPalmDetected": "손을 감지하지 못했습니다. 다른 사진을 선택해 주세요.",
+  "galleryPermissionRequired": "사진 접근 권한이 필요합니다.",
+
+  "streakDays": "일 연속",
+  "todayBadge": "오늘 추천",
+  "minRead": "3 MIN",
+  "aiName": "타오운세",
+  "homeConsultLabel": "AI 상담",
+  "homeConsultSub": "분석 결과를 바탕으로 깊이 있는 대화",
+  "selectLanguageTitle": "언어를 선택하세요",
+  "selectLanguageSub": "SELECT YOUR LANGUAGE",
+  "enterApp": "입장하기 →",
+  "confidence": "신뢰도",
+  "authSignInSubtitle": "로그인하면 분석 결과를 저장하고 AI 상담을 이어갈 수 있습니다",
+  "authTermsNotice": "로그인 시 이용약관 및 개인정보 처리방침에 동의한 것으로 간주됩니다."
 }

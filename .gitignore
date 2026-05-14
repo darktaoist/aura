@@ -1,3 +1,8 @@
+# Signing
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
 # Miscellaneous
 *.class
 *.log
@@ -57,3 +62,6 @@ GoogleService-Info.plist
 android/app/src/main/res/values/strings.xml
 .env
 .env.*
+
+# Supabase
+supabase/.temp/

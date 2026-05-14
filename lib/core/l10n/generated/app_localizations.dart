@@ -678,6 +678,24 @@ abstract class AppLocalizations {
   /// **'AI 엔진 초기화 중...'**
   String get aiEngineInitializing;
 
+  /// No description provided for @aiEngineInitializingDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'최초 실행 시 수 초 소요됩니다'**
+  String get aiEngineInitializingDesc;
+
+  /// No description provided for @aiEngineInitError.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 엔진 초기화에 실패했습니다'**
+  String get aiEngineInitError;
+
+  /// No description provided for @aiEngineRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 시도'**
+  String get aiEngineRetry;
+
   /// No description provided for @faceAnalyzing.
   ///
   /// In ko, this message translates to:
@@ -852,6 +870,30 @@ abstract class AppLocalizations {
   /// **'모델 발견!'**
   String get modelFound;
 
+  /// No description provided for @modelVerifying.
+  ///
+  /// In ko, this message translates to:
+  /// **'파일 무결성 검증 중...'**
+  String get modelVerifying;
+
+  /// No description provided for @modelVerifyingDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'다운로드된 파일을 확인하고 있습니다 (수십 초 소요)'**
+  String get modelVerifyingDesc;
+
+  /// No description provided for @modelInstalling.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델 등록 중...'**
+  String get modelInstalling;
+
+  /// No description provided for @modelInstallingDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 모델을 앱에 설치하고 있습니다'**
+  String get modelInstallingDesc;
+
   /// No description provided for @modelDownloadingWith.
   ///
   /// In ko, this message translates to:
@@ -1005,7 +1047,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeFaceDesc.
   ///
   /// In ko, this message translates to:
-  /// **'468 랜드마크'**
+  /// **'468개 얼굴 특징점을 AI가 분석해 이마·눈·코·입·턱의 관상을 풀어드립니다'**
   String get homeFaceDesc;
 
   /// No description provided for @homePalmLabel.
@@ -1023,7 +1065,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePalmDesc.
   ///
   /// In ko, this message translates to:
-  /// **'21 랜드마크'**
+  /// **'21개 손 특징점으로 생명선·감정선·두뇌선·운명선을 AI가 해석합니다'**
   String get homePalmDesc;
 
   /// No description provided for @homeResumeTitle.
@@ -1235,6 +1277,120 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'앱 정보'**
   String get settingsSectionAbout;
+
+  /// No description provided for @streamingBackTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석이 진행 중입니다'**
+  String get streamingBackTitle;
+
+  /// No description provided for @streamingBackBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 분석이 아직 끝나지 않았습니다.\n지금 나가면 다음 분석 시작이 지연될 수 있습니다.'**
+  String get streamingBackBody;
+
+  /// No description provided for @streamingBackLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'나가기'**
+  String get streamingBackLeave;
+
+  /// No description provided for @selectFromGallery.
+  ///
+  /// In ko, this message translates to:
+  /// **'갤러리에서 선택'**
+  String get selectFromGallery;
+
+  /// No description provided for @noFaceDetected.
+  ///
+  /// In ko, this message translates to:
+  /// **'얼굴을 감지하지 못했습니다. 다른 사진을 선택해 주세요.'**
+  String get noFaceDetected;
+
+  /// No description provided for @noPalmDetected.
+  ///
+  /// In ko, this message translates to:
+  /// **'손을 감지하지 못했습니다. 다른 사진을 선택해 주세요.'**
+  String get noPalmDetected;
+
+  /// No description provided for @galleryPermissionRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 접근 권한이 필요합니다.'**
+  String get galleryPermissionRequired;
+
+  /// No description provided for @streakDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'일 연속'**
+  String get streakDays;
+
+  /// No description provided for @todayBadge.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 추천'**
+  String get todayBadge;
+
+  /// No description provided for @minRead.
+  ///
+  /// In ko, this message translates to:
+  /// **'3 MIN'**
+  String get minRead;
+
+  /// No description provided for @aiName.
+  ///
+  /// In ko, this message translates to:
+  /// **'타오운세'**
+  String get aiName;
+
+  /// No description provided for @homeConsultLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 상담'**
+  String get homeConsultLabel;
+
+  /// No description provided for @homeConsultSub.
+  ///
+  /// In ko, this message translates to:
+  /// **'분석 결과를 바탕으로 깊이 있는 대화'**
+  String get homeConsultSub;
+
+  /// No description provided for @selectLanguageTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'언어를 선택하세요'**
+  String get selectLanguageTitle;
+
+  /// No description provided for @selectLanguageSub.
+  ///
+  /// In ko, this message translates to:
+  /// **'SELECT YOUR LANGUAGE'**
+  String get selectLanguageSub;
+
+  /// No description provided for @enterApp.
+  ///
+  /// In ko, this message translates to:
+  /// **'입장하기 →'**
+  String get enterApp;
+
+  /// No description provided for @confidence.
+  ///
+  /// In ko, this message translates to:
+  /// **'신뢰도'**
+  String get confidence;
+
+  /// No description provided for @authSignInSubtitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인하면 분석 결과를 저장하고 AI 상담을 이어갈 수 있습니다'**
+  String get authSignInSubtitle;
+
+  /// No description provided for @authTermsNotice.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인 시 이용약관 및 개인정보 처리방침에 동의한 것으로 간주됩니다.'**
+  String get authTermsNotice;
 }
 
 class _AppLocalizationsDelegate

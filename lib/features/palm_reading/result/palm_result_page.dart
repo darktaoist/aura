@@ -7,7 +7,6 @@ import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/l10n/locale_notifier.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/subject_picker_sheet.dart';
-import '../../../data/supabase/reading_repository.dart';
 import '../../../domain/entities/palm_result.dart';
 import '../../../models/consultation.dart';
 import '../../../services/consultation_service.dart';
@@ -46,28 +45,13 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
   }
 
   Future<void> _loadLocaleAndAnalyze() async {
-    // localeNotifierProvider에서 직접 읽어 항상 현재 locale 반영
     final locale = ref.read(localeNotifierProvider).languageCode;
-
-    List<String> ragChunks = [];
-    try {
-      ragChunks = await ref.read(readingRepositoryProvider).ragSearch(
-        type: 'palm', queryEmbedding: _buildQueryEmbedding(),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(palmResultNotifierProvider.notifier).analyze(
+        result: widget.result, locale: locale,
       );
-    } catch (e) {
-      debugPrint('[PalmResultPage] RAG search failed (non-fatal): $e');
-    }
-    if (!mounted) return;
-
-    ref.read(palmResultNotifierProvider.notifier).analyze(
-      result: widget.result, locale: locale, ragChunks: ragChunks,
-    );
-  }
-
-  List<double> _buildQueryEmbedding() {
-    final f = widget.result.features;
-    final base = [f.palmWidth, f.indexLength, f.middleLength, f.ringLength, f.pinkyLength, f.thumbLength, f.fingerSpread];
-    return List<double>.generate(768, (i) => i < base.length ? base[i] : 0.0);
+    });
   }
 
   Map<String, String> _parseSections(String text) {
@@ -119,35 +103,63 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
 
     final showCta = !isStreaming && fullText.isNotEmpty && error == null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.palmResultTitle(hand)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: isStreaming ? null : _onShare,
-            tooltip: l10n.share,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: error != null
-                ? _buildError(context, l10n, error, isModelError: isModelError)
-                : isStreaming && fullText.isEmpty
-                    ? _buildLoading(context, l10n)
-                    : _buildContent(context, l10n, fullText, isStreaming, kSections),
-          ),
-          if (showCta)
-            _PalmBottomCta(
-              l10n: l10n,
-              onSave: () => _onSave(context),
-              onConsult: () => _onStartConsultation(context),
+    return PopScope(
+      canPop: !isStreaming,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final leave = await _confirmLeave(context, l10n);
+        if (leave && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.palmResultTitle(hand)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: isStreaming ? null : _onShare,
+              tooltip: l10n.share,
             ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: error != null
+                  ? _buildError(context, l10n, error, isModelError: isModelError)
+                  : isStreaming && fullText.isEmpty
+                      ? _buildLoading(context, l10n)
+                      : _buildContent(context, l10n, fullText, isStreaming, kSections),
+            ),
+            if (showCta)
+              _PalmBottomCta(
+                l10n: l10n,
+                onSave: () => _onSave(context),
+                onConsult: () => _onStartConsultation(context),
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<bool> _confirmLeave(BuildContext context, AppLocalizations l10n) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.streamingBackTitle),
+        content: Text(l10n.streamingBackBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.streamingBackLeave),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   Widget _buildLoading(BuildContext context, AppLocalizations l10n) {
@@ -271,42 +283,7 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
               ),
             );
           }),
-        const SizedBox(height: AppSpacing.xl),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.refresh),
-                  label: Text(l10n.retry),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: isStreaming ? null : () => _onSave(context),
-                  icon: const Icon(Icons.bookmark_outline),
-                  label: Text(l10n.save),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton.tonalIcon(
-              onPressed: isStreaming ? null : () => _onStartConsultation(context),
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: Text(l10n.resultStartConsultation),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xxl),
       ],
     );
   }
@@ -344,26 +321,29 @@ class _PalmResultPageState extends ConsumerState<PalmResultPage> {
     if (!authState.isLoggedIn) return;
 
     final locale = ref.read(localeNotifierProvider).languageCode;
+    try {
+      final reading = await ref.read(palmResultNotifierProvider.notifier).saveReading(
+        userId: authState.user!.id,
+        landmarkResult: widget.result,
+        modelUsed: 'E2B',
+        locale: locale,
+        subjectName: subjectName,
+      );
 
-    final reading = await ref.read(palmResultNotifierProvider.notifier).saveReading(
-      userId: authState.user!.id,
-      landmarkResult: widget.result,
-      modelUsed: 'E2B',
-      locale: locale,
-      subjectName: subjectName,
-    );
+      if (!mounted) return;
+      final email = authState.user?.email ?? '';
+      final displayName = email.contains('@') ? email.split('@').first : email;
 
-    if (!mounted) return;
-    final email = authState.user?.email ?? '';
-    final displayName = email.contains('@') ? email.split('@').first : email;
-
-    if (reading != null) setState(() => _savedReadingId = reading.id);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(reading != null ? l10n.saveSuccess(displayName) : l10n.saveFailed),
-      ),
-    );
+      if (reading != null) setState(() => _savedReadingId = reading.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.saveSuccess(displayName))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.saveFailed}: $e')),
+      );
+    }
   }
 
   Future<void> _onStartConsultation(BuildContext context) async {

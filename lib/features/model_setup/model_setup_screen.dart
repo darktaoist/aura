@@ -81,6 +81,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   Future<void> _registerFile(String path) async {
     try {
       final config = configForFile(path);
+      if (mounted) setState(() => _phase = _Phase.installing);
       await FlutterGemma.installModel(
         modelType: config.modelType,
         fileType: config.fileType,
@@ -153,13 +154,17 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
         throw Exception('다운로드된 파일이 유효하지 않습니다 (크기 부족).');
       }
 
-      // SHA-256 검증
+      // SHA-256 검증 (수십 초 소요 — 별도 단계로 표시)
+      if (mounted) setState(() => _phase = _Phase.verifying);
       final hashOk = await _verifySha256(file, model);
       if (!hashOk) {
         await file.delete();
         if (attempt == 0) {
           debugPrint('[Download] 해시 불일치 → 재시도');
-          if (mounted) setState(() => _downloadProgress = 0);
+          if (mounted) setState(() {
+            _phase = _Phase.downloading;
+            _downloadProgress = 0;
+          });
           await _download(model, attempt: 1);
           return;
         }
@@ -167,6 +172,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
       }
 
       // 검증 통과 → 등록
+      if (mounted) setState(() => _phase = _Phase.installing);
       await FlutterGemma.installModel(
         modelType: model.modelType,
         fileType: model.fileType,
@@ -361,6 +367,22 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
           ),
         );
 
+      case _Phase.verifying:
+        return _StatusTile(
+          icon: Icons.verified_outlined,
+          title: l10n.modelVerifying,
+          subtitle: l10n.modelVerifyingDesc,
+          showSpinner: true,
+        );
+
+      case _Phase.installing:
+        return _StatusTile(
+          icon: Icons.install_mobile_outlined,
+          title: l10n.modelInstalling,
+          subtitle: l10n.modelInstallingDesc,
+          showSpinner: true,
+        );
+
       case _Phase.error:
         return Column(
           children: [
@@ -392,7 +414,7 @@ class _ModelSetupScreenState extends State<ModelSetupScreen> {
   }
 }
 
-enum _Phase { scanning, registering, downloading, error }
+enum _Phase { scanning, registering, downloading, verifying, installing, error }
 
 class _StatusTile extends StatelessWidget {
   const _StatusTile({
