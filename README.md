@@ -298,12 +298,27 @@ AI prompts are locale-specific: `assets/prompts/{face|palm}_{ko,en,ja,zh}.txt`
 
 ## Roadmap
 
+### Done
 - [x] Face reading — 468-point ML Kit mesh
 - [x] Palm reading — HandLandmarker
 - [x] AI consultation chat (Gemma 4)
 - [x] 4-language support (KO / EN / JA / ZH)
 - [x] Google · Kakao OAuth
 - [x] Reading history
+
+### In Progress
+- [ ] **RAG-augmented analysis** — Supabase pgvector knowledge base for physiognomy and palmistry. Before each Gemma inference, the top-5 most relevant passages are retrieved via vector similarity search (Edge Function `rag-search`) and injected into the prompt. This grounds the model's output in curated domain knowledge rather than relying solely on its pre-trained weights.
+
+  ```
+  Landmark data
+    → embedding (768-dim)
+    → pgvector similarity search  ← physiognomy_kb / palmistry_kb
+    → top-5 relevant passages
+    → injected into Gemma prompt
+    → richer, knowledge-grounded reading
+  ```
+
+### Planned
 - [ ] iOS support (Sign in with Apple)
 - [ ] Export reading as PDF / shareable card image
 - [ ] 사주 (Four Pillars of Destiny) module
