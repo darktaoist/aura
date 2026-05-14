@@ -96,6 +96,32 @@ Supabase Storage                    ← optional, explicit user action only
 
 ---
 
+## Why On-Device?
+
+Running both a Vision AI model and a multi-gigabyte LLM entirely on a smartphone — with no server in the loop — is an uncommon architecture. Most apps offload at least one of these to the cloud. Here's why it matters and what makes it technically non-trivial.
+
+### Privacy
+
+Face and palm images are inherently personal biometric data. On-device processing means the raw camera frames are processed locally and discarded; nothing is transmitted. Users don't need to trust a third-party server with their biometrics.
+
+### Zero cloud inference cost
+
+Every analysis runs on the user's GPU/NPU. There are no cloud GPU calls regardless of how many users run readings simultaneously — the marginal cost per inference is zero.
+
+### The engineering challenge
+
+**Running a multi-GB LLM on a phone is not straightforward:**
+- Gemma 4 E2B/E4B weights are 2.5–5 GB. Loading them into the constrained RAM of a mobile device requires careful quantization and memory layout.
+- Inference must complete in a reasonable time without thermal throttling or out-of-memory crashes.
+- The app selects E2B or E4B automatically based on available RAM and GPU tier to balance quality against device capability.
+
+**Connecting Vision AI to the LLM without a server:**
+- ML Kit extracts structured numeric data (landmark coordinates, ratios, symmetry scores) from raw camera frames at 15 fps.
+- That data is serialized into a text prompt and handed to Gemma in the same process — no network hop, no serialization overhead across services.
+- Each analysis uses a fresh Gemma chat session to prevent context accumulation across readings.
+
+---
+
 ## Tech Highlights
 
 ### Google ML Kit — Vision AI
